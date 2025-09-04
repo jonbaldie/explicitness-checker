@@ -29,17 +29,19 @@ function add($a, $b) {
 ?>
 ```
 
-This example is totally contrived, but it's not as far from real-world code as you might think.
-
 ## How does the tool work?
 
 The tool uses nikic's PHP Parser library to parse PHP code and analyze the explicitness of your functions and class methods.
 
 ## Why should I care about explicitness?
 
-Explicitness is important because it makes your code more readable and maintainable. When you use explicit inputs and outputs, it's clear what your function or method is doing and what it depends on. This makes it easier for other developers to understand your code and for you to understand your own code in the future.
+**Implicit inputs and outputs fundamentally limit the modularity and reusability of your code.**
 
-Conversely, implicit inputs and outputs can make your code harder to understand and maintain, and the effects can be subtle. I once worked on a project where a key runtime depended entirely on a global variable that was modified by a function that was called from multiple places in the codebase. This made it really difficult to reason about the behavior of the system and led to bugs that were hard to track down. It was almost impossible to predict the behavior of the system without running it, and even then, it was hard to debug.
+Functions with implicit dependencies are like electronic components that are hardwired to other components - they can't be easily detached and used elsewhere. When a function reads from global variables (implicit inputs) or writes to global state or performs side effects like DOM manipulation (implicit outputs), it becomes tightly coupled to its environment. This means you can only use that function in very specific contexts where those global dependencies are available and properly configured. In contrast, functions with explicit inputs (arguments) and outputs (return values) are like modular connectors that can be plugged into any compatible system.
+
+**The practical consequences of implicit inputs and outputs make your code significantly harder to test, debug, and reason about.**
+
+Implicit inputs limit when you can call a function because you must ensure all the global state is properly set up beforehand, and you have to worry about other code potentially interfering with those shared variables. Implicit outputs similarly constrain when you can call a function - you can only call it when you actually want those side effects to occur. This makes testing particularly challenging because you must set up all the implicit inputs, run the function, and then verify all the implicit outputs, which becomes exponentially more complex as the number of implicit dependencies grows. Functions with only explicit inputs and outputs are much easier to test because you simply pass in arguments and check the return value, with no external setup or cleanup required.
 
 ## How do I run the tool?
 
