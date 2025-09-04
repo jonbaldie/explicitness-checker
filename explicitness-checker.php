@@ -1,0 +1,1444 @@
+<?php
+
+declare(strict_types=1);
+
+// Severity level constants for CI usage
+const SEVERITY_MINOR = 'minor'; // Exit code 1: echo, print, etc.
+const SEVERITY_SERIOUS = 'serious'; // Exit code 2: globals, superglobals, properties
+const SEVERITY_CRITICAL = 'critical'; // Exit code 3: file I/O, time, random, etc.
+
+/**
+ * explicitness-checker.php.
+ *
+ * CLI script to analyze PHP files for implicit inputs/outputs.
+ *
+ * Usage:
+ *   php explicitness-checker.php [-v|--verbose] [--strict] /path/to/project
+ *
+ * Default mode checks for:
+ * - `global` variable usage
+ * - `$GLOBALS` superglobal array access
+ * - Superglobal access (e.g., $_POST, $_GET)
+ *
+ * Strict mode adds checks for:
+ * - Object property access ($this->...)
+ * - Static property access (self::... or ClassName::...)
+ * - Output functions (echo, print, var_dump, etc.)
+ *
+ * The implementation is organized into pure functions with explicit inputs and outputs.
+ */
+
+use PhpParser\Error;
+use PhpParser\Node;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
+use PhpParser\ParserFactory;
+
+require_once __DIR__.'/vendor/autoload.php';
+
+/**
+ * Entry point.
+ *
+ * @param  array  $argv  CLI arguments (including script name)
+ * @return int exit code
+ */
+function main(array $argv): int
+{
+    $args = parseArguments($argv);
+    if ($args === null) {
+        fwrite(
+            STDERR,
+            "Usage: php explicitness-checker.php [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n",
+        );
+
+        return 2;
+    }
+
+    [
+        $path,
+        $verbose,
+        $strict,
+        $props,
+        $excludeDirs,
+        $includePattern,
+        $excludePattern,
+    ] = $args;
+
+    verbosePrint($verbose, "Starting analysis for path: {$path}");
+    if ($strict) {
+        verbosePrint($verbose, 'Strict mode enabled.');
+    }
+    if ($props) {
+        verbosePrint($verbose, 'Props mode enabled.');
+    }
+
+    $files = findPhpFiles(
+        $path,
+        $verbose,
+        $excludeDirs,
+        $includePattern,
+        $excludePattern,
+    );
+    verbosePrint($verbose, 'Found '.count($files).' PHP file(s).');
+
+    if (count($files) === 0) {
+        fwrite(STDOUT, "No PHP files found in {$path}\n");
+
+        return 0;
+    }
+
+    $parser_factory = new ParserFactory;
+    $parser = $parser_factory->create(ParserFactory::PREFER_PHP7);
+
+    $allFindings = [];
+    foreach ($files as $file) {
+        verbosePrint($verbose, "Parsing file: {$file}");
+        try {
+            $code = file_get_contents($file);
+            if ($code === false) {
+                verbosePrint($verbose, "Failed to read file: {$file}");
+
+                continue;
+            }
+            $ast = $parser->parse($code);
+            if ($ast === null) {
+                verbosePrint($verbose, "No AST produced for file: {$file}");
+
+                continue;
+            }
+            $fileFindings = analyzeAstForImplicitness(
+                $ast,
+                $file,
+                $verbose,
+                $strict,
+                $props,
+            );
+            foreach ($fileFindings as $f) {
+                $allFindings[] = $f;
+            }
+        } catch (Error $e) {
+            fwrite(
+                STDERR,
+                "Parse error in {$file}: ".$e->getMessage().PHP_EOL,
+            );
+
+            continue;
+        }
+    }
+
+    $exitCode = printReport($allFindings);
+
+    return $exitCode;
+}
+
+/**
+ * Parse command-line arguments.
+ *
+ * @return array|null returns [path, verbose, strict, props] or null on invalid args
+ */
+function parseArguments(array $argv): ?array
+{
+    $verbose = false;
+    $strict = false;
+    $props = false;
+    $path = null;
+    $excludeDirs = ['vendor']; // Default exclude vendor/
+    $includePattern = null;
+    $excludePattern = null;
+
+    for ($i = 1, $n = count($argv); $i < $n; $i++) {
+        $arg = $argv[$i];
+        if ($arg === '-v' || $arg === '--verbose') {
+            $verbose = true;
+
+            continue;
+        }
+        if ($arg === '--strict') {
+            $strict = true;
+
+            continue;
+        }
+        if ($arg === '--props') {
+            $props = true;
+
+            continue;
+        }
+        if (strpos($arg, '--exclude=') === 0) {
+            $excludeDirs[] = substr($arg, 10);
+
+            continue;
+        }
+        if ($arg === '--exclude') {
+            if ($i + 1 < $n) {
+                $excludeDirs[] = $argv[++$i];
+            }
+
+            continue;
+        }
+        if (strpos($arg, '--include-pattern=') === 0) {
+            $includePattern = substr($arg, 18);
+
+            continue;
+        }
+        if ($arg === '--include-pattern') {
+            if ($i + 1 < $n) {
+                $includePattern = $argv[++$i];
+            }
+
+            continue;
+        }
+        if (strpos($arg, '--exclude-pattern=') === 0) {
+            $excludePattern = substr($arg, 18);
+
+            continue;
+        }
+        if ($arg === '--exclude-pattern') {
+            if ($i + 1 < $n) {
+                $excludePattern = $argv[++$i];
+            }
+
+            continue;
+        }
+        if ($path === null && strpos($arg, '-') !== 0) {
+            $path = $arg;
+
+            continue;
+        }
+    }
+
+    if ($path === null) {
+        return null;
+    }
+
+    if (! is_dir($path) && ! is_file($path)) {
+        fwrite(STDERR, "Path not found: {$path}\n");
+
+        return null;
+    }
+
+    return [
+        $path,
+        $verbose,
+        $strict,
+        $props,
+        $excludeDirs,
+        $includePattern,
+        $excludePattern,
+    ];
+}
+
+/**
+ * Checks if a file is in any of the excluded directories.
+ */
+function isFileInExcludedDirectory(string $filePath, array $excludeDirs): bool
+{
+    foreach ($excludeDirs as $excludeDir) {
+        // Normalize the exclude directory (remove leading/trailing slashes)
+        $excludeDir = trim($excludeDir, '/\\');
+
+        // Check if the file path contains the excluded directory
+        // Use DIRECTORY_SEPARATOR for cross-platform compatibility
+        $pattern =
+            '/'.
+            preg_quote(
+                DIRECTORY_SEPARATOR.$excludeDir.DIRECTORY_SEPARATOR,
+                '/',
+            ).
+            '/';
+        if (preg_match($pattern, $filePath)) {
+            return true;
+        }
+
+        // Also check if the path starts with the excluded directory
+        $normalizedPath = str_replace('\\', '/', $filePath);
+        $excludeDirPattern = '/^'.preg_quote($excludeDir.'/', '/').'/';
+        if (preg_match($excludeDirPattern, $normalizedPath)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Checks if a file should be included based on include/exclude patterns.
+ */
+function shouldIncludeFile(
+    string $filePath,
+    ?string $includePattern,
+    ?string $excludePattern,
+    bool $verbose,
+): bool {
+    // If include pattern is specified, file must match it
+    if ($includePattern !== null) {
+        if (! preg_match('/'.$includePattern.'/', $filePath)) {
+            return false;
+        }
+    }
+
+    // If exclude pattern is specified, file must not match it
+    if ($excludePattern !== null) {
+        if (preg_match('/'.$excludePattern.'/', $filePath)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Print a verbose message when $verbose is true.
+ */
+function verbosePrint(bool $verbose, string $msg): void
+{
+    if ($verbose) {
+        fwrite(STDOUT, '[verbose] '.$msg.PHP_EOL);
+    }
+}
+
+/**
+ * Recursively find .php files under the provided path.
+ */
+function findPhpFiles(
+    string $path,
+    bool $verbose = false,
+    array $excludeDirs = [],
+    ?string $includePattern = null,
+    ?string $excludePattern = null,
+): array {
+    $found = [];
+    if (is_file($path)) {
+        if (preg_match('/\\.php$/i', $path)) {
+            verbosePrint($verbose, "Path is file and ends with .php: {$path}");
+
+            // Apply pattern filtering for single files
+            if (
+                ! shouldIncludeFile(
+                    $path,
+                    $includePattern,
+                    $excludePattern,
+                    $verbose,
+                )
+            ) {
+                verbosePrint($verbose, "File excluded by pattern: {$path}");
+
+                return $found;
+            }
+
+            $found[] = $path;
+        } else {
+            verbosePrint($verbose, "Path is file but not PHP: {$path}");
+        }
+
+        return $found;
+    }
+
+    verbosePrint($verbose, "Scanning directory recursively: {$path}");
+    if (! empty($excludeDirs)) {
+        verbosePrint(
+            $verbose,
+            'Excluding directories: '.implode(', ', $excludeDirs),
+        );
+    }
+    if ($includePattern !== null) {
+        verbosePrint($verbose, "Include pattern: {$includePattern}");
+    }
+    if ($excludePattern !== null) {
+        verbosePrint($verbose, "Exclude pattern: {$excludePattern}");
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(
+            $path,
+            RecursiveDirectoryIterator::SKIP_DOTS,
+        ),
+    );
+
+    foreach ($iterator as $fileinfo) {
+        if (! $fileinfo->isFile()) {
+            continue;
+        }
+
+        $filePath = $fileinfo->getPathname();
+
+        // Skip files in excluded directories
+        if (isFileInExcludedDirectory($filePath, $excludeDirs)) {
+            verbosePrint($verbose, "File in excluded directory: {$filePath}");
+
+            continue;
+        }
+
+        $filename = $fileinfo->getFilename();
+        if (preg_match('/\\.php$/i', $filename)) {
+            // Apply pattern filtering
+            if (
+                ! shouldIncludeFile(
+                    $filePath,
+                    $includePattern,
+                    $excludePattern,
+                    $verbose,
+                )
+            ) {
+                verbosePrint($verbose, "File excluded by pattern: {$filePath}");
+
+                continue;
+            }
+
+            $found[] = $filePath;
+        }
+    }
+
+    sort($found, SORT_STRING);
+
+    return $found;
+}
+
+/**
+ * Analyze AST for implicit inputs/outputs per function/method.
+ */
+function analyzeAstForImplicitness(
+    array $ast,
+    string $filePath,
+    bool $verbose,
+    bool $strict,
+    bool $props,
+): array {
+    $findings = [];
+
+    $nodeQueue = new SplQueue;
+    foreach ($ast as $n) {
+        $nodeQueue->enqueue($n);
+    }
+
+    while (! $nodeQueue->isEmpty()) {
+        /** @var Node $node */
+        $node = $nodeQueue->dequeue();
+
+        if ($node instanceof Stmt\Namespace_) {
+            $nsName = $node->name ? $node->name->toString() : '';
+            verbosePrint(
+                $verbose,
+                'Entering namespace: '.($nsName ?: '<global>'),
+            );
+            $innerFindings = analyzeAstForImplicitnessInContext(
+                $node->stmts,
+                $filePath,
+                $nsName,
+                '',
+                $verbose,
+                $strict,
+                $props,
+            );
+            foreach ($innerFindings as $f) {
+                $findings[] = $f;
+            }
+
+            continue;
+        }
+
+        if (
+            $node instanceof Stmt\Class_ ||
+            $node instanceof Stmt\Interface_ ||
+            $node instanceof Stmt\Trait_
+        ) {
+            $name = $node->name ? $node->name->toString() : null;
+            $classFq = $name !== null ? $name : '';
+            verbosePrint(
+                $verbose,
+                'Found top-level class/trait/interface: '.
+                    ($classFq ?: '<anonymous>'),
+            );
+            $innerFindings = analyzeAstForImplicitnessInContext(
+                $node->stmts,
+                $filePath,
+                '',
+                $classFq,
+                $verbose,
+                $strict,
+                $props,
+            );
+            foreach ($innerFindings as $f) {
+                $findings[] = $f;
+            }
+
+            continue;
+        }
+
+        if ($node instanceof Stmt\Function_) {
+            $f = analyzeFunctionLikeNode(
+                $node,
+                $filePath,
+                null,
+                '',
+                $verbose,
+                $strict,
+                $props,
+            );
+            if ($f !== null) {
+                $findings[] = $f;
+            }
+
+            continue;
+        }
+    }
+
+    return $findings;
+}
+
+/**
+ * Analyze a subtree with optional namespace / class context.
+ */
+function analyzeAstForImplicitnessInContext(
+    array $stmts,
+    string $filePath,
+    string $namespace = '',
+    string $className = '',
+    bool $verbose = false,
+    bool $strict = false,
+    bool $props = false,
+): array {
+    $findings = [];
+    $nodeQueue = new SplQueue;
+    foreach ($stmts as $s) {
+        $nodeQueue->enqueue($s);
+    }
+
+    while (! $nodeQueue->isEmpty()) {
+        /** @var Node $node */
+        $node = $nodeQueue->dequeue();
+
+        if (
+            $node instanceof Stmt\Class_ ||
+            $node instanceof Stmt\Interface_ ||
+            $node instanceof Stmt\Trait_
+        ) {
+            $name = $node->name ? $node->name->toString() : null;
+            $subClass =
+                $name !== null
+                    ? ($className
+                        ? $className.'\\'.$name
+                        : $name)
+                    : $className;
+            verbosePrint(
+                $verbose,
+                'Descending into class/trait/interface: '.
+                    ($subClass ?: '<anonymous>'),
+            );
+            $innerFindings = analyzeAstForImplicitnessInContext(
+                $node->stmts,
+                $filePath,
+                $namespace,
+                $subClass,
+                $verbose,
+                $strict,
+                $props,
+            );
+            foreach ($innerFindings as $f) {
+                $findings[] = $f;
+            }
+
+            continue;
+        }
+
+        if (
+            $node instanceof Stmt\ClassMethod ||
+            $node instanceof Stmt\Function_
+        ) {
+            $f = analyzeFunctionLikeNode(
+                $node,
+                $filePath,
+                $className ?: null,
+                $namespace,
+                $verbose,
+                $strict,
+                $props,
+            );
+            if ($f !== null) {
+                $findings[] = $f;
+            }
+
+            continue;
+        }
+
+        foreach ($node->getSubNodeNames() as $subName) {
+            $sub = $node->$subName;
+            if (is_array($sub)) {
+                foreach ($sub as $child) {
+                    if ($child instanceof Node) {
+                        $nodeQueue->enqueue($child);
+                    }
+                }
+            } elseif ($sub instanceof Node) {
+                $nodeQueue->enqueue($sub);
+            }
+        }
+    }
+
+    return $findings;
+}
+
+/**
+ * Analyze a FunctionLike node for implicit inputs/outputs.
+ */
+function analyzeFunctionLikeNode(
+    Node\FunctionLike $node,
+    string $filePath,
+    ?string $className = null,
+    string $namespace = '',
+    bool $verbose = false,
+    bool $strict = false,
+    bool $props = false,
+): ?array {
+    $params = extractParamNames($node);
+    $paramSet = array_fill_keys($params, true);
+
+    $superglobals = [
+        '_GET',
+        '_POST',
+        '_REQUEST',
+        '_SERVER',
+        '_FILES',
+        '_COOKIE',
+        '_ENV',
+        '_SESSION',
+        'GLOBALS',
+    ];
+    $superglobalSet = array_fill_keys($superglobals, true);
+
+    $outputFunctions = [
+        'echo',
+        'print',
+        'printf',
+        'vprintf',
+        'var_dump',
+        'var_export',
+        'print_r',
+        'die',
+        'exit',
+        'fwrite',
+        'file_put_contents',
+    ];
+    $outputFunctionSet = array_fill_keys($outputFunctions, true);
+
+    $globalDecls = [];
+    $localAssignments = [];
+    $implicitInputs = [];
+    $implicitOutputs = [];
+
+    $stmts = $node->getStmts();
+    if ($stmts === null) {
+        return null;
+    }
+
+    // First pass: collect global declarations
+    $queue = new SplQueue;
+    foreach ($stmts as $s) {
+        $queue->enqueue($s);
+    }
+    while (! $queue->isEmpty()) {
+        /** @var Node $n */
+        $n = $queue->dequeue();
+        if ($n instanceof Stmt\Global_) {
+            foreach ($n->vars as $v) {
+                if ($v instanceof Expr\Variable && is_string($v->name)) {
+                    $globalDecls[$v->name] = true;
+                }
+            }
+
+            continue;
+        }
+        foreach ($n->getSubNodeNames() as $sub) {
+            $child = $n->$sub;
+            if (is_array($child)) {
+                foreach ($child as $c) {
+                    if ($c instanceof Node) {
+                        $queue->enqueue($c);
+                    }
+                }
+            } elseif ($child instanceof Node) {
+                $queue->enqueue($child);
+            }
+        }
+    }
+
+    $funcName = getFunctionName($node, $className, $namespace);
+    verbosePrint(
+        $verbose,
+        "Analyzing function/method: {$funcName} (line {$node->getStartLine()})",
+    );
+    if (! empty($globalDecls)) {
+        verbosePrint(
+            $verbose,
+            "  Declared globals in {$funcName}: ".
+                implode(', ', array_keys($globalDecls)),
+        );
+    }
+    if (! empty($params)) {
+        verbosePrint(
+            $verbose,
+            "  Parameters for {$funcName}: ".implode(', ', $params),
+        );
+    }
+
+    // Second pass: walk nodes to detect reads/writes
+    foreach ($stmts as $s) {
+        [
+            $localAssignments,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $s,
+            $paramSet,
+            $globalDecls,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignments,
+            $implicitInputs,
+            $implicitOutputs,
+            false,
+            $verbose,
+            $strict,
+            $props,
+        );
+    }
+
+    $implicitInputs = array_values(array_unique($implicitInputs));
+    $implicitOutputs = array_values(array_unique($implicitOutputs));
+
+    if (empty($implicitInputs) && empty($implicitOutputs)) {
+        verbosePrint(
+            $verbose,
+            "  No implicit inputs/outputs detected for {$funcName}",
+        );
+
+        return null;
+    }
+
+    if (! empty($implicitInputs)) {
+        verbosePrint(
+            $verbose,
+            "  Implicit inputs for {$funcName}: ".
+                implode('; ', $implicitInputs),
+        );
+    }
+    if (! empty($implicitOutputs)) {
+        verbosePrint(
+            $verbose,
+            "  Implicit outputs for {$funcName}: ".
+                implode('; ', $implicitOutputs),
+        );
+    }
+
+    $severity = calculateSeverity($implicitInputs, $implicitOutputs);
+
+    return [
+        'file' => $filePath,
+        'line' => $node->getStartLine(),
+        'function' => $funcName,
+        'implicit_inputs' => $implicitInputs,
+        'implicit_outputs' => $implicitOutputs,
+        'severity' => $severity,
+    ];
+}
+
+/**
+ * Get the fully qualified name of a function/method.
+ */
+function getFunctionName(
+    Node\FunctionLike $node,
+    ?string $className,
+    string $namespace,
+): string {
+    $funcName = '<anonymous>';
+    if ($node instanceof Stmt\Function_) {
+        $funcName = $node->name ? $node->name->toString() : $funcName;
+        if ($namespace) {
+            $funcName = $namespace.'\\'.$funcName;
+        }
+    } elseif ($node instanceof Stmt\ClassMethod) {
+        $methodName = $node->name ? $node->name->toString() : $funcName;
+        if ($className) {
+            $funcName = $className.'::'.$methodName;
+        } else {
+            $funcName = $methodName;
+        }
+    }
+
+    return $funcName;
+}
+
+/**
+ * Extract parameter names from a FunctionLike node.
+ */
+/**
+ * Calculate the severity level of violations based on implicit inputs/outputs.
+ */
+function calculateSeverity(
+    array $implicitInputs,
+    array $implicitOutputs,
+): string {
+    $allViolations = array_merge($implicitInputs, $implicitOutputs);
+
+    // Check for critical violations first
+    foreach ($allViolations as $violation) {
+        if (
+            str_contains($violation, 'reads from file') ||
+            str_contains($violation, 'writes to file') ||
+            str_contains($violation, 'reads system time') ||
+            str_contains($violation, 'reads from random number generator') ||
+            str_contains(
+                $violation,
+                'writes to random number generator state',
+            ) ||
+            str_contains($violation, 'reads from environment variables') ||
+            str_contains($violation, 'writes to environment variables') ||
+            str_contains($violation, 'reads from file system') ||
+            str_contains($violation, 'writes HTTP headers') ||
+            str_contains($violation, 'writes to error log') ||
+            str_contains($violation, 'reads session state') ||
+            str_contains($violation, 'writes to session state')
+        ) {
+            return SEVERITY_CRITICAL;
+        }
+    }
+
+    // Check for serious violations
+    foreach ($allViolations as $violation) {
+        if (
+            str_contains($violation, 'global variable') ||
+            str_contains($violation, '$GLOBALS') ||
+            str_contains($violation, 'superglobal') ||
+            str_contains($violation, 'object property') ||
+            str_contains($violation, 'static property')
+        ) {
+            return SEVERITY_SERIOUS;
+        }
+    }
+
+    // Everything else is minor (standard output functions)
+    return SEVERITY_MINOR;
+}
+
+function extractParamNames(Node\FunctionLike $node): array
+{
+    $params = [];
+    foreach ($node->getParams() as $p) {
+        if ($p->var instanceof Expr\Variable && is_string($p->var->name)) {
+            $params[] = $p->var->name;
+        }
+    }
+
+    return $params;
+}
+
+/**
+ * Walk a node recursively to detect implicit reads/writes.
+ */
+function walkNodeForImplicitness(
+    Node $node,
+    array $paramSet,
+    array $globalDeclsSet,
+    array $superglobalSet,
+    array $outputFunctionSet,
+    array $localAssignmentsSet,
+    array $implicitInputs,
+    array $implicitOutputs,
+    bool $isWrite,
+    bool $verbose,
+    bool $strict,
+    bool $props,
+): array {
+    // Assignment expressions
+    if ($node instanceof Expr\Assign) {
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->var,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            true,
+            $verbose,
+            $strict,
+            $props,
+        );
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->expr,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            false,
+            $verbose,
+            $strict,
+            $props,
+        );
+
+        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+    }
+    if ($node instanceof Expr\AssignOp) {
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->var,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            false,
+            $verbose,
+            $strict,
+            $props,
+        ); // read
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->var,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            true,
+            $verbose,
+            $strict,
+            $props,
+        ); // write
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->expr,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            false,
+            $verbose,
+            $strict,
+            $props,
+        );
+
+        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+    }
+    if (
+        $node instanceof Expr\PreInc ||
+        $node instanceof Expr\PostInc ||
+        $node instanceof Expr\PreDec ||
+        $node instanceof Expr\PostDec
+    ) {
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->var,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            false,
+            $verbose,
+            $strict,
+            $props,
+        ); // read
+        [
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+        ] = walkNodeForImplicitness(
+            $node->var,
+            $paramSet,
+            $globalDeclsSet,
+            $superglobalSet,
+            $outputFunctionSet,
+            $localAssignmentsSet,
+            $implicitInputs,
+            $implicitOutputs,
+            true,
+            $verbose,
+            $strict,
+            $props,
+        ); // write
+
+        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+    }
+
+    // Variable usage
+    if ($node instanceof Expr\Variable) {
+        if (! is_string($node->name)) {
+            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs]; // Skip variable variables
+        }
+        $varName = $node->name;
+        if ($varName === 'this') {
+            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+        }
+        if (isset($paramSet[$varName])) {
+            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+        }
+
+        if (isset($globalDeclsSet[$varName])) {
+            if ($isWrite) {
+                $implicitOutputs[] = "wrote to global variable \${$varName}";
+            } else {
+                $implicitInputs[] = "read from global variable \${$varName}";
+            }
+        } elseif (isset($superglobalSet[$varName])) {
+            if ($isWrite) {
+                $implicitOutputs[] = "wrote to superglobal \${$varName}";
+            } else {
+                $implicitInputs[] = "read from superglobal \${$varName}";
+            }
+        } elseif ($isWrite) {
+            $localAssignmentsSet[$varName] = true;
+        }
+
+        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+    }
+
+    // $GLOBALS array access
+    if (
+        $node instanceof Expr\ArrayDimFetch &&
+        $node->var instanceof Expr\Variable &&
+        is_string($node->var->name) &&
+        $node->var->name === 'GLOBALS'
+    ) {
+        $key = dimToString($node->dim);
+        if ($isWrite) {
+            $implicitOutputs[] =
+                $key !== null
+                    ? "wrote to \$GLOBALS[{$key}]"
+                    : 'wrote to $GLOBALS';
+        } else {
+            $implicitInputs[] =
+                $key !== null
+                    ? "read from \$GLOBALS[{$key}]"
+                    : 'read from $GLOBALS';
+        }
+
+        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+    }
+
+    // Strict mode checks
+    if ($strict) {
+        // Output functions
+        if ($node instanceof Stmt\Echo_) {
+            $implicitOutputs[] = 'writes to standard output (echo)';
+        } elseif ($node instanceof Expr\Print_) {
+            $implicitOutputs[] = 'writes to standard output (print)';
+        } elseif ($node instanceof Expr\Exit_) {
+            $implicitOutputs[] = 'writes to standard output (exit)';
+        } elseif (
+            $node instanceof Expr\FuncCall &&
+            $node->name instanceof Node\Name
+        ) {
+            $funcName = $node->name->toString();
+
+            // Output functions
+            if (isset($outputFunctionSet[$funcName])) {
+                if (
+                    in_array($funcName, ['fwrite', 'file_put_contents'], true)
+                ) {
+                    $implicitOutputs[] = "writes to file ({$funcName})";
+                } else {
+                    $implicitOutputs[] = "writes to standard output ({$funcName})";
+                }
+            }
+            // File read functions
+            elseif (
+                in_array(
+                    $funcName,
+                    ['file_get_contents', 'fread', 'fopen'],
+                    true,
+                )
+            ) {
+                $implicitInputs[] = "reads from file ({$funcName})";
+            }
+            // Environment variable access
+            elseif (in_array($funcName, ['getenv', 'putenv'], true)) {
+                if ($funcName === 'getenv') {
+                    $implicitInputs[] = "reads from environment variables ({$funcName})";
+                } else {
+                    $implicitOutputs[] = "writes to environment variables ({$funcName})";
+                }
+            }
+            // Time functions (non-deterministic)
+            elseif (
+                in_array(
+                    $funcName,
+                    ['time', 'date', 'microtime', 'gettimeofday'],
+                    true,
+                )
+            ) {
+                $implicitInputs[] = "reads system time ({$funcName})";
+            }
+            // Random functions (non-deterministic)
+            elseif (
+                in_array(
+                    $funcName,
+                    [
+                        'rand',
+                        'mt_rand',
+                        'random_int',
+                        'random_bytes',
+                        'srand',
+                        'mt_srand',
+                    ],
+                    true,
+                )
+            ) {
+                if (in_array($funcName, ['srand', 'mt_srand'], true)) {
+                    $implicitOutputs[] = "writes to random number generator state ({$funcName})";
+                } else {
+                    $implicitInputs[] = "reads from random number generator ({$funcName})";
+                }
+            }
+            // File system query functions
+            elseif (
+                in_array(
+                    $funcName,
+                    [
+                        'file_exists',
+                        'is_file',
+                        'is_dir',
+                        'filesize',
+                        'filemtime',
+                        'is_readable',
+                        'is_writable',
+                        'scandir',
+                        'glob',
+                    ],
+                    true,
+                )
+            ) {
+                $implicitInputs[] = "reads from file system ({$funcName})";
+            }
+            // HTTP header functions
+            elseif (
+                in_array(
+                    $funcName,
+                    [
+                        'header',
+                        'setcookie',
+                        'setrawcookie',
+                        'http_response_code',
+                    ],
+                    true,
+                )
+            ) {
+                $implicitOutputs[] = "writes HTTP headers ({$funcName})";
+            }
+            // Error logging functions
+            elseif (
+                in_array(
+                    $funcName,
+                    ['error_log', 'trigger_error', 'user_error'],
+                    true,
+                )
+            ) {
+                $implicitOutputs[] = "writes to error log ({$funcName})";
+            }
+            // Session functions
+            elseif (
+                in_array(
+                    $funcName,
+                    [
+                        'session_start',
+                        'session_destroy',
+                        'session_regenerate_id',
+                        'session_write_close',
+                        'session_id',
+                        'session_name',
+                    ],
+                    true,
+                )
+            ) {
+                if (in_array($funcName, ['session_id', 'session_name'], true)) {
+                    $implicitInputs[] = "reads session state ({$funcName})";
+                } else {
+                    $implicitOutputs[] = "writes to session state ({$funcName})";
+                }
+            }
+        }
+    }
+
+    // Props mode checks for property access
+    if ($props) {
+        // Property access
+        if (
+            $node instanceof Expr\PropertyFetch &&
+            $node->var instanceof Expr\Variable &&
+            $node->var->name === 'this' &&
+            $node->name instanceof Node\Identifier
+        ) {
+            $propName = $node->name->toString();
+            if ($isWrite) {
+                $implicitOutputs[] = "wrote to object property \$this->{$propName}";
+            } else {
+                $implicitInputs[] = "read from object property \$this->{$propName}";
+            }
+        }
+
+        // Static property access
+        if (
+            $node instanceof Expr\StaticPropertyFetch &&
+            $node->name instanceof Node\VarLikeIdentifier
+        ) {
+            $propName = $node->name->name;
+            $className =
+                $node->class instanceof Node\Name
+                    ? $node->class->toString()
+                    : '...';
+            if ($isWrite) {
+                $implicitOutputs[] = "wrote to static property {$className}::\${$propName}";
+            } else {
+                $implicitInputs[] = "read from static property {$className}::\${$propName}";
+            }
+        }
+    }
+
+    // Generic traversal
+    if (! ($node instanceof Node\FunctionLike)) {
+        foreach ($node->getSubNodeNames() as $subName) {
+            $sub = $node->$subName;
+            if (is_array($sub)) {
+                foreach ($sub as $child) {
+                    if ($child instanceof Node) {
+                        [
+                            $localAssignmentsSet,
+                            $implicitInputs,
+                            $implicitOutputs,
+                        ] = walkNodeForImplicitness(
+                            $child,
+                            $paramSet,
+                            $globalDeclsSet,
+                            $superglobalSet,
+                            $outputFunctionSet,
+                            $localAssignmentsSet,
+                            $implicitInputs,
+                            $implicitOutputs,
+                            $isWrite,
+                            $verbose,
+                            $strict,
+                            $props,
+                        );
+                    }
+                }
+            } elseif ($sub instanceof Node) {
+                [
+                    $localAssignmentsSet,
+                    $implicitInputs,
+                    $implicitOutputs,
+                ] = walkNodeForImplicitness(
+                    $sub,
+                    $paramSet,
+                    $globalDeclsSet,
+                    $superglobalSet,
+                    $outputFunctionSet,
+                    $localAssignmentsSet,
+                    $implicitInputs,
+                    $implicitOutputs,
+                    $isWrite,
+                    $verbose,
+                    $strict,
+                    $props,
+                );
+            }
+        }
+    }
+
+    return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
+}
+
+/**
+ * Helper to convert a dimension expression into a readable string.
+ */
+function dimToString($dim): ?string
+{
+    if ($dim === null) {
+        return null;
+    }
+    if ($dim instanceof Node\Scalar\String_) {
+        return "'".$dim->value."'";
+    }
+    if ($dim instanceof Node\Scalar\LNumber) {
+        return (string) $dim->value;
+    }
+    if ($dim instanceof Expr\Variable && is_string($dim->name)) {
+        return '$'.$dim->name;
+    }
+
+    return null;
+}
+
+/**
+ * Print findings in a simple table.
+ */
+function printReport(array $allFindings): int
+{
+    if (empty($allFindings)) {
+        fwrite(STDOUT, "No implicit inputs or outputs found.\n");
+
+        return 0;
+    }
+
+    // Calculate severity statistics
+    $severityCounts = [
+        SEVERITY_MINOR => 0,
+        SEVERITY_SERIOUS => 0,
+        SEVERITY_CRITICAL => 0,
+    ];
+
+    foreach ($allFindings as $finding) {
+        $severityCounts[$finding['severity']]++;
+    }
+
+    // Determine exit code based on highest severity found
+    $exitCode = 0;
+    if ($severityCounts[SEVERITY_CRITICAL] > 0) {
+        $exitCode = 3;
+    } elseif ($severityCounts[SEVERITY_SERIOUS] > 0) {
+        $exitCode = 2;
+    } elseif ($severityCounts[SEVERITY_MINOR] > 0) {
+        $exitCode = 1;
+    }
+
+    fwrite(STDOUT, "Analyzing...\n\nResults:\n\n");
+    $rows = [];
+    foreach ($allFindings as $f) {
+        $rows[] = [
+            'file' => basename($f['file']),
+            'line' => (string) $f['line'],
+            'function' => $f['function'],
+            'inputs' => implode('; ', $f['implicit_inputs']),
+            'outputs' => implode('; ', $f['implicit_outputs']),
+            'severity' => ucfirst($f['severity']),
+        ];
+    }
+
+    $cols = [
+        'File',
+        'Line',
+        'Function',
+        'Implicit Inputs',
+        'Implicit Outputs',
+        'Severity',
+    ];
+    $widths = [
+        'File' => 0,
+        'Line' => 0,
+        'Function' => 0,
+        'Inputs' => 0,
+        'Outputs' => 0,
+        'Severity' => 0,
+    ];
+    foreach ($cols as $i => $col) {
+        $key = array_keys($widths)[$i];
+        $widths[$key] = strlen($col);
+    }
+
+    foreach ($rows as $r) {
+        $widths['File'] = max($widths['File'], strlen($r['file']));
+        $widths['Line'] = max($widths['Line'], strlen($r['line']));
+        $widths['Function'] = max($widths['Function'], strlen($r['function']));
+        $widths['Inputs'] = max($widths['Inputs'], strlen($r['inputs']));
+        $widths['Outputs'] = max($widths['Outputs'], strlen($r['outputs']));
+        $widths['Severity'] = max($widths['Severity'], strlen($r['severity']));
+    }
+
+    $lineFmt = "| %-{$widths['File']}s | %-{$widths['Line']}s | %-{$widths['Function']}s | %-{$widths['Inputs']}s | %-{$widths['Outputs']}s | %-{$widths['Severity']}s |\n";
+    $sep =
+        '+'.
+        str_repeat('-', $widths['File'] + 2).
+        '+'.
+        str_repeat('-', $widths['Line'] + 2).
+        '+'.
+        str_repeat('-', $widths['Function'] + 2).
+        '+'.
+        str_repeat('-', $widths['Inputs'] + 2).
+        '+'.
+        str_repeat('-', $widths['Outputs'] + 2).
+        '+'.
+        str_repeat('-', $widths['Severity'] + 2).
+        "+\n";
+
+    fwrite(STDOUT, $sep);
+    fwrite(
+        STDOUT,
+        sprintf(
+            $lineFmt,
+            $cols[0],
+            $cols[1],
+            $cols[2],
+            $cols[3],
+            $cols[4],
+            $cols[5],
+        ),
+    );
+    fwrite(STDOUT, $sep);
+    foreach ($rows as $r) {
+        fwrite(
+            STDOUT,
+            sprintf(
+                $lineFmt,
+                $r['file'],
+                $r['line'],
+                $r['function'],
+                $r['inputs'],
+                $r['outputs'],
+                $r['severity'],
+            ),
+        );
+    }
+    fwrite(STDOUT, $sep.PHP_EOL);
+
+    // Print severity summary
+    fwrite(STDOUT, "Summary:\n");
+    fwrite(
+        STDOUT,
+        "  Critical violations: {$severityCounts[SEVERITY_CRITICAL]} (exit code 3)\n",
+    );
+    fwrite(
+        STDOUT,
+        "  Serious violations: {$severityCounts[SEVERITY_SERIOUS]} (exit code 2)\n",
+    );
+    fwrite(
+        STDOUT,
+        "  Minor violations: {$severityCounts[SEVERITY_MINOR]} (exit code 1)\n",
+    );
+    fwrite(STDOUT, "  Exit code: {$exitCode}\n\n");
+
+    return $exitCode;
+}
+
+// Run main with CLI args and exit with return code
+exit(main($argv));

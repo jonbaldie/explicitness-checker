@@ -1,0 +1,22 @@
+{
+  "name": "goose/explicitness-checker",
+  "description": "A tool to analyze explicitness of PHP code (implicit inputs/outputs).",
+  "type": "project",
+  "require": {
+    "php": ">=8.4",
+    "nikic/php-parser": "^4.15"
+  },
+  "autoload": {
+    "psr-4": {
+      "ExplicitnessChecker\\": "src/"
+    }
+  },
+  "bin": [
+    "explicitness-checker.php"
+  ],
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "require-dev": {
+    "laravel/pint": "^1.24"
+  }
+}
