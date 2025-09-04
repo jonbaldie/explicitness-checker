@@ -3,7 +3,7 @@
   "description": "A tool to analyze explicitness of PHP code (implicit inputs/outputs).",
   "type": "project",
   "require": {
-    "php": ">=8.4",
+    "php": ">=7.4",
     "nikic/php-parser": "^4.15"
   },
   "autoload": {
