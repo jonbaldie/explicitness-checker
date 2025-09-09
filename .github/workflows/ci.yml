@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ["7.4", "8.1", "8.2", "8.3"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, iconv, intl
+          coverage: none
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --level 6 bin/explicitness-checker
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ["7.4", "8.1", "8.2", "8.3"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, iconv, intl
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
+
+      - name: Check if test files exist
+        id: check-tests
+        run: |
+          if [ -d "tests" ] || [ -f "phpunit.xml" ] || [ -f "phpunit.xml.dist" ]; then
+            echo "tests-exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "tests-exist=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests
+        if: steps.check-tests.outputs.tests-exist == 'true'
+        run: |
+          if [ -f "./vendor/bin/phpunit" ]; then
+            ./vendor/bin/phpunit
+          else
+            echo "PHPUnit not found in vendor/bin, skipping tests"
+          fi
+
+      - name: Test tool functionality
+        run: |
+          # Test that the tool runs without errors on itself
+          php bin/explicitness-checker --verbose .

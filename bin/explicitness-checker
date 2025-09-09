@@ -1,12 +1,11 @@
 #!/usr/bin/env php
 <?php
-
 declare(strict_types=1);
 
 // Severity level constants for CI usage
-const SEVERITY_MINOR = 'minor'; // Exit code 1: echo, print, etc.
-const SEVERITY_SERIOUS = 'serious'; // Exit code 2: globals, superglobals, properties
-const SEVERITY_CRITICAL = 'critical'; // Exit code 3: file I/O, time, random, etc.
+const SEVERITY_MINOR = "minor"; // Exit code 1: echo, print, etc.
+const SEVERITY_SERIOUS = "serious"; // Exit code 2: globals, superglobals, properties
+const SEVERITY_CRITICAL = "critical"; // Exit code 3: file I/O, time, random, etc.
 
 /**
  * explicitness-checker.php.
@@ -37,8 +36,8 @@ use PhpParser\ParserFactory;
 
 // Try to find autoload.php in different locations
 $autoloadPaths = [
-    __DIR__ . '/../vendor/autoload.php',     // Local development
-    __DIR__ . '/../../../autoload.php',     // Installed via Composer
+    __DIR__ . "/../vendor/autoload.php", // Local development
+    __DIR__ . "/../../../autoload.php", // Installed via Composer
 ];
 
 $autoloadFound = false;
@@ -51,7 +50,10 @@ foreach ($autoloadPaths as $path) {
 }
 
 if (!$autoloadFound) {
-    fwrite(STDERR, "Error: Could not find vendor/autoload.php. Please run 'composer install'.\n");
+    fwrite(
+        STDERR,
+        "Error: Could not find vendor/autoload.php. Please run 'composer install'.\n",
+    );
     exit(1);
 }
 
@@ -60,6 +62,9 @@ if (!$autoloadFound) {
  *
  * @param  array  $argv  CLI arguments (including script name)
  * @return int exit code
+ */
+/**
+ * @param string[] $argv
  */
 function main(array $argv): int
 {
@@ -73,32 +78,30 @@ function main(array $argv): int
         return 2;
     }
 
-    [
-        $path,
-        $verbose,
-        $strict,
-        $props,
-        $excludeDirs,
-        $includePattern,
-        $excludePattern,
-    ] = $args;
+    $path = $args["path"];
+    $verbose = $args["verbose"];
+    $strict = $args["strict"];
+    $props = $args["props"];
+    $excludeDirs = $args["excludeDirs"];
+    $includePattern = $args["includePattern"];
+    $excludePattern = $args["excludePattern"];
 
     verbosePrint($verbose, "Starting analysis for path: {$path}");
     if ($strict) {
-        verbosePrint($verbose, 'Strict mode enabled.');
+        verbosePrint($verbose, "Strict mode enabled.");
     }
     if ($props) {
-        verbosePrint($verbose, 'Props mode enabled.');
+        verbosePrint($verbose, "Props mode enabled.");
     }
 
     $files = findPhpFiles(
         $path,
-        $verbose,
         $excludeDirs,
+        $verbose,
         $includePattern,
         $excludePattern,
     );
-    verbosePrint($verbose, 'Found '.count($files).' PHP file(s).');
+    verbosePrint($verbose, "Found " . count($files) . " PHP file(s).");
 
     if (count($files) === 0) {
         fwrite(STDOUT, "No PHP files found in {$path}\n");
@@ -106,7 +109,7 @@ function main(array $argv): int
         return 0;
     }
 
-    $parser_factory = new ParserFactory;
+    $parser_factory = new ParserFactory();
     $parser = $parser_factory->create(ParserFactory::PREFER_PHP7);
 
     $allFindings = [];
@@ -138,7 +141,7 @@ function main(array $argv): int
         } catch (Error $e) {
             fwrite(
                 STDERR,
-                "Parse error in {$file}: ".$e->getMessage().PHP_EOL,
+                "Parse error in {$file}: " . $e->getMessage() . PHP_EOL,
             );
 
             continue;
@@ -155,70 +158,74 @@ function main(array $argv): int
  *
  * @return array|null returns [path, verbose, strict, props] or null on invalid args
  */
+/**
+ * @param string[] $argv
+ * @return array{verbose: bool, strict: bool, props: bool, path: string, excludeDirs: string[], includePattern: string|null, excludePattern: string|null}|null
+ */
 function parseArguments(array $argv): ?array
 {
     $verbose = false;
     $strict = false;
     $props = false;
     $path = null;
-    $excludeDirs = ['vendor']; // Default exclude vendor/
+    $excludeDirs = ["vendor"]; // Default exclude vendor/
     $includePattern = null;
     $excludePattern = null;
 
     for ($i = 1, $n = count($argv); $i < $n; $i++) {
         $arg = $argv[$i];
-        if ($arg === '-v' || $arg === '--verbose') {
+        if ($arg === "-v" || $arg === "--verbose") {
             $verbose = true;
 
             continue;
         }
-        if ($arg === '--strict') {
+        if ($arg === "--strict") {
             $strict = true;
 
             continue;
         }
-        if ($arg === '--props') {
+        if ($arg === "--props") {
             $props = true;
 
             continue;
         }
-        if (strpos($arg, '--exclude=') === 0) {
+        if (strpos($arg, "--exclude=") === 0) {
             $excludeDirs[] = substr($arg, 10);
 
             continue;
         }
-        if ($arg === '--exclude') {
+        if ($arg === "--exclude") {
             if ($i + 1 < $n) {
                 $excludeDirs[] = $argv[++$i];
             }
 
             continue;
         }
-        if (strpos($arg, '--include-pattern=') === 0) {
+        if (strpos($arg, "--include-pattern=") === 0) {
             $includePattern = substr($arg, 18);
 
             continue;
         }
-        if ($arg === '--include-pattern') {
+        if ($arg === "--include-pattern") {
             if ($i + 1 < $n) {
                 $includePattern = $argv[++$i];
             }
 
             continue;
         }
-        if (strpos($arg, '--exclude-pattern=') === 0) {
+        if (strpos($arg, "--exclude-pattern=") === 0) {
             $excludePattern = substr($arg, 18);
 
             continue;
         }
-        if ($arg === '--exclude-pattern') {
+        if ($arg === "--exclude-pattern") {
             if ($i + 1 < $n) {
                 $excludePattern = $argv[++$i];
             }
 
             continue;
         }
-        if ($path === null && strpos($arg, '-') !== 0) {
+        if ($path === null && strpos($arg, "-") !== 0) {
             $path = $arg;
 
             continue;
@@ -229,48 +236,51 @@ function parseArguments(array $argv): ?array
         return null;
     }
 
-    if (! is_dir($path) && ! is_file($path)) {
+    if (!is_dir($path) && !is_file($path)) {
         fwrite(STDERR, "Path not found: {$path}\n");
 
         return null;
     }
 
     return [
-        $path,
-        $verbose,
-        $strict,
-        $props,
-        $excludeDirs,
-        $includePattern,
-        $excludePattern,
+        "path" => $path,
+        "verbose" => $verbose,
+        "strict" => $strict,
+        "props" => $props,
+        "excludeDirs" => $excludeDirs,
+        "includePattern" => $includePattern,
+        "excludePattern" => $excludePattern,
     ];
 }
 
 /**
  * Checks if a file is in any of the excluded directories.
  */
+/**
+ * @param string[] $excludeDirs
+ */
 function isFileInExcludedDirectory(string $filePath, array $excludeDirs): bool
 {
     foreach ($excludeDirs as $excludeDir) {
         // Normalize the exclude directory (remove leading/trailing slashes)
-        $excludeDir = trim($excludeDir, '/\\');
+        $excludeDir = trim($excludeDir, "/\\");
 
         // Check if the file path contains the excluded directory
         // Use DIRECTORY_SEPARATOR for cross-platform compatibility
         $pattern =
-            '/'.
+            "/" .
             preg_quote(
-                DIRECTORY_SEPARATOR.$excludeDir.DIRECTORY_SEPARATOR,
-                '/',
-            ).
-            '/';
+                DIRECTORY_SEPARATOR . $excludeDir . DIRECTORY_SEPARATOR,
+                "/",
+            ) .
+            "/";
         if (preg_match($pattern, $filePath)) {
             return true;
         }
 
         // Also check if the path starts with the excluded directory
-        $normalizedPath = str_replace('\\', '/', $filePath);
-        $excludeDirPattern = '/^'.preg_quote($excludeDir.'/', '/').'/';
+        $normalizedPath = str_replace("\\", "/", $filePath);
+        $excludeDirPattern = "/^" . preg_quote($excludeDir . "/", "/") . "/";
         if (preg_match($excludeDirPattern, $normalizedPath)) {
             return true;
         }
@@ -290,14 +300,14 @@ function shouldIncludeFile(
 ): bool {
     // If include pattern is specified, file must match it
     if ($includePattern !== null) {
-        if (! preg_match('/'.$includePattern.'/', $filePath)) {
+        if (!preg_match("/" . $includePattern . "/", $filePath)) {
             return false;
         }
     }
 
     // If exclude pattern is specified, file must not match it
     if ($excludePattern !== null) {
-        if (preg_match('/'.$excludePattern.'/', $filePath)) {
+        if (preg_match("/" . $excludePattern . "/", $filePath)) {
             return false;
         }
     }
@@ -311,17 +321,21 @@ function shouldIncludeFile(
 function verbosePrint(bool $verbose, string $msg): void
 {
     if ($verbose) {
-        fwrite(STDOUT, '[verbose] '.$msg.PHP_EOL);
+        fwrite(STDOUT, "[verbose] " . $msg . PHP_EOL);
     }
 }
 
 /**
- * Recursively find .php files under the provided path.
+ * Find all .php files in the given path, excluding certain directories.
+ */
+/**
+ * @param string[] $excludeDirs
+ * @return string[]
  */
 function findPhpFiles(
     string $path,
+    array $excludeDirs,
     bool $verbose = false,
-    array $excludeDirs = [],
     ?string $includePattern = null,
     ?string $excludePattern = null,
 ): array {
@@ -332,7 +346,7 @@ function findPhpFiles(
 
             // Apply pattern filtering for single files
             if (
-                ! shouldIncludeFile(
+                !shouldIncludeFile(
                     $path,
                     $includePattern,
                     $excludePattern,
@@ -353,10 +367,10 @@ function findPhpFiles(
     }
 
     verbosePrint($verbose, "Scanning directory recursively: {$path}");
-    if (! empty($excludeDirs)) {
+    if (!empty($excludeDirs)) {
         verbosePrint(
             $verbose,
-            'Excluding directories: '.implode(', ', $excludeDirs),
+            "Excluding directories: " . implode(", ", $excludeDirs),
         );
     }
     if ($includePattern !== null) {
@@ -374,7 +388,7 @@ function findPhpFiles(
     );
 
     foreach ($iterator as $fileinfo) {
-        if (! $fileinfo->isFile()) {
+        if (!$fileinfo->isFile()) {
             continue;
         }
 
@@ -391,7 +405,7 @@ function findPhpFiles(
         if (preg_match('/\\.php$/i', $filename)) {
             // Apply pattern filtering
             if (
-                ! shouldIncludeFile(
+                !shouldIncludeFile(
                     $filePath,
                     $includePattern,
                     $excludePattern,
@@ -413,7 +427,11 @@ function findPhpFiles(
 }
 
 /**
- * Analyze AST for implicit inputs/outputs per function/method.
+ * Analyze a PHP AST for implicit read/write operations.
+ */
+/**
+ * @param \PhpParser\Node\Stmt[] $ast
+ * @return array<int, array<string, mixed>>
  */
 function analyzeAstForImplicitness(
     array $ast,
@@ -424,26 +442,26 @@ function analyzeAstForImplicitness(
 ): array {
     $findings = [];
 
-    $nodeQueue = new SplQueue;
+    $nodeQueue = new SplQueue();
     foreach ($ast as $n) {
         $nodeQueue->enqueue($n);
     }
 
-    while (! $nodeQueue->isEmpty()) {
+    while (!$nodeQueue->isEmpty()) {
         /** @var Node $node */
         $node = $nodeQueue->dequeue();
 
         if ($node instanceof Stmt\Namespace_) {
-            $nsName = $node->name ? $node->name->toString() : '';
+            $nsName = $node->name ? $node->name->toString() : "";
             verbosePrint(
                 $verbose,
-                'Entering namespace: '.($nsName ?: '<global>'),
+                "Entering namespace: " . ($nsName ?: "<global>"),
             );
             $innerFindings = analyzeAstForImplicitnessInContext(
                 $node->stmts,
                 $filePath,
                 $nsName,
-                '',
+                "",
                 $verbose,
                 $strict,
                 $props,
@@ -461,16 +479,16 @@ function analyzeAstForImplicitness(
             $node instanceof Stmt\Trait_
         ) {
             $name = $node->name ? $node->name->toString() : null;
-            $classFq = $name !== null ? $name : '';
+            $classFq = $name !== null ? $name : "";
             verbosePrint(
                 $verbose,
-                'Found top-level class/trait/interface: '.
-                    ($classFq ?: '<anonymous>'),
+                "Found top-level class/trait/interface: " .
+                    ($classFq ?: "<anonymous>"),
             );
             $innerFindings = analyzeAstForImplicitnessInContext(
                 $node->stmts,
                 $filePath,
-                '',
+                "",
                 $classFq,
                 $verbose,
                 $strict,
@@ -488,7 +506,7 @@ function analyzeAstForImplicitness(
                 $node,
                 $filePath,
                 null,
-                '',
+                "",
                 $verbose,
                 $strict,
                 $props,
@@ -505,24 +523,28 @@ function analyzeAstForImplicitness(
 }
 
 /**
- * Analyze a subtree with optional namespace / class context.
+ * Analyzes statements within a specific context for implicitness.
+ */
+/**
+ * @param \PhpParser\Node\Stmt[] $stmts
+ * @return array<int, array<string, mixed>>
  */
 function analyzeAstForImplicitnessInContext(
     array $stmts,
     string $filePath,
-    string $namespace = '',
-    string $className = '',
+    string $namespace = "",
+    string $className = "",
     bool $verbose = false,
     bool $strict = false,
     bool $props = false,
 ): array {
     $findings = [];
-    $nodeQueue = new SplQueue;
+    $nodeQueue = new SplQueue();
     foreach ($stmts as $s) {
         $nodeQueue->enqueue($s);
     }
 
-    while (! $nodeQueue->isEmpty()) {
+    while (!$nodeQueue->isEmpty()) {
         /** @var Node $node */
         $node = $nodeQueue->dequeue();
 
@@ -535,13 +557,13 @@ function analyzeAstForImplicitnessInContext(
             $subClass =
                 $name !== null
                     ? ($className
-                        ? $className.'\\'.$name
+                        ? $className . "\\" . $name
                         : $name)
                     : $className;
             verbosePrint(
                 $verbose,
-                'Descending into class/trait/interface: '.
-                    ($subClass ?: '<anonymous>'),
+                "Descending into class/trait/interface: " .
+                    ($subClass ?: "<anonymous>"),
             );
             $innerFindings = analyzeAstForImplicitnessInContext(
                 $node->stmts,
@@ -597,13 +619,16 @@ function analyzeAstForImplicitnessInContext(
 }
 
 /**
- * Analyze a FunctionLike node for implicit inputs/outputs.
+ * Analyzes a specific function-like node for implicitness.
+ */
+/**
+ * @return array<string, mixed>|null
  */
 function analyzeFunctionLikeNode(
     Node\FunctionLike $node,
     string $filePath,
     ?string $className = null,
-    string $namespace = '',
+    string $namespace = "",
     bool $verbose = false,
     bool $strict = false,
     bool $props = false,
@@ -612,30 +637,30 @@ function analyzeFunctionLikeNode(
     $paramSet = array_fill_keys($params, true);
 
     $superglobals = [
-        '_GET',
-        '_POST',
-        '_REQUEST',
-        '_SERVER',
-        '_FILES',
-        '_COOKIE',
-        '_ENV',
-        '_SESSION',
-        'GLOBALS',
+        "_GET",
+        "_POST",
+        "_REQUEST",
+        "_SERVER",
+        "_FILES",
+        "_COOKIE",
+        "_ENV",
+        "_SESSION",
+        "GLOBALS",
     ];
     $superglobalSet = array_fill_keys($superglobals, true);
 
     $outputFunctions = [
-        'echo',
-        'print',
-        'printf',
-        'vprintf',
-        'var_dump',
-        'var_export',
-        'print_r',
-        'die',
-        'exit',
-        'fwrite',
-        'file_put_contents',
+        "echo",
+        "print",
+        "printf",
+        "vprintf",
+        "var_dump",
+        "var_export",
+        "print_r",
+        "die",
+        "exit",
+        "fwrite",
+        "file_put_contents",
     ];
     $outputFunctionSet = array_fill_keys($outputFunctions, true);
 
@@ -650,11 +675,11 @@ function analyzeFunctionLikeNode(
     }
 
     // First pass: collect global declarations
-    $queue = new SplQueue;
+    $queue = new SplQueue();
     foreach ($stmts as $s) {
         $queue->enqueue($s);
     }
-    while (! $queue->isEmpty()) {
+    while (!$queue->isEmpty()) {
         /** @var Node $n */
         $n = $queue->dequeue();
         if ($n instanceof Stmt\Global_) {
@@ -685,17 +710,17 @@ function analyzeFunctionLikeNode(
         $verbose,
         "Analyzing function/method: {$funcName} (line {$node->getStartLine()})",
     );
-    if (! empty($globalDecls)) {
+    if (!empty($globalDecls)) {
         verbosePrint(
             $verbose,
-            "  Declared globals in {$funcName}: ".
-                implode(', ', array_keys($globalDecls)),
+            "  Declared globals in {$funcName}: " .
+                implode(", ", array_keys($globalDecls)),
         );
     }
-    if (! empty($params)) {
+    if (!empty($params)) {
         verbosePrint(
             $verbose,
-            "  Parameters for {$funcName}: ".implode(', ', $params),
+            "  Parameters for {$funcName}: " . implode(", ", $params),
         );
     }
 
@@ -733,30 +758,30 @@ function analyzeFunctionLikeNode(
         return null;
     }
 
-    if (! empty($implicitInputs)) {
+    if (!empty($implicitInputs)) {
         verbosePrint(
             $verbose,
-            "  Implicit inputs for {$funcName}: ".
-                implode('; ', $implicitInputs),
+            "  Implicit inputs for {$funcName}: " .
+                implode("; ", $implicitInputs),
         );
     }
-    if (! empty($implicitOutputs)) {
+    if (!empty($implicitOutputs)) {
         verbosePrint(
             $verbose,
-            "  Implicit outputs for {$funcName}: ".
-                implode('; ', $implicitOutputs),
+            "  Implicit outputs for {$funcName}: " .
+                implode("; ", $implicitOutputs),
         );
     }
 
     $severity = calculateSeverity($implicitInputs, $implicitOutputs);
 
     return [
-        'file' => $filePath,
-        'line' => $node->getStartLine(),
-        'function' => $funcName,
-        'implicit_inputs' => $implicitInputs,
-        'implicit_outputs' => $implicitOutputs,
-        'severity' => $severity,
+        "file" => $filePath,
+        "line" => $node->getStartLine(),
+        "function" => $funcName,
+        "implicit_inputs" => $implicitInputs,
+        "implicit_outputs" => $implicitOutputs,
+        "severity" => $severity,
     ];
 }
 
@@ -768,16 +793,17 @@ function getFunctionName(
     ?string $className,
     string $namespace,
 ): string {
-    $funcName = '<anonymous>';
+    $funcName = "<anonymous>";
     if ($node instanceof Stmt\Function_) {
-        $funcName = $node->name ? $node->name->toString() : $funcName;
+        $funcName = $node->name !== null ? $node->name->toString() : $funcName;
         if ($namespace) {
-            $funcName = $namespace.'\\'.$funcName;
+            $funcName = $namespace . "\\" . $funcName;
         }
     } elseif ($node instanceof Stmt\ClassMethod) {
-        $methodName = $node->name ? $node->name->toString() : $funcName;
+        $methodName =
+            $node->name !== null ? $node->name->toString() : $funcName;
         if ($className) {
-            $funcName = $className.'::'.$methodName;
+            $funcName = $className . "::" . $methodName;
         } else {
             $funcName = $methodName;
         }
@@ -787,10 +813,11 @@ function getFunctionName(
 }
 
 /**
- * Extract parameter names from a FunctionLike node.
+ * Calculate severity based on types of violations.
  */
 /**
- * Calculate the severity level of violations based on implicit inputs/outputs.
+ * @param string[] $implicitInputs
+ * @param string[] $implicitOutputs
  */
 function calculateSeverity(
     array $implicitInputs,
@@ -801,21 +828,21 @@ function calculateSeverity(
     // Check for critical violations first
     foreach ($allViolations as $violation) {
         if (
-            str_contains($violation, 'reads from file') ||
-            str_contains($violation, 'writes to file') ||
-            str_contains($violation, 'reads system time') ||
-            str_contains($violation, 'reads from random number generator') ||
+            str_contains($violation, "reads from file") ||
+            str_contains($violation, "writes to file") ||
+            str_contains($violation, "reads system time") ||
+            str_contains($violation, "reads from random number generator") ||
             str_contains(
                 $violation,
-                'writes to random number generator state',
+                "writes to random number generator state",
             ) ||
-            str_contains($violation, 'reads from environment variables') ||
-            str_contains($violation, 'writes to environment variables') ||
-            str_contains($violation, 'reads from file system') ||
-            str_contains($violation, 'writes HTTP headers') ||
-            str_contains($violation, 'writes to error log') ||
-            str_contains($violation, 'reads session state') ||
-            str_contains($violation, 'writes to session state')
+            str_contains($violation, "reads from environment variables") ||
+            str_contains($violation, "writes to environment variables") ||
+            str_contains($violation, "reads from file system") ||
+            str_contains($violation, "writes HTTP headers") ||
+            str_contains($violation, "writes to error log") ||
+            str_contains($violation, "reads session state") ||
+            str_contains($violation, "writes to session state")
         ) {
             return SEVERITY_CRITICAL;
         }
@@ -824,11 +851,11 @@ function calculateSeverity(
     // Check for serious violations
     foreach ($allViolations as $violation) {
         if (
-            str_contains($violation, 'global variable') ||
+            str_contains($violation, "global variable") ||
             str_contains($violation, '$GLOBALS') ||
-            str_contains($violation, 'superglobal') ||
-            str_contains($violation, 'object property') ||
-            str_contains($violation, 'static property')
+            str_contains($violation, "superglobal") ||
+            str_contains($violation, "object property") ||
+            str_contains($violation, "static property")
         ) {
             return SEVERITY_SERIOUS;
         }
@@ -838,6 +865,10 @@ function calculateSeverity(
     return SEVERITY_MINOR;
 }
 
+/**
+ * Extract parameter names from a FunctionLike node.
+ * @return string[]
+ */
 function extractParamNames(Node\FunctionLike $node): array
 {
     $params = [];
@@ -852,6 +883,17 @@ function extractParamNames(Node\FunctionLike $node): array
 
 /**
  * Walk a node recursively to detect implicit reads/writes.
+ */
+/**
+ * Walk through a node and detect implicit inputs/outputs.
+ * @param array<string, true> $paramSet
+ * @param array<string, true> $globalDeclsSet
+ * @param array<string, true> $superglobalSet
+ * @param array<string, true> $outputFunctionSet
+ * @param array<string, true> $localAssignmentsSet
+ * @param string[] $implicitInputs
+ * @param string[] $implicitOutputs
+ * @return array{0: array<string, true>, 1: string[], 2: string[]}
  */
 function walkNodeForImplicitness(
     Node $node,
@@ -1014,11 +1056,11 @@ function walkNodeForImplicitness(
 
     // Variable usage
     if ($node instanceof Expr\Variable) {
-        if (! is_string($node->name)) {
+        if (!is_string($node->name)) {
             return [$localAssignmentsSet, $implicitInputs, $implicitOutputs]; // Skip variable variables
         }
         $varName = $node->name;
-        if ($varName === 'this') {
+        if ($varName === "this") {
             return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
         }
         if (isset($paramSet[$varName])) {
@@ -1049,7 +1091,7 @@ function walkNodeForImplicitness(
         $node instanceof Expr\ArrayDimFetch &&
         $node->var instanceof Expr\Variable &&
         is_string($node->var->name) &&
-        $node->var->name === 'GLOBALS'
+        $node->var->name === "GLOBALS"
     ) {
         $key = dimToString($node->dim);
         if ($isWrite) {
@@ -1071,11 +1113,11 @@ function walkNodeForImplicitness(
     if ($strict) {
         // Output functions
         if ($node instanceof Stmt\Echo_) {
-            $implicitOutputs[] = 'writes to standard output (echo)';
+            $implicitOutputs[] = "writes to standard output (echo)";
         } elseif ($node instanceof Expr\Print_) {
-            $implicitOutputs[] = 'writes to standard output (print)';
+            $implicitOutputs[] = "writes to standard output (print)";
         } elseif ($node instanceof Expr\Exit_) {
-            $implicitOutputs[] = 'writes to standard output (exit)';
+            $implicitOutputs[] = "writes to standard output (exit)";
         } elseif (
             $node instanceof Expr\FuncCall &&
             $node->name instanceof Node\Name
@@ -1085,7 +1127,7 @@ function walkNodeForImplicitness(
             // Output functions
             if (isset($outputFunctionSet[$funcName])) {
                 if (
-                    in_array($funcName, ['fwrite', 'file_put_contents'], true)
+                    in_array($funcName, ["fwrite", "file_put_contents"], true)
                 ) {
                     $implicitOutputs[] = "writes to file ({$funcName})";
                 } else {
@@ -1096,15 +1138,15 @@ function walkNodeForImplicitness(
             elseif (
                 in_array(
                     $funcName,
-                    ['file_get_contents', 'fread', 'fopen'],
+                    ["file_get_contents", "fread", "fopen"],
                     true,
                 )
             ) {
                 $implicitInputs[] = "reads from file ({$funcName})";
             }
             // Environment variable access
-            elseif (in_array($funcName, ['getenv', 'putenv'], true)) {
-                if ($funcName === 'getenv') {
+            elseif (in_array($funcName, ["getenv", "putenv"], true)) {
+                if ($funcName === "getenv") {
                     $implicitInputs[] = "reads from environment variables ({$funcName})";
                 } else {
                     $implicitOutputs[] = "writes to environment variables ({$funcName})";
@@ -1114,7 +1156,7 @@ function walkNodeForImplicitness(
             elseif (
                 in_array(
                     $funcName,
-                    ['time', 'date', 'microtime', 'gettimeofday'],
+                    ["time", "date", "microtime", "gettimeofday"],
                     true,
                 )
             ) {
@@ -1125,17 +1167,17 @@ function walkNodeForImplicitness(
                 in_array(
                     $funcName,
                     [
-                        'rand',
-                        'mt_rand',
-                        'random_int',
-                        'random_bytes',
-                        'srand',
-                        'mt_srand',
+                        "rand",
+                        "mt_rand",
+                        "random_int",
+                        "random_bytes",
+                        "srand",
+                        "mt_srand",
                     ],
                     true,
                 )
             ) {
-                if (in_array($funcName, ['srand', 'mt_srand'], true)) {
+                if (in_array($funcName, ["srand", "mt_srand"], true)) {
                     $implicitOutputs[] = "writes to random number generator state ({$funcName})";
                 } else {
                     $implicitInputs[] = "reads from random number generator ({$funcName})";
@@ -1146,15 +1188,15 @@ function walkNodeForImplicitness(
                 in_array(
                     $funcName,
                     [
-                        'file_exists',
-                        'is_file',
-                        'is_dir',
-                        'filesize',
-                        'filemtime',
-                        'is_readable',
-                        'is_writable',
-                        'scandir',
-                        'glob',
+                        "file_exists",
+                        "is_file",
+                        "is_dir",
+                        "filesize",
+                        "filemtime",
+                        "is_readable",
+                        "is_writable",
+                        "scandir",
+                        "glob",
                     ],
                     true,
                 )
@@ -1166,10 +1208,10 @@ function walkNodeForImplicitness(
                 in_array(
                     $funcName,
                     [
-                        'header',
-                        'setcookie',
-                        'setrawcookie',
-                        'http_response_code',
+                        "header",
+                        "setcookie",
+                        "setrawcookie",
+                        "http_response_code",
                     ],
                     true,
                 )
@@ -1180,7 +1222,7 @@ function walkNodeForImplicitness(
             elseif (
                 in_array(
                     $funcName,
-                    ['error_log', 'trigger_error', 'user_error'],
+                    ["error_log", "trigger_error", "user_error"],
                     true,
                 )
             ) {
@@ -1191,17 +1233,17 @@ function walkNodeForImplicitness(
                 in_array(
                     $funcName,
                     [
-                        'session_start',
-                        'session_destroy',
-                        'session_regenerate_id',
-                        'session_write_close',
-                        'session_id',
-                        'session_name',
+                        "session_start",
+                        "session_destroy",
+                        "session_regenerate_id",
+                        "session_write_close",
+                        "session_id",
+                        "session_name",
                     ],
                     true,
                 )
             ) {
-                if (in_array($funcName, ['session_id', 'session_name'], true)) {
+                if (in_array($funcName, ["session_id", "session_name"], true)) {
                     $implicitInputs[] = "reads session state ({$funcName})";
                 } else {
                     $implicitOutputs[] = "writes to session state ({$funcName})";
@@ -1216,7 +1258,7 @@ function walkNodeForImplicitness(
         if (
             $node instanceof Expr\PropertyFetch &&
             $node->var instanceof Expr\Variable &&
-            $node->var->name === 'this' &&
+            $node->var->name === "this" &&
             $node->name instanceof Node\Identifier
         ) {
             $propName = $node->name->toString();
@@ -1236,7 +1278,7 @@ function walkNodeForImplicitness(
             $className =
                 $node->class instanceof Node\Name
                     ? $node->class->toString()
-                    : '...';
+                    : "...";
             if ($isWrite) {
                 $implicitOutputs[] = "wrote to static property {$className}::\${$propName}";
             } else {
@@ -1246,7 +1288,7 @@ function walkNodeForImplicitness(
     }
 
     // Generic traversal
-    if (! ($node instanceof Node\FunctionLike)) {
+    if (!($node instanceof Node\FunctionLike)) {
         foreach ($node->getSubNodeNames() as $subName) {
             $sub = $node->$subName;
             if (is_array($sub)) {
@@ -1301,26 +1343,32 @@ function walkNodeForImplicitness(
 /**
  * Helper to convert a dimension expression into a readable string.
  */
+/**
+ * @param \PhpParser\Node\Expr|null $dim
+ */
 function dimToString($dim): ?string
 {
     if ($dim === null) {
         return null;
     }
     if ($dim instanceof Node\Scalar\String_) {
-        return "'".$dim->value."'";
+        return "'" . $dim->value . "'";
     }
     if ($dim instanceof Node\Scalar\LNumber) {
         return (string) $dim->value;
     }
     if ($dim instanceof Expr\Variable && is_string($dim->name)) {
-        return '$'.$dim->name;
+        return '$' . $dim->name;
     }
 
     return null;
 }
 
 /**
- * Print findings in a simple table.
+ * Prints a detailed report of all findings to STDOUT and returns the appropriate exit code.
+ */
+/**
+ * @param array<int, array<string, mixed>> $allFindings
  */
 function printReport(array $allFindings): int
 {
@@ -1338,7 +1386,7 @@ function printReport(array $allFindings): int
     ];
 
     foreach ($allFindings as $finding) {
-        $severityCounts[$finding['severity']]++;
+        $severityCounts[$finding["severity"]]++;
     }
 
     // Determine exit code based on highest severity found
@@ -1355,30 +1403,30 @@ function printReport(array $allFindings): int
     $rows = [];
     foreach ($allFindings as $f) {
         $rows[] = [
-            'file' => basename($f['file']),
-            'line' => (string) $f['line'],
-            'function' => $f['function'],
-            'inputs' => implode('; ', $f['implicit_inputs']),
-            'outputs' => implode('; ', $f['implicit_outputs']),
-            'severity' => ucfirst($f['severity']),
+            "file" => basename($f["file"]),
+            "line" => (string) $f["line"],
+            "function" => $f["function"],
+            "inputs" => implode("; ", $f["implicit_inputs"]),
+            "outputs" => implode("; ", $f["implicit_outputs"]),
+            "severity" => ucfirst($f["severity"]),
         ];
     }
 
     $cols = [
-        'File',
-        'Line',
-        'Function',
-        'Implicit Inputs',
-        'Implicit Outputs',
-        'Severity',
+        "File",
+        "Line",
+        "Function",
+        "Implicit Inputs",
+        "Implicit Outputs",
+        "Severity",
     ];
     $widths = [
-        'File' => 0,
-        'Line' => 0,
-        'Function' => 0,
-        'Inputs' => 0,
-        'Outputs' => 0,
-        'Severity' => 0,
+        "File" => 0,
+        "Line" => 0,
+        "Function" => 0,
+        "Inputs" => 0,
+        "Outputs" => 0,
+        "Severity" => 0,
     ];
     foreach ($cols as $i => $col) {
         $key = array_keys($widths)[$i];
@@ -1386,28 +1434,28 @@ function printReport(array $allFindings): int
     }
 
     foreach ($rows as $r) {
-        $widths['File'] = max($widths['File'], strlen($r['file']));
-        $widths['Line'] = max($widths['Line'], strlen($r['line']));
-        $widths['Function'] = max($widths['Function'], strlen($r['function']));
-        $widths['Inputs'] = max($widths['Inputs'], strlen($r['inputs']));
-        $widths['Outputs'] = max($widths['Outputs'], strlen($r['outputs']));
-        $widths['Severity'] = max($widths['Severity'], strlen($r['severity']));
+        $widths["File"] = max($widths["File"], strlen($r["file"]));
+        $widths["Line"] = max($widths["Line"], strlen($r["line"]));
+        $widths["Function"] = max($widths["Function"], strlen($r["function"]));
+        $widths["Inputs"] = max($widths["Inputs"], strlen($r["inputs"]));
+        $widths["Outputs"] = max($widths["Outputs"], strlen($r["outputs"]));
+        $widths["Severity"] = max($widths["Severity"], strlen($r["severity"]));
     }
 
-    $lineFmt = "| %-{$widths['File']}s | %-{$widths['Line']}s | %-{$widths['Function']}s | %-{$widths['Inputs']}s | %-{$widths['Outputs']}s | %-{$widths['Severity']}s |\n";
+    $lineFmt = "| %-{$widths["File"]}s | %-{$widths["Line"]}s | %-{$widths["Function"]}s | %-{$widths["Inputs"]}s | %-{$widths["Outputs"]}s | %-{$widths["Severity"]}s |\n";
     $sep =
-        '+'.
-        str_repeat('-', $widths['File'] + 2).
-        '+'.
-        str_repeat('-', $widths['Line'] + 2).
-        '+'.
-        str_repeat('-', $widths['Function'] + 2).
-        '+'.
-        str_repeat('-', $widths['Inputs'] + 2).
-        '+'.
-        str_repeat('-', $widths['Outputs'] + 2).
-        '+'.
-        str_repeat('-', $widths['Severity'] + 2).
+        "+" .
+        str_repeat("-", $widths["File"] + 2) .
+        "+" .
+        str_repeat("-", $widths["Line"] + 2) .
+        "+" .
+        str_repeat("-", $widths["Function"] + 2) .
+        "+" .
+        str_repeat("-", $widths["Inputs"] + 2) .
+        "+" .
+        str_repeat("-", $widths["Outputs"] + 2) .
+        "+" .
+        str_repeat("-", $widths["Severity"] + 2) .
         "+\n";
 
     fwrite(STDOUT, $sep);
@@ -1429,16 +1477,16 @@ function printReport(array $allFindings): int
             STDOUT,
             sprintf(
                 $lineFmt,
-                $r['file'],
-                $r['line'],
-                $r['function'],
-                $r['inputs'],
-                $r['outputs'],
-                $r['severity'],
+                $r["file"],
+                $r["line"],
+                $r["function"],
+                $r["inputs"],
+                $r["outputs"],
+                $r["severity"],
             ),
         );
     }
-    fwrite(STDOUT, $sep.PHP_EOL);
+    fwrite(STDOUT, $sep . PHP_EOL);
 
     // Print severity summary
     fwrite(STDOUT, "Summary:\n");
@@ -1461,3 +1509,4 @@ function printReport(array $allFindings): int
 
 // Run main with CLI args and exit with return code
 exit(main($argv));
+
