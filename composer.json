@@ -1,22 +1,37 @@
 {
-  "name": "goose/explicitness-checker",
+  "name": "jonbaldie/explicitness-checker",
   "description": "A tool to analyze explicitness of PHP code (implicit inputs/outputs).",
-  "type": "project",
+  "type": "library",
+  "keywords": [
+    "php",
+    "static-analysis",
+    "code-quality",
+    "functional-programming",
+    "explicitness",
+    "implicit-dependencies"
+  ],
+  "homepage": "https://github.com/jonbaldie/explicitness-checker",
+  "support": {
+    "issues": "https://github.com/jonbaldie/explicitness-checker/issues",
+    "source": "https://github.com/jonbaldie/explicitness-checker"
+  },
+  "authors": [
+    {
+      "name": "Jonathan Baldie",
+      "email": "jon@jonbaldie.com"
+    }
+  ],
   "require": {
     "php": ">=7.4",
     "nikic/php-parser": "^4.15"
   },
-  "autoload": {
-    "psr-4": {
-      "ExplicitnessChecker\\": "src/"
-    }
-  },
   "bin": [
-    "explicitness-checker.php"
+    "bin/explicitness-checker"
   ],
   "license": "MIT",
   "minimum-stability": "stable",
   "require-dev": {
-    "laravel/pint": "^1.24"
+    "laravel/pint": "^1.24",
+    "phpstan/phpstan": "^2.1"
   }
 }

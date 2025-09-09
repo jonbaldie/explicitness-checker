@@ -1,6 +1,6 @@
 This is an **explicitness parsing** tool that you can run on your PHP projects to analyze the explicitness of your code.
 
-What is explicitness?
+## What is explicitness?
 
 Simply put, explicitness refers to the clarity of data flow through your functions. Ideally all of your inputs should be provided through function arguments, and all of your outputs should be returned through function return values.
 
@@ -43,10 +43,18 @@ Functions with implicit dependencies are like electronic components that are har
 
 Implicit inputs limit when you can call a function because you must ensure all the global state is properly set up beforehand, and you have to worry about other code potentially interfering with those shared variables. Implicit outputs similarly constrain when you can call a function - you can only call it when you actually want those side effects to occur. This makes testing particularly challenging because you must set up all the implicit inputs, run the function, and then verify all the implicit outputs, which becomes exponentially more complex as the number of implicit dependencies grows. Functions with only explicit inputs and outputs are much easier to test because you simply pass in arguments and check the return value, with no external setup or cleanup required.
 
+## Installation
+
+Install via Composer:
+
+```bash
+composer require jonbaldie/explicitness-checker --dev
+```
+
 ## How do I run the tool?
 
-```
-$ php explicitness-checker.php [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] ./path/to/your/project
+```bash
+./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] ./path/to/your/project
 ```
 
 ### Flags
@@ -74,16 +82,16 @@ $ php explicitness-checker.php [--verbose] [--strict] [--props] [--exclude=dir] 
 
 ```bash
 # Exclude vendor and tests directories
-php explicitness-checker.php --exclude=vendor --exclude=tests ./project
+./vendor/bin/explicitness-checker --exclude=vendor --exclude=tests ./project
 
 # Only analyze files in src/ directory
-php explicitness-checker.php --include-pattern="src/" ./project
+./vendor/bin/explicitness-checker --include-pattern="src/" ./project
 
 # Exclude all test files
-php explicitness-checker.php --exclude-pattern="test.*\.php$" ./project
+./vendor/bin/explicitness-checker --exclude-pattern="test.*\.php$" ./project
 
 # Combine multiple filters
-php explicitness-checker.php --exclude=vendor --exclude-pattern=".*Test\.php$" ./project
+./vendor/bin/explicitness-checker --exclude=vendor --exclude-pattern=".*Test\.php$" ./project
 ```
 
 ### Severity Levels and Exit Codes
@@ -117,7 +125,7 @@ The tool exits with the highest severity level found, making it easy to integrat
 ### Example Output
 
 ```
-$ php explicitness-checker.php ./path/to/your/project
+$ ./vendor/bin/explicitness-checker ./path/to/your/project
 
 Analyzing ./path/to/your/project
 

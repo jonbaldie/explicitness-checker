@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types=1);
@@ -13,7 +14,7 @@ const SEVERITY_CRITICAL = 'critical'; // Exit code 3: file I/O, time, random, et
  * CLI script to analyze PHP files for implicit inputs/outputs.
  *
  * Usage:
- *   php explicitness-checker.php [-v|--verbose] [--strict] /path/to/project
+ *   explicitness-checker [-v|--verbose] [--strict] /path/to/project
  *
  * Default mode checks for:
  * - `global` variable usage
@@ -34,7 +35,25 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 use PhpParser\ParserFactory;
 
-require_once __DIR__.'/vendor/autoload.php';
+// Try to find autoload.php in different locations
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',     // Local development
+    __DIR__ . '/../../../autoload.php',     // Installed via Composer
+];
+
+$autoloadFound = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $autoloadFound = true;
+        break;
+    }
+}
+
+if (!$autoloadFound) {
+    fwrite(STDERR, "Error: Could not find vendor/autoload.php. Please run 'composer install'.\n");
+    exit(1);
+}
 
 /**
  * Entry point.
@@ -48,7 +67,7 @@ function main(array $argv): int
     if ($args === null) {
         fwrite(
             STDERR,
-            "Usage: php explicitness-checker.php [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n",
+            "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n",
         );
 
         return 2;
