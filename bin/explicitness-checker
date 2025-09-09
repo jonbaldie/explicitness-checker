@@ -109,7 +109,8 @@ function main(array $argv): int
         return 0;
     }
 
-    $parser = new ParserFactory()->createForNewestSupportedVersion();
+    $parser_factory = new ParserFactory();
+    $parser = $parser_factory->createForNewestSupportedVersion();
 
     $allFindings = [];
     foreach ($files as $file) {
@@ -794,12 +795,13 @@ function getFunctionName(
 ): string {
     $funcName = "<anonymous>";
     if ($node instanceof Stmt\Function_) {
-        $funcName = $node->name->toString();
+        $funcName = $node->name !== null ? $node->name->toString() : $funcName;
         if ($namespace) {
             $funcName = $namespace . "\\" . $funcName;
         }
     } elseif ($node instanceof Stmt\ClassMethod) {
-        $methodName = $node->name->toString();
+        $methodName =
+            $node->name !== null ? $node->name->toString() : $funcName;
         if ($className) {
             $funcName = $className . "::" . $methodName;
         } else {
