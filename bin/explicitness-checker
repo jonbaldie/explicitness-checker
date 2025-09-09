@@ -795,13 +795,12 @@ function getFunctionName(
 ): string {
     $funcName = "<anonymous>";
     if ($node instanceof Stmt\Function_) {
-        $funcName = $node->name !== null ? $node->name->toString() : $funcName;
+        $funcName = $node->name->toString();
         if ($namespace) {
             $funcName = $namespace . "\\" . $funcName;
         }
     } elseif ($node instanceof Stmt\ClassMethod) {
-        $methodName =
-            $node->name !== null ? $node->name->toString() : $funcName;
+        $methodName = $node->name->toString();
         if ($className) {
             $funcName = $className . "::" . $methodName;
         } else {
