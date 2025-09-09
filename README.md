@@ -5,28 +5,23 @@ This is an **explicitness parsing** tool that you can run on your PHP projects t
 Simply put, explicitness refers to the clarity of data flow through your functions. Ideally all of your inputs should be provided through function arguments, and all of your outputs should be returned through function return values.
 
 ```php
-<?php
 function add($a, $b) {
     return $a + $b; // explicit input and output: all values are provided through function arguments and returned through function return values
 }
-?>
 ```
 
 If your function accesses global variables not provided through its arguments, that is an implicit input. If your function changes global state without returning a value, that is an implicit output.
 
 ```php
-<?php
-
 $some_global_number = 10;
 
 function add($a, $b) {
-    echo "Adding $a and $b with global number $some_global_number\n"; // implicit output: printing to stdout
+    echo "Calling add on $a and $b...\n"; // implicit output: printing to stdout
 
     --$some_global_number; // implicit output: decrementing global variable $some_global_number
 
     return $a + $b + $some_global_number; // implicit input: reading from global variable $some_global_number
 }
-?>
 ```
 
 ## How does the tool work?
