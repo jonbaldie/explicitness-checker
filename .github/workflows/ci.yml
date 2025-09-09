@@ -98,5 +98,40 @@ jobs:
 
       - name: Test tool functionality
         run: |
-          # Test that the tool runs without errors on itself
-          php bin/explicitness-checker --verbose .
+          # Test good examples (should pass with exit code 0)
+          echo "Testing good examples..."
+          php bin/explicitness-checker test-fixtures/good-examples.php
+          if [ $? -ne 0 ]; then
+            echo "ERROR: good-examples.php should pass but failed"
+            exit 1
+          fi
+          echo "✓ good-examples.php passed as expected"
+
+          # Test bad examples (should fail with exit code > 0)
+          echo "Testing bad examples..."
+          php bin/explicitness-checker test-fixtures/bad-examples.php
+          if [ $? -eq 0 ]; then
+            echo "ERROR: bad-examples.php should fail but passed"
+            exit 1
+          fi
+          echo "✓ bad-examples.php failed as expected"
+
+          # Test strict examples without --strict (should pass)
+          echo "Testing strict examples without --strict flag..."
+          php bin/explicitness-checker test-fixtures/strict-examples.php
+          if [ $? -ne 0 ]; then
+            echo "ERROR: strict-examples.php should pass without --strict but failed"
+            exit 1
+          fi
+          echo "✓ strict-examples.php passed without --strict as expected"
+
+          # Test strict examples with --strict (should fail)
+          echo "Testing strict examples with --strict flag..."
+          php bin/explicitness-checker --strict test-fixtures/strict-examples.php
+          if [ $? -eq 0 ]; then
+            echo "ERROR: strict-examples.php should fail with --strict but passed"
+            exit 1
+          fi
+          echo "✓ strict-examples.php failed with --strict as expected"
+
+          echo "All test fixture validations passed!"

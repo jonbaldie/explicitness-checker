@@ -30,7 +30,7 @@ class UserSession
      */
     public function greet(): void
     {
-        echo 'Hello, '.$this->username; // Implicit input and output
+        echo "Hello, " . $this->username; // Implicit input and output
     }
 
     /**
@@ -70,8 +70,8 @@ class AppAnalytics
         $currentViews = self::$pageViews; // Implicit input
         self::$events[] = [
             // Implicit output
-            'name' => $eventName,
-            'views_at_time' => $currentViews,
+            "name" => $eventName,
+            "views_at_time" => $currentViews,
         ];
     }
 }
@@ -92,7 +92,7 @@ function debug_user_data(array $user): void
 function inspect_and_die(array $data): void
 {
     print_r($data);
-    exit('Execution stopped.');
+    exit("Execution stopped.");
 }
 
 // --- Example 4: Environment Variables ---
@@ -102,17 +102,15 @@ function inspect_and_die(array $data): void
  */
 function get_database_url(): string
 {
-    return getenv('DATABASE_URL') ?: 'localhost'; // Implicit input
+    return getenv("DATABASE_URL") ?: "localhost"; // Implicit input
 }
 
 /**
- * Implicit input: reads from $_ENV superglobal.
  * Implicit output: writes to environment variables.
  */
 function configure_environment(): void
 {
-    $debug = $_ENV['DEBUG'] ?? 'false'; // Implicit input
-    putenv('APP_ENV=production'); // Implicit output
+    putenv("APP_ENV=production"); // Implicit output
 }
 
 // --- Example 5: Time Functions ---
@@ -130,7 +128,7 @@ function get_current_timestamp(): int
  */
 function format_current_date(): string
 {
-    return date('Y-m-d H:i:s'); // Implicit input - system time
+    return date("Y-m-d H:i:s"); // Implicit input - system time
 }
 
 /**
@@ -180,7 +178,7 @@ function seed_random_generator(): void
  */
 function check_config_file(): bool
 {
-    return file_exists('/etc/app.conf'); // Implicit input
+    return file_exists("/etc/app.conf"); // Implicit input
 }
 
 /**
@@ -189,10 +187,10 @@ function check_config_file(): bool
 function get_file_info(string $path): array
 {
     return [
-        'exists' => file_exists($path), // Implicit input
-        'is_file' => is_file($path), // Implicit input
-        'size' => filesize($path), // Implicit input
-        'modified' => filemtime($path), // Implicit input
+        "exists" => file_exists($path), // Implicit input
+        "is_file" => is_file($path), // Implicit input
+        "size" => filesize($path), // Implicit input
+        "modified" => filemtime($path), // Implicit input
     ];
 }
 
@@ -201,7 +199,7 @@ function get_file_info(string $path): array
  */
 function list_config_files(): array
 {
-    return glob('/etc/*.conf'); // Implicit input
+    return glob("/etc/*.conf"); // Implicit input
 }
 
 // --- Example 8: HTTP Headers ---
@@ -211,7 +209,7 @@ function list_config_files(): array
  */
 function send_json_response(array $data): void
 {
-    header('Content-Type: application/json'); // Implicit output
+    header("Content-Type: application/json"); // Implicit output
     echo json_encode($data);
 }
 
@@ -220,8 +218,8 @@ function send_json_response(array $data): void
  */
 function set_user_preferences(string $theme): void
 {
-    setcookie('theme', $theme, time() + 3600); // Implicit output
-    header('Cache-Control: no-cache'); // Implicit output
+    setcookie("theme", $theme, time() + 3600); // Implicit output
+    header("Cache-Control: no-cache"); // Implicit output
 }
 
 // --- Example 9: Error Logging ---
@@ -240,7 +238,7 @@ function log_user_action(string $action): void
 function validate_input(string $input): bool
 {
     if (empty($input)) {
-        trigger_error('Input cannot be empty', E_USER_WARNING); // Implicit output
+        trigger_error("Input cannot be empty", E_USER_WARNING); // Implicit output
 
         return false;
     }
@@ -264,8 +262,8 @@ function initialize_user_session(): void
 function get_session_info(): array
 {
     return [
-        'id' => session_id(), // Implicit input
-        'name' => session_name(), // Implicit input
+        "id" => session_id(), // Implicit input
+        "name" => session_name(), // Implicit input
     ];
 }
 
