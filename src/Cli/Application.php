@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
+use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\ParserFactory;
 
 /**
@@ -71,6 +72,7 @@ class Application
         $checker = new FileChecker(
             (new ParserFactory())->createForNewestSupportedVersion(),
             new Analyser(),
+            new FunctionLikeFinder(),
             $console,
             $options->isStrict(),
             $options->isProps(),

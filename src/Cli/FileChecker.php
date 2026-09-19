@@ -27,6 +27,7 @@ class FileChecker
     public function __construct(
         protected Parser $parser,
         protected Analyser $analyser,
+        protected FunctionLikeFinder $finder,
         protected Console $console,
         protected bool $strict,
         protected bool $props,
@@ -60,7 +61,7 @@ class FileChecker
         }
 
         $violations = [];
-        foreach ((new FunctionLikeFinder())->find($this->resolveNames($ast)) as $functionLike) {
+        foreach ($this->finder->find($this->resolveNames($ast)) as $functionLike) {
             $violation = $this->checkFunctionLike($functionLike, $file);
             if ($violation !== null) {
                 $violations[] = $violation;
