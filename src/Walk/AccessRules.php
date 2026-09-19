@@ -22,6 +22,10 @@ class AccessRules
             new CompoundAssignmentRule(),
             new IncrementDecrementRule(),
             new LeafRule(),
+            new ArrayIndexRule(),
+            new ForeachRule(),
+            new CatchRule(),
+            new UnsetRule(),
             new SubNodesRule(),
         ];
     }
