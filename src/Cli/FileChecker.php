@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
-use JonBaldie\ExplicitnessChecker\Finding;
 use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\Error;
@@ -88,8 +87,8 @@ class FileChecker
         $node = $functionLike->getNode();
         $analysis = $this->analyser->analyse($node, $this->strict, $this->props);
         $name = $functionLike->getName();
-        $inputs = $this->descriptions($analysis->getImplicitInputs());
-        $outputs = $this->descriptions($analysis->getImplicitOutputs());
+        $inputs = $analysis->getImplicitInputs();
+        $outputs = $analysis->getImplicitOutputs();
 
         $this->console->verbose("Analyzing function/method: {$name} (line {$node->getStartLine()})");
         $this->verboseList("  Declared globals in {$name}: ", ', ', $analysis->getDeclaredGlobals());
@@ -100,10 +99,11 @@ class FileChecker
 
             return null;
         }
-        $this->verboseList("  Implicit inputs for {$name}: ", '; ', $inputs);
-        $this->verboseList("  Implicit outputs for {$name}: ", '; ', $outputs);
+        $violation = new Violation($file, $node->getStartLine(), $name, $inputs, $outputs);
+        $this->verboseList("  Implicit inputs for {$name}: ", '; ', $violation->getInputs());
+        $this->verboseList("  Implicit outputs for {$name}: ", '; ', $violation->getOutputs());
 
-        return new Violation($file, $node->getStartLine(), $name, $inputs, $outputs);
+        return $violation;
     }
 
     /**
@@ -114,15 +114,5 @@ class FileChecker
         if ($items !== []) {
             $this->console->verbose($label . implode($glue, $items));
         }
-    }
-
-    /**
-     * @param list<Finding> $findings
-     *
-     * @return list<string>
-     */
-    protected function descriptions(array $findings): array
-    {
-        return array_map(static fn (Finding $finding): string => $finding->getDescription(), $findings);
     }
 }
