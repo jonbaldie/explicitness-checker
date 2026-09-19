@@ -7,6 +7,30 @@ const SEVERITY_MINOR = "minor"; // Exit code 1: echo, print, etc.
 const SEVERITY_SERIOUS = "serious"; // Exit code 2: globals, superglobals, properties
 const SEVERITY_CRITICAL = "critical"; // Exit code 3: file I/O, time, random, etc.
 
+// Substrings of a finding that decide its severity
+const CRITICAL_VIOLATION_MARKERS = [
+    "reads from file",
+    "writes to file",
+    "reads system time",
+    "reads from random number generator",
+    "writes to random number generator state",
+    "reads from environment variables",
+    "writes to environment variables",
+    'superglobal $_ENV',
+    "reads from file system",
+    "writes HTTP headers",
+    "writes to error log",
+    "reads session state",
+    "writes to session state",
+];
+const SERIOUS_VIOLATION_MARKERS = [
+    "global variable",
+    '$GLOBALS',
+    "superglobal",
+    "object property",
+    "static property",
+];
+
 /**
  * explicitness-checker.php.
  *
@@ -300,19 +324,30 @@ function shouldIncludeFile(
 ): bool {
     // If include pattern is specified, file must match it
     if ($includePattern !== null) {
-        if (!preg_match("/" . $includePattern . "/", $filePath)) {
+        if (!preg_match(delimitPattern($includePattern), $filePath)) {
             return false;
         }
     }
 
     // If exclude pattern is specified, file must not match it
     if ($excludePattern !== null) {
-        if (preg_match("/" . $excludePattern . "/", $filePath)) {
+        if (preg_match(delimitPattern($excludePattern), $filePath)) {
             return false;
         }
     }
 
     return true;
+}
+
+/**
+ * Wrap a user-supplied regex body in "/" delimiters, escaping any bare "/"
+ * so patterns like "src/.*\.php$" work. Existing escapes (e.g. "\/") are kept.
+ */
+function delimitPattern(string $pattern): string
+{
+    return "/" .
+        preg_replace('~\\\\.(*SKIP)(*FAIL)|/~s', '\\/', $pattern) .
+        "/";
 }
 
 /**
@@ -824,44 +859,32 @@ function calculateSeverity(
 ): string {
     $allViolations = array_merge($implicitInputs, $implicitOutputs);
 
-    // Check for critical violations first
-    foreach ($allViolations as $violation) {
-        if (
-            str_contains($violation, "reads from file") ||
-            str_contains($violation, "writes to file") ||
-            str_contains($violation, "reads system time") ||
-            str_contains($violation, "reads from random number generator") ||
-            str_contains(
-                $violation,
-                "writes to random number generator state",
-            ) ||
-            str_contains($violation, "reads from environment variables") ||
-            str_contains($violation, "writes to environment variables") ||
-            str_contains($violation, "reads from file system") ||
-            str_contains($violation, "writes HTTP headers") ||
-            str_contains($violation, "writes to error log") ||
-            str_contains($violation, "reads session state") ||
-            str_contains($violation, "writes to session state")
-        ) {
-            return SEVERITY_CRITICAL;
-        }
+    // Critical wins over serious; everything else is minor (output functions).
+    if (anyViolationContains($allViolations, CRITICAL_VIOLATION_MARKERS)) {
+        return SEVERITY_CRITICAL;
+    }
+    if (anyViolationContains($allViolations, SERIOUS_VIOLATION_MARKERS)) {
+        return SEVERITY_SERIOUS;
     }
 
-    // Check for serious violations
-    foreach ($allViolations as $violation) {
-        if (
-            str_contains($violation, "global variable") ||
-            str_contains($violation, '$GLOBALS') ||
-            str_contains($violation, "superglobal") ||
-            str_contains($violation, "object property") ||
-            str_contains($violation, "static property")
-        ) {
-            return SEVERITY_SERIOUS;
-        }
-    }
-
-    // Everything else is minor (standard output functions)
     return SEVERITY_MINOR;
+}
+
+/**
+ * @param string[] $violations
+ * @param string[] $markers
+ */
+function anyViolationContains(array $violations, array $markers): bool
+{
+    foreach ($violations as $violation) {
+        foreach ($markers as $marker) {
+            if (str_contains($violation, $marker)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
