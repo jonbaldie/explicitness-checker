@@ -17,9 +17,10 @@ class Process
     /**
      * The variables PHPStan uses to detect a coding agent (it then prints
      * error identifiers in raw output). Copied from PHPStan\Internal\AgentDetector,
-     * which is internal to PHPStan.
+     * which is internal to PHPStan. It also detects an agent when /opt/.devin
+     * exists, which no environment can hide.
      */
-    protected const AGENT_VARIABLES = [
+    public const AGENT_VARIABLES = [
         'AUGMENT_AGENT', 'AMP_CURRENT_THREAD_ID', 'AI_AGENT', 'CURSOR_TRACE_ID', 'CURSOR_AGENT',
         'GEMINI_CLI', 'CODEX_SANDBOX', 'CODEX_THREAD_ID', 'OPENCODE_CLIENT', 'OPENCODE',
         'CLAUDECODE', 'CLAUDE_CODE', 'REPL_ID',

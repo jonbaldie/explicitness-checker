@@ -58,6 +58,7 @@
     "standards": "php tools/check-standards.php",
     "infection": [
       "sh tools/install-infection.sh",
+      "rm -f build/infection.json",
       "php tools/infection.phar --threads=max",
       "php tools/check-infection-skips.php"
     ]

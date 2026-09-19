@@ -68,6 +68,26 @@ class ToolsTest extends TestCase
         self::assertStringContainsString('tests/BadTest.php:3: getMockBuilder', $stdout);
     }
 
+    public function testStandardsRejectQualifiedMockingNames(): void
+    {
+        file_put_contents($this->root . '/tests/BadTest.php', "<?php\n\n\\Mockery::mock(Foo::class);\n");
+
+        [$exitCode, $stdout] = $this->standards();
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString('tests/BadTest.php:3: \\Mockery', $stdout);
+    }
+
+    public function testStandardsCheckEveryScriptInBin(): void
+    {
+        file_put_contents($this->root . '/bin/other', "<?php\nclass Other { private \$x; }\n");
+
+        [$exitCode, $stdout] = $this->standards();
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString('bin/other:2: private', $stdout);
+    }
+
     public function testInfectionCheckPassesWithNoSkippedMutants(): void
     {
         [$exitCode, $stdout] = $this->infection(['stats' => ['skippedCount' => 0]]);

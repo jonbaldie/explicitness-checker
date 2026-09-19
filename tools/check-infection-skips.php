@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 $log = $argv[1] ?? dirname(__DIR__) . '/build/infection.json';
 $data = is_file($log) ? json_decode((string) file_get_contents($log), true) : null;
-$skipped = is_array($data) && is_array($data['stats'] ?? null) ? ($data['stats']['skippedCount'] ?? null) : null;
+$stats = is_array($data) ? ($data['stats'] ?? null) : null;
+$skipped = is_array($stats) ? ($stats['skippedCount'] ?? null) : null;
 
 if (!is_int($skipped)) {
     echo "No skippedCount in {$log}; run Infection with the JSON log enabled.", PHP_EOL;

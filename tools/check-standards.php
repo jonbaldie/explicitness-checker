@@ -11,8 +11,20 @@ declare(strict_types=1);
  * Prints one line per violation and exits 1 if there are any.
  */
 
-const MOCKING = ['createMock', 'createPartialMock', 'createConfiguredMock', 'createStub', 'getMockBuilder',
-    'getMockForAbstractClass', 'getMockForTrait', 'prophesize', 'Mockery'];
+const MOCK_APIS = ['createMock', 'createPartialMock', 'createConfiguredMock', 'createStub', 'getMockBuilder',
+    'getMockForAbstractClass', 'getMockForTrait', 'prophesize', 'Mockery', 'Prophecy'];
+
+/**
+ * @param array{int, string, int} $token
+ */
+function isMockApi(array $token): bool
+{
+    // PHP 8 reads Mockery\Mockery or \Mockery as one name token.
+    $names = [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED];
+
+    return in_array($token[0], $names, true)
+        && array_intersect(explode('\\', $token[1]), MOCK_APIS) !== [];
+}
 
 /**
  * @return list<string> paths below $directory ending in .php, skipping $skip
@@ -55,15 +67,12 @@ function violations(string $root, string $path, callable $isViolation): array
 $root = rtrim($argv[1] ?? dirname(__DIR__), '/');
 
 $violations = [];
-foreach (array_merge([$root . '/bin/explicitness-checker'], phpFiles($root . '/src')) as $path) {
+$scripts = glob($root . '/bin/*') ?: [];
+foreach (array_merge($scripts, phpFiles($root . '/src')) as $path) {
     $violations = array_merge($violations, violations($root, $path, fn (array $token): bool => $token[0] === T_PRIVATE));
 }
 foreach (phpFiles($root . '/tests', $root . '/tests/Fixtures/') as $path) {
-    $violations = array_merge($violations, violations(
-        $root,
-        $path,
-        fn (array $token): bool => $token[0] === T_STRING && in_array($token[1], MOCKING, true),
-    ));
+    $violations = array_merge($violations, violations($root, $path, 'isMockApi'));
 }
 
 foreach ($violations as $violation) {

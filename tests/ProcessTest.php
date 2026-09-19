@@ -14,8 +14,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ProcessTest extends TestCase
 {
-    protected const AGENT_VARIABLES = ['CLAUDECODE', 'CLAUDE_CODE', 'AI_AGENT', 'CURSOR_AGENT'];
-
     /**
      * @var array<string, string|false>
      */
@@ -23,7 +21,7 @@ class ProcessTest extends TestCase
 
     protected function setUp(): void
     {
-        foreach (self::AGENT_VARIABLES as $name) {
+        foreach (Process::AGENT_VARIABLES as $name) {
             $this->saved[$name] = getenv($name);
             putenv($name . '=1');
         }
@@ -43,11 +41,11 @@ class ProcessTest extends TestCase
             '-r',
             'echo json_encode(array_map("getenv", array_slice($argv, 1)));',
             '--',
-            ...self::AGENT_VARIABLES,
+            ...Process::AGENT_VARIABLES,
         ]);
 
         self::assertSame(0, $exitCode);
-        self::assertSame('[false,false,false,false]', $stdout);
+        self::assertSame(json_encode(array_fill(0, count(Process::AGENT_VARIABLES), false)), $stdout);
     }
 
     public function testSubprocessesKeepTheRestOfTheEnvironment(): void

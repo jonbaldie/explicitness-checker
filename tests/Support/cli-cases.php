@@ -82,6 +82,8 @@ return $cases + [
     // Include and exclude patterns (#4).
     'include-pattern-equals' => ['--include-pattern=read-write-context/', 'test-fixtures'],
     'include-pattern-separate' => ['--include-pattern', 'env-access\.php$', 'test-fixtures'],
+    'include-pattern-slash-file' => ['--include-pattern=test-fixtures/', 'test-fixtures/env-access.php'],
+    'include-pattern-escaped-slash-file' => ['--include-pattern=test-fixtures\/env', 'test-fixtures/env-access.php'],
     'include-pattern-readme-example' => ['--include-pattern=test-fixtures/.*\.php$', 'test-fixtures/env-access.php'],
     'include-pattern-slash-directory' => ['--include-pattern=/env-access\.php$', 'test-fixtures'],
     'include-pattern-escaped-slash' => ['--include-pattern=test-fixtures\/env', 'test-fixtures'],
