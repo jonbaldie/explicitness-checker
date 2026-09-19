@@ -1,4 +1,4 @@
-# Sets explicitness.strict, which the extension doesn't declare yet (#16).
+# Turns on strict mode.
 includes:
 	- extension.neon
 parameters:

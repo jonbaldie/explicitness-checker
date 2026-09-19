@@ -33,27 +33,77 @@ class ExtensionConfigTest extends TestCase
         self::assertSame(0, $exitCode, $output);
     }
 
-    /**
-     * @return iterable<string, array{string}>
-     */
-    public function undeclaredParameters(): iterable
+    public function testStrictAndPropsAreOffByDefault(): void
     {
-        yield 'strict' => ['extension-with-strict.neon'];
-        yield 'props' => ['extension-with-props.neon'];
+        [$exitCode, $output] = $this->analyse('extension.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(0, $exitCode, $output);
+    }
+
+    public function testStrictParameterTurnsOnStrictMode(): void
+    {
+        [$exitCode, $output] = $this->analyse('extension-with-strict.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString(
+            'strict-examples.php:105:get_database_url reads from environment variables (getenv). '
+            . '[identifier=explicitness.environment]',
+            $output,
+        );
+        self::assertSame(29, substr_count($output, '[identifier=explicitness.'), $output);
+    }
+
+    public function testPropsParameterTurnsOnPropsMode(): void
+    {
+        [$exitCode, $output] = $this->analyse('extension-with-props.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString(
+            'strict-examples.php:24:UserSession::__construct wrote to object property $this->username. '
+            . '[identifier=explicitness.objectProperty]',
+            $output,
+        );
+        self::assertSame(8, substr_count($output, '[identifier=explicitness.'), $output);
+    }
+
+    public function testStrictAndPropsCombine(): void
+    {
+        [$exitCode, $output] = $this->analyse('extension-with-strict-and-props.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString('[identifier=explicitness.environment]', $output);
+        self::assertStringContainsString('[identifier=explicitness.objectProperty]', $output);
+        self::assertSame(37,substr_count($output, '[identifier=explicitness.'), $output);
     }
 
     /**
-     * Until their own tickets declare them, setting strict or props fails
-     * rather than being silently ignored.
-     *
-     * @dataProvider undeclaredParameters
+     * @return iterable<string, array{string, string}>
      */
-    public function testUndeclaredParameterIsRejected(string $config): void
+    public function invalidConfigurations(): iterable
+    {
+        yield 'non-boolean strict' => [
+            'extension-with-non-boolean-strict.neon',
+            "/The item 'parameters\\W+explicitness\\W+strict' expects to be bool/u",
+        ];
+        yield 'misspelled strict' => [
+            'extension-with-misspelled-strict.neon',
+            "/Unexpected item 'parameters\\W+explicitness\\W+strcit'/u",
+        ];
+        yield 'non-boolean props' => [
+            'extension-with-non-boolean-props.neon',
+            "/The item 'parameters\\W+explicitness\\W+props' expects to be bool/u",
+        ];
+    }
+
+    /**
+     * @dataProvider invalidConfigurations
+     */
+    public function testInvalidConfigurationIsRejected(string $config, string $pattern): void
     {
         [$exitCode, $output] = $this->analyse($config, 'test-fixtures/good-examples.php');
 
         self::assertSame(1, $exitCode, $output);
-        self::assertMatchesRegularExpression("/Unexpected item 'parameters\\W+explicitness'/u", $output);
+        self::assertMatchesRegularExpression($pattern, $output);
     }
 
     /**
