@@ -48,9 +48,9 @@ class Report
         $this->console->out("Analyzing...\n\nResults:\n\n");
         $this->printTable($rows);
         $this->console->out("Summary:\n");
-        $this->console->out("  Critical violations: {$counts[Severity::CRITICAL]} (exit code 3)\n");
-        $this->console->out("  Serious violations: {$counts[Severity::SERIOUS]} (exit code 2)\n");
-        $this->console->out("  Minor violations: {$counts[Severity::MINOR]} (exit code 1)\n");
+        foreach (array_reverse(Severity::EXIT_CODES, true) as $severity => $code) {
+            $this->console->out('  ' . ucfirst($severity) . " violations: {$counts[$severity]} (exit code {$code})\n");
+        }
         $this->console->out("  Exit code: {$exitCode}\n\n");
 
         return $exitCode;
