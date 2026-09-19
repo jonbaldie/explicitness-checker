@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
+use JonBaldie\ExplicitnessChecker\Mode;
+use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\ParserFactory;
 
 /**
@@ -51,12 +53,13 @@ class Application
     {
         $console = new Console($this->stdout, $this->stderr, $options->isVerbose());
         $path = $options->getPath();
+        $mode = $options->getMode();
 
         $console->verbose("Starting analysis for path: {$path}");
-        if ($options->isStrict()) {
+        if ($mode->isStrict()) {
             $console->verbose('Strict mode enabled.');
         }
-        if ($options->isProps()) {
+        if ($mode->isProps()) {
             $console->verbose('Props mode enabled.');
         }
 
@@ -71,9 +74,9 @@ class Application
         $checker = new FileChecker(
             (new ParserFactory())->createForNewestSupportedVersion(),
             new Analyser(),
+            new FunctionLikeFinder(),
             $console,
-            $options->isStrict(),
-            $options->isProps(),
+            $mode,
         );
         $violations = [];
         foreach ($files as $file) {

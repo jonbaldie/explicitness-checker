@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\PHPStan;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Finding;
+use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\Node;
@@ -31,14 +32,12 @@ class ImplicitInputOutputRule implements Rule
     public const IDENTIFIER_PREFIX = 'explicitness.';
 
     /**
-     * @param bool $strict also report what the CLI reports under `--strict`
-     * @param bool $props  also report what the CLI reports under `--props`
+     * @param Mode $mode from the `explicitness.strict` and `explicitness.props` parameters
      */
     public function __construct(
         protected Analyser $analyser,
         protected FunctionLikeFinder $finder,
-        protected bool $strict,
-        protected bool $props,
+        protected Mode $mode,
     ) {
     }
 
@@ -76,7 +75,7 @@ class ImplicitInputOutputRule implements Rule
      */
     protected function findingsOf(CheckedFunctionLike $functionLike): array
     {
-        $analysis = $this->analyser->analyse($functionLike->getNode(), $this->strict, $this->props);
+        $analysis = $this->analyser->analyse($functionLike->getNode(), $this->mode);
 
         return array_merge($analysis->getImplicitInputs(), $analysis->getImplicitOutputs());
     }

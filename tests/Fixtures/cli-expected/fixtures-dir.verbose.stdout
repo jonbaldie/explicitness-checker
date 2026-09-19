@@ -1,7 +1,7 @@
 [verbose] Starting analysis for path: test-fixtures
 [verbose] Scanning directory recursively: test-fixtures
 [verbose] Excluding directories: vendor
-[verbose] Found 14 PHP file(s).
+[verbose] Found 16 PHP file(s).
 [verbose] Parsing file: test-fixtures/bad-examples.php
 [verbose] Analyzing function/method: uses_global_var (line 28)
 [verbose]   Declared globals in uses_global_var: some_global_number
@@ -51,6 +51,11 @@
 [verbose]   Implicit inputs for readApiKey: read from superglobal $_ENV
 [verbose] Analyzing function/method: writeAppEnv (line 12)
 [verbose]   Implicit outputs for writeAppEnv: wrote to superglobal $_ENV
+[verbose] Parsing file: test-fixtures/fully-qualified-exit.php
+[verbose] Analyzing function/method: quits_as_a_function (line 9)
+[verbose]   No implicit inputs/outputs detected for quits_as_a_function
+[verbose] Analyzing function/method: dies_as_a_function (line 14)
+[verbose]   No implicit inputs/outputs detected for dies_as_a_function
 [verbose] Parsing file: test-fixtures/good-examples.php
 [verbose] Analyzing function/method: add (line 21)
 [verbose]   Parameters for add: a, b
@@ -78,6 +83,11 @@
 [verbose] Analyzing function/method: {closure} (line 151)
 [verbose]   Parameters for {closure}: a, b
 [verbose]   No implicit inputs/outputs detected for {closure}
+[verbose] Parsing file: test-fixtures/namespaced-static-property.php
+[verbose] Analyzing function/method: App\Sub\Consumer::reads (line 26)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::reads
+[verbose] Analyzing function/method: App\Sub\Consumer::writes (line 31)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::writes
 [verbose] Parsing file: test-fixtures/read-write-context/array-index.php
 [verbose] Analyzing function/method: indexBySuperglobal (line 6)
 [verbose]   Implicit inputs for indexBySuperglobal: read from superglobal $_GET

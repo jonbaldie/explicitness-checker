@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use JonBaldie\ExplicitnessChecker\Finding;
+
 /**
  * One function-like with implicit inputs or outputs: one row of the report.
  */
 class Violation
 {
     /**
-     * @param list<string> $inputs  implicit input descriptions
-     * @param list<string> $outputs implicit output descriptions
+     * @param list<Finding> $inputs  implicit inputs
+     * @param list<Finding> $outputs implicit outputs
      */
     public function __construct(
         protected string $file,
@@ -38,19 +40,19 @@ class Violation
     }
 
     /**
-     * @return list<string>
+     * @return list<string> implicit input descriptions
      */
     public function getInputs(): array
     {
-        return $this->inputs;
+        return self::descriptions($this->inputs);
     }
 
     /**
-     * @return list<string>
+     * @return list<string> implicit output descriptions
      */
     public function getOutputs(): array
     {
-        return $this->outputs;
+        return self::descriptions($this->outputs);
     }
 
     /**
@@ -59,5 +61,15 @@ class Violation
     public function getSeverity(): string
     {
         return Severity::of(array_merge($this->inputs, $this->outputs));
+    }
+
+    /**
+     * @param list<Finding> $findings
+     *
+     * @return list<string>
+     */
+    protected static function descriptions(array $findings): array
+    {
+        return array_map(static fn (Finding $finding): string => $finding->getDescription(), $findings);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use JonBaldie\ExplicitnessChecker\Mode;
+
 /**
  * Turns the command line into Options.
  *
@@ -59,8 +61,7 @@ class ArgumentParser
         return new Options(
             $path,
             $switches['verbose'],
-            $switches['strict'],
-            $switches['props'],
+            new Mode($switches['strict'], $switches['props']),
             new FileFilter($values['--exclude'], $this->last($values['--include-pattern']), $this->last($values['--exclude-pattern'])),
         );
     }

@@ -6,7 +6,9 @@ namespace JonBaldie\ExplicitnessChecker\Tests\PHPStan;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Category;
+use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule;
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
@@ -25,8 +27,7 @@ use RecursiveIteratorIterator;
  */
 class ImplicitInputOutputRuleTest extends RuleTestCase
 {
-    protected const ROOT = __DIR__ . '/../..';
-    protected const FIXTURES = self::ROOT . '/test-fixtures/';
+    protected const FIXTURES = Process::ROOT . '/test-fixtures/';
 
     /**
      * What default mode reports on bad-examples.php, with identifiers.
@@ -114,7 +115,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected function getRule(): Rule
     {
-        return new ImplicitInputOutputRule(new Analyser(), new FunctionLikeFinder(), $this->strict, $this->props);
+        return new ImplicitInputOutputRule(new Analyser(), new FunctionLikeFinder(), new Mode($this->strict, $this->props));
     }
 
     public function testBadExamplesInDefaultMode(): void
@@ -303,6 +304,40 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    /**
+     * Class names are resolved against the namespace and `use` imports, so
+     * `Registry::$items` and `\App\Sub\Registry::$items` are one input. The
+     * CLI must report the same (see testReportsWhatTheCliReports).
+     */
+    public function testStaticPropertyClassNamesAreFullyQualified(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('namespaced-static-property.php', [
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property App\\Sub\\Registry::$items.'],
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property Other\\Thing::$shared.'],
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property Other\\Config::$values.'],
+            [33, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property App\\Sub\\Registry::$count.'],
+            [34, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property App\\Sub\\Nested\\Store::$cache.'],
+            [35, 'staticProperty', 'App\\Sub\\Consumer::writes read from static property self::$calls.'],
+            [35, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property self::$calls.'],
+            [36, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property static::$calls.'],
+        ]);
+    }
+
+    /**
+     * `\exit()` and `\die()` parse as function calls, not language constructs.
+     */
+    public function testFullyQualifiedExitAndDieAreStandardOutputInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrors('fully-qualified-exit.php', [
+            [11, 'standardOutput', 'quits_as_a_function writes to standard output (exit).'],
+            [16, 'standardOutput', 'dies_as_a_function writes to standard output (die).'],
+        ]);
+    }
+
     public function testMethodsWithoutABodyReportNothing(): void
     {
         $this->analyse([self::FIXTURES . 'bodyless-methods.php'], []);
@@ -400,18 +435,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
      */
     protected function cliMessages(string $fixture, array $flags): array
     {
-        $command = array_merge(
-            [PHP_BINARY, self::ROOT . '/bin/explicitness-checker'],
-            $flags,
-            [self::FIXTURES . $fixture],
-        );
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-        $output = (string) stream_get_contents($pipes[1]);
-        $errors = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        proc_close($process);
+        [, $output, $errors] = Process::cli(array_merge($flags, [self::FIXTURES . $fixture]));
         self::assertSame('', $errors);
 
         $messages = [];

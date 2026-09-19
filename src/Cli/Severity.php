@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use JonBaldie\ExplicitnessChecker\Category;
+use JonBaldie\ExplicitnessChecker\Finding;
+
 /**
  * How bad a reported function-like is, which sets the CLI's exit code.
  */
@@ -23,65 +26,56 @@ class Severity
         self::CRITICAL => 3,
     ];
 
-    /** Substrings of a finding that make it critical. */
-    protected const CRITICAL_MARKERS = [
-        'reads from file',
-        'writes to file',
-        'reads system time',
-        'reads from random number generator',
-        'writes to random number generator state',
-        'reads from environment variables',
-        'writes to environment variables',
-        'superglobal $_ENV',
-        'reads from file system',
-        'writes HTTP headers',
-        'writes to error log',
-        'reads session state',
-        'writes to session state',
-    ];
-
-    /** Substrings of a finding that make it serious. */
-    protected const SERIOUS_MARKERS = [
-        'global variable',
-        '$GLOBALS',
-        'superglobal',
-        'object property',
-        'static property',
+    /** Severity of each category's findings. */
+    protected const CATEGORIES = [
+        Category::STANDARD_OUTPUT => self::MINOR,
+        Category::GLOBAL_VARIABLE => self::SERIOUS,
+        Category::SUPERGLOBAL => self::SERIOUS,
+        Category::GLOBALS_ARRAY => self::SERIOUS,
+        Category::OBJECT_PROPERTY => self::SERIOUS,
+        Category::STATIC_PROPERTY => self::SERIOUS,
+        Category::FILE => self::CRITICAL,
+        Category::FILE_SYSTEM => self::CRITICAL,
+        Category::ENVIRONMENT => self::CRITICAL,
+        Category::TIME => self::CRITICAL,
+        Category::RANDOM => self::CRITICAL,
+        Category::HTTP_HEADERS => self::CRITICAL,
+        Category::ERROR_LOG => self::CRITICAL,
+        Category::SESSION => self::CRITICAL,
     ];
 
     /**
-     * Critical wins over serious; everything else is minor (output functions).
+     * The highest severity of any finding; minor if there are none.
      *
-     * @param list<string> $descriptions finding descriptions
+     * @param list<Finding> $findings
      *
      * @return self::MINOR|self::SERIOUS|self::CRITICAL
      */
-    public static function of(array $descriptions): string
+    public static function of(array $findings): string
     {
-        if (self::anyContains($descriptions, self::CRITICAL_MARKERS)) {
-            return self::CRITICAL;
-        }
-        if (self::anyContains($descriptions, self::SERIOUS_MARKERS)) {
-            return self::SERIOUS;
-        }
-
-        return self::MINOR;
-    }
-
-    /**
-     * @param list<string> $descriptions
-     * @param list<string> $markers
-     */
-    protected static function anyContains(array $descriptions, array $markers): bool
-    {
-        foreach ($descriptions as $description) {
-            foreach ($markers as $marker) {
-                if (str_contains($description, $marker)) {
-                    return true;
-                }
+        $severity = self::MINOR;
+        foreach ($findings as $finding) {
+            $found = self::ofFinding($finding);
+            if (self::EXIT_CODES[$found] > self::EXIT_CODES[$severity]) {
+                $severity = $found;
             }
         }
 
-        return false;
+        return $severity;
+    }
+
+    /**
+     * By category, except that `$_ENV` is environment access, so critical
+     * although it's reported as a superglobal.
+     *
+     * @return self::MINOR|self::SERIOUS|self::CRITICAL
+     */
+    protected static function ofFinding(Finding $finding): string
+    {
+        if ($finding->getCategory() === Category::SUPERGLOBAL && str_ends_with($finding->getDescription(), ' $_ENV')) {
+            return self::CRITICAL;
+        }
+
+        return self::CATEGORIES[$finding->getCategory()] ?? self::MINOR;
     }
 }

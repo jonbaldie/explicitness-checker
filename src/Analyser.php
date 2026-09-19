@@ -18,12 +18,7 @@ use PhpParser\Node\Expr;
  */
 class Analyser
 {
-    /**
-     * @param bool $strict also report output functions, file, time, random,
-     *                     environment, header, error-log and session access
-     * @param bool $props  also report `$this->prop` and `Class::$prop` access
-     */
-    public function analyse(Node\FunctionLike $node, bool $strict, bool $props): FunctionAnalysis
+    public function analyse(Node\FunctionLike $node, Mode $mode): FunctionAnalysis
     {
         $stmts = $node->getStmts() ?? [];
         $parameters = $this->parameterNames($node);
@@ -31,7 +26,7 @@ class Analyser
 
         $findings = new FindingCollector();
         $walker = new BodyWalker(
-            (new DetectorSet())->select($parameters, $declaredGlobals, $strict, $props),
+            (new DetectorSet())->select($parameters, $declaredGlobals, $mode),
             new AccessRules(),
             $findings,
         );

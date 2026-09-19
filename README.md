@@ -125,6 +125,8 @@ The tool categorizes violations into three severity levels:
   - Session functions (`session_start`, `session_id`)
   - Error logging (`error_log`, `trigger_error`)
 
+**Behaviour change:** `$_ENV` access used to be Serious, like the other superglobals. It is now Critical, the same as `getenv`, so a run whose worst finding is `$_ENV` access now exits with 3 instead of 2.
+
 #### Exit Codes for CI Integration
 
 - **0**: No violations found
@@ -226,7 +228,8 @@ To grandfather in existing violations instead, run `vendor/bin/phpstan analyse -
 
 - `explicitness.globalVariable` and `explicitness.globalsArray` overlap with that extension's default `access.global` and `modify.global` identifiers (`global $x` and `$GLOBALS[...]` access and modification).
 - `explicitness.superglobal` overlaps with its default `access.superglobal.nested` and `modify.superglobal.nested` identifiers, since this extension only ever checks function bodies, which that extension always treats as a nested scope.
-- `explicitness.staticProperty` (with `--props`) overlaps with its opinionated `property.static` identifier, if you've enabled that extension's opinionated rule set.
+- `explicitness.staticProperty` (with `explicitness.props: true`) overlaps with its opinionated `property.static` identifier, if you've enabled that extension's opinionated rule set.
+- With `explicitness.strict: true`, `explicitness.time`, `explicitness.random`, `explicitness.environment`, `explicitness.file`, `explicitness.fileSystem`, `explicitness.httpHeaders`, `explicitness.errorLog` and `explicitness.session` overlap with its opinionated `function.impure` identifier, which reports calls to a fixed list of impure built-in functions. The lists only partly match: `function.impure` also covers functions this extension doesn't (`strtotime`, `unlink`, `exec`, ...), and doesn't cover `srand`, `mt_srand`, `setrawcookie`, `http_response_code`, `trigger_error`, `user_error` or `session_write_close`. `explicitness.standardOutput` doesn't overlap.
 
 Pick one extension as the source of truth for each pair and ignore the other's identifier for it, e.g. to keep `jonbaldie/phpstan-extension-accessing-globals` as the source of truth for global and superglobal access:
 
@@ -236,4 +239,12 @@ parameters:
         - identifier: explicitness.globalVariable
         - identifier: explicitness.globalsArray
         - identifier: explicitness.superglobal
+```
+
+For `function.impure`, neither side is a superset of the other, so ignoring either one loses some coverage. If you run both extensions strictly, one option is to keep this extension's per-category identifiers and ignore `function.impure`:
+
+```neon
+parameters:
+    ignoreErrors:
+        - identifier: function.impure
 ```
