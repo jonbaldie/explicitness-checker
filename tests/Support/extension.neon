@@ -1,0 +1,6 @@
+# The extension as a user would include it by hand, at the lowest level so
+# only the extension's rule reports on the fixtures.
+includes:
+	- ../../extension.neon
+parameters:
+	level: 0

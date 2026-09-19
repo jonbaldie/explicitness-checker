@@ -1,0 +1,6 @@
+# Sets explicitness.strict, which the extension doesn't declare yet (#16).
+includes:
+	- extension.neon
+parameters:
+	explicitness:
+		strict: true

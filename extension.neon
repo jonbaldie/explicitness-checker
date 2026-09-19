@@ -1,0 +1,15 @@
+# The PHPStan extension. phpstan/extension-installer includes this file via
+# composer.json's extra.phpstan.includes; without the installer, add it to
+# `includes` in your phpstan.neon.
+services:
+	-
+		class: JonBaldie\ExplicitnessChecker\Analyser
+	-
+		class: JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder
+	-
+		class: JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule
+		arguments:
+			strict: false
+			props: false
+		tags:
+			- phpstan.rules.rule

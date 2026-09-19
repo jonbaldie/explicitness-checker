@@ -29,9 +29,7 @@ class FunctionLikeCollector extends NodeVisitorAbstract
             $this->namespace = $node->name === null ? '' : $node->name->toString();
         }
         if ($node instanceof Stmt\ClassLike) {
-            $this->classes[] = $node->name === null
-                ? null
-                : FunctionLikeNames::qualify($this->namespace, $node->name->toString());
+            $this->classes[] = $this->classNameOf($node);
         }
         if ($node instanceof Node\FunctionLike && $node->getStmts() !== null) {
             $this->found[] = new CheckedFunctionLike($node, $this->nameOf($node));
@@ -58,6 +56,23 @@ class FunctionLikeCollector extends NodeVisitorAbstract
     public function getFound(): array
     {
         return $this->found;
+    }
+
+    /**
+     * Fully qualified class-like name, or null for an anonymous class.
+     *
+     * Asks isAnonymous() rather than checking for a null name: PHPStan's
+     * parser gives anonymous classes a generated name (containing a path
+     * hash) and overrides isAnonymous() to keep reporting them as anonymous.
+     */
+    protected function classNameOf(Stmt\ClassLike $node): ?string
+    {
+        $name = $node->name;
+        if ($name === null || ($node instanceof Stmt\Class_ && $node->isAnonymous())) {
+            return null;
+        }
+
+        return FunctionLikeNames::qualify($this->namespace, $name->toString());
     }
 
     protected function nameOf(Node\FunctionLike $node): string
