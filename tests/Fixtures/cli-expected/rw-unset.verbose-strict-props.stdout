@@ -1,0 +1,34 @@
+[verbose] Starting analysis for path: test-fixtures/read-write-context/unset.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: test-fixtures/read-write-context/unset.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/read-write-context/unset.php
+[verbose] Analyzing function/method: logout (line 5)
+[verbose]   Implicit outputs for logout: wrote to superglobal $_SESSION
+[verbose] Analyzing function/method: forgetGlobal (line 10)
+[verbose]   Declared globals in forgetGlobal: cache
+[verbose]   Implicit outputs for forgetGlobal: wrote to global variable $cache
+[verbose] Analyzing function/method: forgetGlobalsEntry (line 16)
+[verbose]   Implicit outputs for forgetGlobalsEntry: wrote to $GLOBALS['registry']
+[verbose] Analyzing function/method: Memo::clear (line 26)
+[verbose]   Implicit outputs for Memo::clear: wrote to object property $this->cached
+Analyzing...
+
+Results:
+
++-----------+------+--------------------+-----------------+----------------------------------------+----------+
+| File      | Line | Function           | Implicit Inputs | Implicit Outputs                       | Severity |
++-----------+------+--------------------+-----------------+----------------------------------------+----------+
+| unset.php | 5    | logout             |                 | wrote to superglobal $_SESSION         | Serious  |
+| unset.php | 10   | forgetGlobal       |                 | wrote to global variable $cache        | Serious  |
+| unset.php | 16   | forgetGlobalsEntry |                 | wrote to $GLOBALS['registry']          | Serious  |
+| unset.php | 26   | Memo::clear        |                 | wrote to object property $this->cached | Serious  |
++-----------+------+--------------------+-----------------+----------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -1,0 +1,25 @@
+[verbose] Starting analysis for path: test-fixtures/trait-method.php
+[verbose] Path is file and ends with .php: test-fixtures/trait-method.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/trait-method.php
+[verbose] Analyzing function/method: App\Traits\ReadsGlobals::readsSession (line 13)
+[verbose]   Implicit inputs for App\Traits\ReadsGlobals::readsSession: read from superglobal $_SESSION
+[verbose] Analyzing function/method: App\Traits\UnusedTrait::readsServer (line 21)
+[verbose]   Implicit inputs for App\Traits\UnusedTrait::readsServer: read from superglobal $_SERVER
+Analyzing...
+
+Results:
+
++------------------+------+---------------------------------------+---------------------------------+------------------+----------+
+| File             | Line | Function                              | Implicit Inputs                 | Implicit Outputs | Severity |
++------------------+------+---------------------------------------+---------------------------------+------------------+----------+
+| trait-method.php | 13   | App\Traits\ReadsGlobals::readsSession | read from superglobal $_SESSION |                  | Serious  |
+| trait-method.php | 21   | App\Traits\UnusedTrait::readsServer   | read from superglobal $_SERVER  |                  | Serious  |
++------------------+------+---------------------------------------+---------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

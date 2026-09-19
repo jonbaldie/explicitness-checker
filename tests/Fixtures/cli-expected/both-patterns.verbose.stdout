@@ -1,0 +1,8 @@
+[verbose] Starting analysis for path: tests/Fixtures/cli/nested
+[verbose] Scanning directory recursively: tests/Fixtures/cli/nested
+[verbose] Excluding directories: vendor
+[verbose] Include pattern: nested
+[verbose] Exclude pattern: Upper
+[verbose] File excluded by pattern: tests/Fixtures/cli/nested/UpperCase.PHP
+[verbose] Found 0 PHP file(s).
+No PHP files found in tests/Fixtures/cli/nested

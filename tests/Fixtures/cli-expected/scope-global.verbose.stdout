@@ -1,0 +1,41 @@
+[verbose] Starting analysis for path: test-fixtures/scope-global.php
+[verbose] Path is file and ends with .php: test-fixtures/scope-global.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/scope-global.php
+[verbose] Analyzing function/method: scope_conditional (line 9)
+[verbose]   Declared globals in scope_conditional: conditional
+[verbose]   Implicit inputs for scope_conditional: read from global variable $conditional
+[verbose] Analyzing function/method: class@anonymous::anonymousMethod (line 18)
+[verbose]   Implicit inputs for class@anonymous::anonymousMethod: read from superglobal $_GET
+[verbose] Analyzing function/method: ScopeNamed::namedMethod (line 26)
+[verbose]   Declared globals in ScopeNamed::namedMethod: named
+[verbose]   Implicit inputs for ScopeNamed::namedMethod: read from global variable $named
+[verbose] Analyzing function/method: ScopeNamed::makesClosures (line 33)
+[verbose]   No implicit inputs/outputs detected for ScopeNamed::makesClosures
+[verbose] Analyzing function/method: {closure} (line 35)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
+[verbose] Analyzing function/method: {closure} (line 38)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_COOKIE
+[verbose] Analyzing function/method: {closure} (line 44)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_GET
+Analyzing...
+
+Results:
+
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| File             | Line | Function                         | Implicit Inputs                        | Implicit Outputs | Severity |
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| scope-global.php | 9    | scope_conditional                | read from global variable $conditional |                  | Serious  |
+| scope-global.php | 18   | class@anonymous::anonymousMethod | read from superglobal $_GET            |                  | Serious  |
+| scope-global.php | 26   | ScopeNamed::namedMethod          | read from global variable $named       |                  | Serious  |
+| scope-global.php | 35   | {closure}                        | read from superglobal $_POST           |                  | Serious  |
+| scope-global.php | 38   | {closure}                        | read from superglobal $_COOKIE         |                  | Serious  |
+| scope-global.php | 44   | {closure}                        | read from superglobal $_GET            |                  | Serious  |
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

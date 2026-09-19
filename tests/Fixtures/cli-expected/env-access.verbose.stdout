@@ -1,0 +1,25 @@
+[verbose] Starting analysis for path: test-fixtures/env-access.php
+[verbose] Path is file and ends with .php: test-fixtures/env-access.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/env-access.php
+[verbose] Analyzing function/method: readApiKey (line 7)
+[verbose]   Implicit inputs for readApiKey: read from superglobal $_ENV
+[verbose] Analyzing function/method: writeAppEnv (line 12)
+[verbose]   Implicit outputs for writeAppEnv: wrote to superglobal $_ENV
+Analyzing...
+
+Results:
+
++----------------+------+-------------+-----------------------------+----------------------------+----------+
+| File           | Line | Function    | Implicit Inputs             | Implicit Outputs           | Severity |
++----------------+------+-------------+-----------------------------+----------------------------+----------+
+| env-access.php | 7    | readApiKey  | read from superglobal $_ENV |                            | Critical |
+| env-access.php | 12   | writeAppEnv |                             | wrote to superglobal $_ENV | Critical |
++----------------+------+-------------+-----------------------------+----------------------------+----------+
+
+Summary:
+  Critical violations: 2 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

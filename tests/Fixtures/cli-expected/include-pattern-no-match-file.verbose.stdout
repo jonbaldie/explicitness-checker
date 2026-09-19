@@ -1,0 +1,5 @@
+[verbose] Starting analysis for path: test-fixtures/env-access.php
+[verbose] Path is file and ends with .php: test-fixtures/env-access.php
+[verbose] File excluded by pattern: test-fixtures/env-access.php
+[verbose] Found 0 PHP file(s).
+No PHP files found in test-fixtures/env-access.php

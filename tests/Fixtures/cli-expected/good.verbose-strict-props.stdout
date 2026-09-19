@@ -1,0 +1,33 @@
+[verbose] Starting analysis for path: test-fixtures/good-examples.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: test-fixtures/good-examples.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/good-examples.php
+[verbose] Analyzing function/method: add (line 21)
+[verbose]   Parameters for add: a, b
+[verbose]   No implicit inputs/outputs detected for add
+[verbose] Analyzing function/method: squareAll (line 32)
+[verbose]   Parameters for squareAll: items
+[verbose]   No implicit inputs/outputs detected for squareAll
+[verbose] Analyzing function/method: loginUser (line 49)
+[verbose]   Parameters for loginUser: session, user
+[verbose]   No implicit inputs/outputs detected for loginUser
+[verbose] Analyzing function/method: processWithConfig (line 66)
+[verbose]   Parameters for processWithConfig: config, input
+[verbose]   No implicit inputs/outputs detected for processWithConfig
+[verbose] Analyzing function/method: callLogger (line 82)
+[verbose]   Parameters for callLogger: logger, message
+[verbose]   No implicit inputs/outputs detected for callLogger
+[verbose] Analyzing function/method: Calculator::add (line 102)
+[verbose]   Parameters for Calculator::add: x, y
+[verbose]   No implicit inputs/outputs detected for Calculator::add
+[verbose] Analyzing function/method: Calculator::scale (line 113)
+[verbose]   Parameters for Calculator::scale: values, factor
+[verbose]   No implicit inputs/outputs detected for Calculator::scale
+[verbose] Analyzing function/method: composeExample (line 128)
+[verbose]   No implicit inputs/outputs detected for composeExample
+[verbose] Analyzing function/method: {closure} (line 151)
+[verbose]   Parameters for {closure}: a, b
+[verbose]   No implicit inputs/outputs detected for {closure}
+No implicit inputs or outputs found.

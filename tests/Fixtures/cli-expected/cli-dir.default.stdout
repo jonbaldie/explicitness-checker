@@ -1,0 +1,16 @@
+Analyzing...
+
+Results:
+
++---------------+------+-----------------+------------------------------+------------------+----------+
+| File          | Line | Function        | Implicit Inputs              | Implicit Outputs | Severity |
++---------------+------+-----------------+------------------------------+------------------+----------+
+| UpperCase.PHP | 4    | nestedReadsPost | read from superglobal $_POST |                  | Serious  |
++---------------+------+-----------------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

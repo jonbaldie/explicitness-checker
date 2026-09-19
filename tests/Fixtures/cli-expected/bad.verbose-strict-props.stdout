@@ -1,0 +1,54 @@
+[verbose] Starting analysis for path: test-fixtures/bad-examples.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: test-fixtures/bad-examples.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/bad-examples.php
+[verbose] Analyzing function/method: uses_global_var (line 28)
+[verbose]   Declared globals in uses_global_var: some_global_number
+[verbose]   Implicit inputs for uses_global_var: read from global variable $some_global_number
+[verbose]   Implicit outputs for uses_global_var: writes to standard output (echo); wrote to global variable $some_global_number
+[verbose] Analyzing function/method: uses_globals_array (line 44)
+[verbose]   Implicit inputs for uses_globals_array: read from $GLOBALS['app_name']
+[verbose]   Implicit outputs for uses_globals_array: wrote to $GLOBALS['app_name']
+[verbose] Analyzing function/method: reads_superglobals (line 58)
+[verbose]   Implicit inputs for reads_superglobals: read from superglobal $_GET; read from superglobal $_POST
+[verbose] Analyzing function/method: writes_superglobals (line 70)
+[verbose]   Implicit inputs for writes_superglobals: read from superglobal $_SESSION
+[verbose]   Implicit outputs for writes_superglobals: wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE
+[verbose] Analyzing function/method: config_and_store_change (line 84)
+[verbose]   Declared globals in config_and_store_change: config
+[verbose]   Implicit inputs for config_and_store_change: read from global variable $config; reads system time (microtime)
+[verbose]   Implicit outputs for config_and_store_change: wrote to $GLOBALS['store']
+[verbose] Analyzing function/method: variable_variable_global_read (line 100)
+[verbose]   Parameters for variable_variable_global_read: name
+[verbose]   No implicit inputs/outputs detected for variable_variable_global_read
+[verbose] Analyzing function/method: inc_global_counter (line 112)
+[verbose]   Declared globals in inc_global_counter: some_global_number
+[verbose]   Implicit inputs for inc_global_counter: read from global variable $some_global_number
+[verbose]   Implicit outputs for inc_global_counter: wrote to global variable $some_global_number
+[verbose] Analyzing function/method: {closure} (line 122)
+[verbose]   Implicit inputs for {closure}: read from $GLOBALS['app_name']
+[verbose]   Implicit outputs for {closure}: wrote to $GLOBALS['app_name']
+Analyzing...
+
+Results:
+
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+| File             | Line | Function                | Implicit Inputs                                                  | Implicit Outputs                                                               | Severity |
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+| bad-examples.php | 28   | uses_global_var         | read from global variable $some_global_number                    | writes to standard output (echo); wrote to global variable $some_global_number | Serious  |
+| bad-examples.php | 44   | uses_globals_array      | read from $GLOBALS['app_name']                                   | wrote to $GLOBALS['app_name']                                                  | Serious  |
+| bad-examples.php | 58   | reads_superglobals      | read from superglobal $_GET; read from superglobal $_POST        |                                                                                | Serious  |
+| bad-examples.php | 70   | writes_superglobals     | read from superglobal $_SESSION                                  | wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE                  | Serious  |
+| bad-examples.php | 84   | config_and_store_change | read from global variable $config; reads system time (microtime) | wrote to $GLOBALS['store']                                                     | Critical |
+| bad-examples.php | 112  | inc_global_counter      | read from global variable $some_global_number                    | wrote to global variable $some_global_number                                   | Serious  |
+| bad-examples.php | 122  | {closure}               | read from $GLOBALS['app_name']                                   | wrote to $GLOBALS['app_name']                                                  | Serious  |
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

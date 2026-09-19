@@ -1,0 +1,11 @@
+[verbose] Starting analysis for path: tests/Fixtures/cli/minor-only.php
+[verbose] Path is file and ends with .php: tests/Fixtures/cli/minor-only.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/cli/minor-only.php
+[verbose] Analyzing function/method: greet (line 6)
+[verbose]   Parameters for greet: name
+[verbose]   No implicit inputs/outputs detected for greet
+[verbose] Analyzing function/method: declaresButNeverUsesGlobal (line 11)
+[verbose]   Declared globals in declaresButNeverUsesGlobal: unused
+[verbose]   No implicit inputs/outputs detected for declaresButNeverUsesGlobal
+No implicit inputs or outputs found.
