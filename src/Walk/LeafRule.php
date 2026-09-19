@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
 use JonBaldie\ExplicitnessChecker\Detect\GlobalsArrayDetector;
+use JonBaldie\ExplicitnessChecker\Scope\ScopeBoundary;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
@@ -14,8 +15,8 @@ use PhpParser\Node\Stmt;
  * - variables (a variable-variable's name expression is not walked),
  * - `$GLOBALS[...]` fetches (reported as a whole, the dimension is not walked),
  * - `global` statements (a declaration is neither a read nor a write),
- * - nested function-likes (closures, arrow functions, nested functions, methods
- *   of anonymous classes).
+ * - nested scopes (closures, arrow functions, nested functions, anonymous and
+ *   nested classes), which are checked as function-likes of their own.
  */
 class LeafRule implements ChildAccessRule
 {
@@ -23,7 +24,7 @@ class LeafRule implements ChildAccessRule
     {
         if (
             $node instanceof Expr\Variable
-            || $node instanceof Node\FunctionLike
+            || ScopeBoundary::opensScope($node)
             || $node instanceof Stmt\Global_
             || GlobalsArrayDetector::isGlobalsFetch($node)
         ) {

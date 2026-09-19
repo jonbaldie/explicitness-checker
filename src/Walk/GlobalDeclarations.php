@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\Scope\ScopeBoundary;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
@@ -11,6 +12,8 @@ use SplQueue;
 
 /**
  * Collects the variable names a body declares with `global`, breadth-first.
+ * Declarations inside nested function-likes and class-likes belong to those
+ * scopes and are not collected.
  */
 class GlobalDeclarations
 {
@@ -31,6 +34,9 @@ class GlobalDeclarations
 
         while (!$queue->isEmpty()) {
             $node = $queue->dequeue();
+            if (ScopeBoundary::opensScope($node)) {
+                continue;
+            }
             if ($node instanceof Stmt\Global_) {
                 foreach ($this->declaredNames($node) as $name) {
                     $names[$name] = true;
