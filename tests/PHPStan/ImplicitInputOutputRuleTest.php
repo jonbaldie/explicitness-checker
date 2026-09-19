@@ -18,7 +18,8 @@ use RecursiveIteratorIterator;
  * reports on the same file with the matching flags, one per distinct input or
  * output per function-like, on the line where it first occurs.
  *
- * Set $strict and $props before calling analyse() to test other modes.
+ * Set $strict and $props before calling analyse() to test other modes (#17,
+ * #18).
  *
  * @extends RuleTestCase<ImplicitInputOutputRule>
  */
@@ -26,6 +27,41 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 {
     protected const ROOT = __DIR__ . '/../..';
     protected const FIXTURES = self::ROOT . '/test-fixtures/';
+
+    /**
+     * What strict mode reports on strict-examples.php.
+     */
+    protected const STRICT_EXAMPLES_IN_STRICT_MODE = [
+        [33, 'standardOutput', 'UserSession::greet writes to standard output (echo).'],
+        [86, 'standardOutput', 'debug_user_data writes to standard output (var_dump).'],
+        [94, 'standardOutput', 'inspect_and_die writes to standard output (print_r).'],
+        [95, 'standardOutput', 'inspect_and_die writes to standard output (exit).'],
+        [105, 'environment', 'get_database_url reads from environment variables (getenv).'],
+        [113, 'environment', 'configure_environment writes to environment variables (putenv).'],
+        [123, 'time', 'get_current_timestamp reads system time (time).'],
+        [131, 'time', 'format_current_date reads system time (date).'],
+        [139, 'time', 'benchmark_operation reads system time (microtime).'],
+        [153, 'random', 'generate_random_id reads from random number generator (rand).'],
+        [161, 'random', 'create_secure_token reads from random number generator (random_bytes).'],
+        [171, 'random', 'seed_random_generator writes to random number generator state (mt_srand).'],
+        [181, 'fileSystem', 'check_config_file reads from file system (file_exists).'],
+        [190, 'fileSystem', 'get_file_info reads from file system (file_exists).'],
+        [191, 'fileSystem', 'get_file_info reads from file system (is_file).'],
+        [192, 'fileSystem', 'get_file_info reads from file system (filesize).'],
+        [193, 'fileSystem', 'get_file_info reads from file system (filemtime).'],
+        [202, 'fileSystem', 'list_config_files reads from file system (glob).'],
+        [212, 'httpHeaders', 'send_json_response writes HTTP headers (header).'],
+        [213, 'standardOutput', 'send_json_response writes to standard output (echo).'],
+        [221, 'httpHeaders', 'set_user_preferences writes HTTP headers (setcookie).'],
+        [221, 'time', 'set_user_preferences reads system time (time).'],
+        [222, 'httpHeaders', 'set_user_preferences writes HTTP headers (header).'],
+        [232, 'errorLog', 'log_user_action writes to error log (error_log).'],
+        [241, 'errorLog', 'validate_input writes to error log (trigger_error).'],
+        [256, 'session', 'initialize_user_session writes to session state (session_start).'],
+        [265, 'session', 'get_session_info reads session state (session_id).'],
+        [266, 'session', 'get_session_info reads session state (session_name).'],
+        [275, 'session', 'logout_user writes to session state (session_destroy).'],
+    ];
 
     protected bool $strict = false;
 
@@ -65,6 +101,49 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testStrictExamplesReportNothingInDefaultMode(): void
     {
         $this->analyse([self::FIXTURES . 'strict-examples.php'], []);
+    }
+
+    public function testBadExamplesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrors('bad-examples.php', [
+            [34, 'globalVariable', 'uses_global_var read from global variable $some_global_number.'],
+            [34, 'standardOutput', 'uses_global_var writes to standard output (echo).'],
+            [36, 'globalVariable', 'uses_global_var wrote to global variable $some_global_number.'],
+            [48, 'globalsArray', 'uses_globals_array read from $GLOBALS[\'app_name\'].'],
+            [50, 'globalsArray', 'uses_globals_array wrote to $GLOBALS[\'app_name\'].'],
+            [61, 'superglobal', 'reads_superglobals read from superglobal $_GET.'],
+            [62, 'superglobal', 'reads_superglobals read from superglobal $_POST.'],
+            [73, 'superglobal', 'writes_superglobals read from superglobal $_SESSION.'],
+            [74, 'superglobal', 'writes_superglobals wrote to superglobal $_SESSION.'],
+            [78, 'superglobal', 'writes_superglobals wrote to superglobal $_COOKIE.'],
+            [89, 'globalVariable', 'config_and_store_change read from global variable $config.'],
+            [93, 'globalsArray', 'config_and_store_change wrote to $GLOBALS[\'store\'].'],
+            [93, 'time', 'config_and_store_change reads system time (microtime).'],
+            [116, 'globalVariable', 'inc_global_counter read from global variable $some_global_number.'],
+            [116, 'globalVariable', 'inc_global_counter wrote to global variable $some_global_number.'],
+            [124, 'globalsArray', '{closure} read from $GLOBALS[\'app_name\'].'],
+            [125, 'globalsArray', '{closure} wrote to $GLOBALS[\'app_name\'].'],
+        ]);
+    }
+
+    public function testGoodExamplesReportNothingInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrors('good-examples.php', []);
+    }
+
+    /**
+     * Strict mode reports output, file-system, environment, time, random,
+     * header, error-log and session functions, but not properties.
+     */
+    public function testStrictExamplesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_STRICT_MODE);
     }
 
     /**
@@ -182,7 +261,31 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         foreach (self::fixtureFiles() as $file) {
             $name = substr($file, strlen(self::FIXTURES));
             yield $name . ', default' => [$name, []];
+            yield $name . ', strict' => [$name, ['--strict']];
         }
+    }
+
+    /**
+     * Compares errors as `<line> <identifier> <message>`, sorted, since
+     * RuleTestCase::analyse() doesn't check identifiers.
+     *
+     * @param list<array{int, string, string}> $expected [line, category, message]
+     */
+    protected function assertErrors(string $fixture, array $expected): void
+    {
+        $actual = [];
+        foreach ($this->gatherAnalyserErrors([self::FIXTURES . $fixture]) as $error) {
+            $actual[] = sprintf('%d %s %s', (int) $error->getLine(), (string) $error->getIdentifier(), $error->getMessage());
+        }
+        sort($actual);
+
+        $wanted = [];
+        foreach ($expected as [$line, $category, $message]) {
+            $wanted[] = sprintf('%d %s%s %s', $line, ImplicitInputOutputRule::IDENTIFIER_PREFIX, $category, $message);
+        }
+        sort($wanted);
+
+        self::assertSame($wanted, $actual);
     }
 
     /**

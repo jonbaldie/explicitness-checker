@@ -1,6 +1,18 @@
 # The PHPStan extension. phpstan/extension-installer includes this file via
 # composer.json's extra.phpstan.includes; without the installer, add it to
 # `includes` in your phpstan.neon.
+#
+# Set `explicitness.strict: true` under `parameters` to also report what the
+# CLI reports under --strict.
+parameters:
+	explicitness:
+		strict: false
+
+parametersSchema:
+	explicitness: structure([
+		strict: bool(),
+	])
+
 services:
 	-
 		class: JonBaldie\ExplicitnessChecker\Analyser
@@ -9,7 +21,7 @@ services:
 	-
 		class: JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule
 		arguments:
-			strict: false
+			strict: %explicitness.strict%
 			props: false
 		tags:
 			- phpstan.rules.rule
