@@ -1,6 +1,7 @@
 # The coding standard (CODING_STANDARDS.md): production PHP passes level max.
-# Run with `vendor/bin/phpstan analyse`. Add src/ to paths once it exists.
+# Run with `vendor/bin/phpstan analyse`.
 parameters:
 	level: max
 	paths:
 		- bin/explicitness-checker
+		- src

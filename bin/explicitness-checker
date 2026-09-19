@@ -52,9 +52,11 @@ const SERIOUS_VIOLATION_MARKERS = [
  * The implementation is organized into pure functions with explicit inputs and outputs.
  */
 
+use JonBaldie\ExplicitnessChecker\Analyser;
+use JonBaldie\ExplicitnessChecker\Finding;
+use JonBaldie\ExplicitnessChecker\FunctionAnalysis;
 use PhpParser\Error;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 use PhpParser\ParserFactory;
 
@@ -655,8 +657,10 @@ function analyzeAstForImplicitnessInContext(
 
 /**
  * Analyzes a specific function-like node for implicitness.
- */
-/**
+ *
+ * Detection lives in the shared Analyser; this builds the CLI's finding row
+ * and verbose messages from its result.
+ *
  * @return array<string, mixed>|null
  */
 function analyzeFunctionLikeNode(
@@ -668,90 +672,70 @@ function analyzeFunctionLikeNode(
     bool $strict = false,
     bool $props = false,
 ): ?array {
-    $params = extractParamNames($node);
-    $paramSet = array_fill_keys($params, true);
-
-    $superglobals = [
-        "_GET",
-        "_POST",
-        "_REQUEST",
-        "_SERVER",
-        "_FILES",
-        "_COOKIE",
-        "_ENV",
-        "_SESSION",
-        "GLOBALS",
-    ];
-    $superglobalSet = array_fill_keys($superglobals, true);
-
-    $outputFunctions = [
-        "echo",
-        "print",
-        "printf",
-        "vprintf",
-        "var_dump",
-        "var_export",
-        "print_r",
-        "die",
-        "exit",
-        "fwrite",
-        "file_put_contents",
-    ];
-    $outputFunctionSet = array_fill_keys($outputFunctions, true);
-
-    $globalDecls = [];
-    $localAssignments = [];
-    $implicitInputs = [];
-    $implicitOutputs = [];
-
-    $stmts = $node->getStmts();
-    if ($stmts === null) {
+    if ($node->getStmts() === null) {
         return null;
     }
 
-    // First pass: collect global declarations
-    $queue = new SplQueue();
-    foreach ($stmts as $s) {
-        $queue->enqueue($s);
-    }
-    while (!$queue->isEmpty()) {
-        /** @var Node $n */
-        $n = $queue->dequeue();
-        if ($n instanceof Stmt\Global_) {
-            foreach ($n->vars as $v) {
-                if ($v instanceof Expr\Variable && is_string($v->name)) {
-                    $globalDecls[$v->name] = true;
-                }
-            }
-
-            continue;
-        }
-        foreach ($n->getSubNodeNames() as $sub) {
-            $child = $n->$sub;
-            if (is_array($child)) {
-                foreach ($child as $c) {
-                    if ($c instanceof Node) {
-                        $queue->enqueue($c);
-                    }
-                }
-            } elseif ($child instanceof Node) {
-                $queue->enqueue($child);
-            }
-        }
-    }
-
+    $analysis = (new Analyser())->analyse($node, $strict, $props);
     $funcName = getFunctionName($node, $className, $namespace);
+    $implicitInputs = findingDescriptions($analysis->getImplicitInputs());
+    $implicitOutputs = findingDescriptions($analysis->getImplicitOutputs());
+
+    printAnalysisVerbosely(
+        $verbose,
+        $funcName,
+        $node->getStartLine(),
+        $analysis,
+    );
+
+    if (empty($implicitInputs) && empty($implicitOutputs)) {
+        return null;
+    }
+
+    return [
+        "file" => $filePath,
+        "line" => $node->getStartLine(),
+        "function" => $funcName,
+        "implicit_inputs" => $implicitInputs,
+        "implicit_outputs" => $implicitOutputs,
+        "severity" => calculateSeverity($implicitInputs, $implicitOutputs),
+    ];
+}
+
+/**
+ * @param list<Finding> $findings
+ * @return list<string>
+ */
+function findingDescriptions(array $findings): array
+{
+    return array_map(
+        static fn(Finding $finding): string => $finding->getDescription(),
+        $findings,
+    );
+}
+
+/**
+ * Print the verbose messages for one analysed function-like.
+ */
+function printAnalysisVerbosely(
+    bool $verbose,
+    string $funcName,
+    int $line,
+    FunctionAnalysis $analysis,
+): void {
     verbosePrint(
         $verbose,
-        "Analyzing function/method: {$funcName} (line {$node->getStartLine()})",
+        "Analyzing function/method: {$funcName} (line {$line})",
     );
-    if (!empty($globalDecls)) {
+    $declaredGlobals = $analysis->getDeclaredGlobals();
+    if (!empty($declaredGlobals)) {
         verbosePrint(
             $verbose,
             "  Declared globals in {$funcName}: " .
-                implode(", ", array_keys($globalDecls)),
+                implode(", ", $declaredGlobals),
         );
     }
+    $params = $analysis->getParameters();
     if (!empty($params)) {
         verbosePrint(
             $verbose,
@@ -759,38 +743,15 @@ function analyzeFunctionLikeNode(
         );
     }
 
-    // Second pass: walk nodes to detect reads/writes
-    foreach ($stmts as $s) {
-        [
-            $localAssignments,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $s,
-            $paramSet,
-            $globalDecls,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignments,
-            $implicitInputs,
-            $implicitOutputs,
-            false,
-            $verbose,
-            $strict,
-            $props,
-        );
-    }
-
-    $implicitInputs = array_values(array_unique($implicitInputs));
-    $implicitOutputs = array_values(array_unique($implicitOutputs));
-
+    $implicitInputs = findingDescriptions($analysis->getImplicitInputs());
+    $implicitOutputs = findingDescriptions($analysis->getImplicitOutputs());
     if (empty($implicitInputs) && empty($implicitOutputs)) {
         verbosePrint(
             $verbose,
             "  No implicit inputs/outputs detected for {$funcName}",
         );
 
-        return null;
+        return;
     }
 
     if (!empty($implicitInputs)) {
@@ -807,17 +768,6 @@ function analyzeFunctionLikeNode(
                 implode("; ", $implicitOutputs),
         );
     }
-
-    $severity = calculateSeverity($implicitInputs, $implicitOutputs);
-
-    return [
-        "file" => $filePath,
-        "line" => $node->getStartLine(),
-        "function" => $funcName,
-        "implicit_inputs" => $implicitInputs,
-        "implicit_outputs" => $implicitOutputs,
-        "severity" => $severity,
-    ];
 }
 
 /**
@@ -885,505 +835,6 @@ function anyViolationContains(array $violations, array $markers): bool
     }
 
     return false;
-}
-
-/**
- * Extract parameter names from a FunctionLike node.
- * @return string[]
- */
-function extractParamNames(Node\FunctionLike $node): array
-{
-    $params = [];
-    foreach ($node->getParams() as $p) {
-        if ($p->var instanceof Expr\Variable && is_string($p->var->name)) {
-            $params[] = $p->var->name;
-        }
-    }
-
-    return $params;
-}
-
-/**
- * Walk a node recursively to detect implicit reads/writes.
- */
-/**
- * Walk through a node and detect implicit inputs/outputs.
- * @param array<string, true> $paramSet
- * @param array<string, true> $globalDeclsSet
- * @param array<string, true> $superglobalSet
- * @param array<string, true> $outputFunctionSet
- * @param array<string, true> $localAssignmentsSet
- * @param string[] $implicitInputs
- * @param string[] $implicitOutputs
- * @return array{0: array<string, true>, 1: string[], 2: string[]}
- */
-function walkNodeForImplicitness(
-    Node $node,
-    array $paramSet,
-    array $globalDeclsSet,
-    array $superglobalSet,
-    array $outputFunctionSet,
-    array $localAssignmentsSet,
-    array $implicitInputs,
-    array $implicitOutputs,
-    bool $isWrite,
-    bool $verbose,
-    bool $strict,
-    bool $props,
-): array {
-    // Assignment expressions
-    if ($node instanceof Expr\Assign) {
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->var,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            true,
-            $verbose,
-            $strict,
-            $props,
-        );
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->expr,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            false,
-            $verbose,
-            $strict,
-            $props,
-        );
-
-        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-    }
-    if ($node instanceof Expr\AssignOp) {
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->var,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            false,
-            $verbose,
-            $strict,
-            $props,
-        ); // read
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->var,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            true,
-            $verbose,
-            $strict,
-            $props,
-        ); // write
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->expr,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            false,
-            $verbose,
-            $strict,
-            $props,
-        );
-
-        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-    }
-    if (
-        $node instanceof Expr\PreInc ||
-        $node instanceof Expr\PostInc ||
-        $node instanceof Expr\PreDec ||
-        $node instanceof Expr\PostDec
-    ) {
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->var,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            false,
-            $verbose,
-            $strict,
-            $props,
-        ); // read
-        [
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-        ] = walkNodeForImplicitness(
-            $node->var,
-            $paramSet,
-            $globalDeclsSet,
-            $superglobalSet,
-            $outputFunctionSet,
-            $localAssignmentsSet,
-            $implicitInputs,
-            $implicitOutputs,
-            true,
-            $verbose,
-            $strict,
-            $props,
-        ); // write
-
-        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-    }
-
-    // Variable usage
-    if ($node instanceof Expr\Variable) {
-        if (!is_string($node->name)) {
-            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs]; // Skip variable variables
-        }
-        $varName = $node->name;
-        if ($varName === "this") {
-            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-        }
-        if (isset($paramSet[$varName])) {
-            return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-        }
-
-        if (isset($globalDeclsSet[$varName])) {
-            if ($isWrite) {
-                $implicitOutputs[] = "wrote to global variable \${$varName}";
-            } else {
-                $implicitInputs[] = "read from global variable \${$varName}";
-            }
-        } elseif (isset($superglobalSet[$varName])) {
-            if ($isWrite) {
-                $implicitOutputs[] = "wrote to superglobal \${$varName}";
-            } else {
-                $implicitInputs[] = "read from superglobal \${$varName}";
-            }
-        } elseif ($isWrite) {
-            $localAssignmentsSet[$varName] = true;
-        }
-
-        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-    }
-
-    // $GLOBALS array access
-    if (
-        $node instanceof Expr\ArrayDimFetch &&
-        $node->var instanceof Expr\Variable &&
-        is_string($node->var->name) &&
-        $node->var->name === "GLOBALS"
-    ) {
-        $key = dimToString($node->dim);
-        if ($isWrite) {
-            $implicitOutputs[] =
-                $key !== null
-                    ? "wrote to \$GLOBALS[{$key}]"
-                    : 'wrote to $GLOBALS';
-        } else {
-            $implicitInputs[] =
-                $key !== null
-                    ? "read from \$GLOBALS[{$key}]"
-                    : 'read from $GLOBALS';
-        }
-
-        return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-    }
-
-    // Strict mode checks
-    if ($strict) {
-        // Output functions
-        if ($node instanceof Stmt\Echo_) {
-            $implicitOutputs[] = "writes to standard output (echo)";
-        } elseif ($node instanceof Expr\Print_) {
-            $implicitOutputs[] = "writes to standard output (print)";
-        } elseif ($node instanceof Expr\Exit_) {
-            $implicitOutputs[] = "writes to standard output (exit)";
-        } elseif (
-            $node instanceof Expr\FuncCall &&
-            $node->name instanceof Node\Name
-        ) {
-            $funcName = $node->name->toString();
-
-            // Output functions
-            if (isset($outputFunctionSet[$funcName])) {
-                if (
-                    in_array($funcName, ["fwrite", "file_put_contents"], true)
-                ) {
-                    $implicitOutputs[] = "writes to file ({$funcName})";
-                } else {
-                    $implicitOutputs[] = "writes to standard output ({$funcName})";
-                }
-            }
-            // File read functions
-            elseif (
-                in_array(
-                    $funcName,
-                    ["file_get_contents", "fread", "fopen"],
-                    true,
-                )
-            ) {
-                $implicitInputs[] = "reads from file ({$funcName})";
-            }
-            // Environment variable access
-            elseif (in_array($funcName, ["getenv", "putenv"], true)) {
-                if ($funcName === "getenv") {
-                    $implicitInputs[] = "reads from environment variables ({$funcName})";
-                } else {
-                    $implicitOutputs[] = "writes to environment variables ({$funcName})";
-                }
-            }
-            // Time functions (non-deterministic)
-            elseif (
-                in_array(
-                    $funcName,
-                    ["time", "date", "microtime", "gettimeofday"],
-                    true,
-                )
-            ) {
-                $implicitInputs[] = "reads system time ({$funcName})";
-            }
-            // Random functions (non-deterministic)
-            elseif (
-                in_array(
-                    $funcName,
-                    [
-                        "rand",
-                        "mt_rand",
-                        "random_int",
-                        "random_bytes",
-                        "srand",
-                        "mt_srand",
-                    ],
-                    true,
-                )
-            ) {
-                if (in_array($funcName, ["srand", "mt_srand"], true)) {
-                    $implicitOutputs[] = "writes to random number generator state ({$funcName})";
-                } else {
-                    $implicitInputs[] = "reads from random number generator ({$funcName})";
-                }
-            }
-            // File system query functions
-            elseif (
-                in_array(
-                    $funcName,
-                    [
-                        "file_exists",
-                        "is_file",
-                        "is_dir",
-                        "filesize",
-                        "filemtime",
-                        "is_readable",
-                        "is_writable",
-                        "scandir",
-                        "glob",
-                    ],
-                    true,
-                )
-            ) {
-                $implicitInputs[] = "reads from file system ({$funcName})";
-            }
-            // HTTP header functions
-            elseif (
-                in_array(
-                    $funcName,
-                    [
-                        "header",
-                        "setcookie",
-                        "setrawcookie",
-                        "http_response_code",
-                    ],
-                    true,
-                )
-            ) {
-                $implicitOutputs[] = "writes HTTP headers ({$funcName})";
-            }
-            // Error logging functions
-            elseif (
-                in_array(
-                    $funcName,
-                    ["error_log", "trigger_error", "user_error"],
-                    true,
-                )
-            ) {
-                $implicitOutputs[] = "writes to error log ({$funcName})";
-            }
-            // Session functions
-            elseif (
-                in_array(
-                    $funcName,
-                    [
-                        "session_start",
-                        "session_destroy",
-                        "session_regenerate_id",
-                        "session_write_close",
-                        "session_id",
-                        "session_name",
-                    ],
-                    true,
-                )
-            ) {
-                if (in_array($funcName, ["session_id", "session_name"], true)) {
-                    $implicitInputs[] = "reads session state ({$funcName})";
-                } else {
-                    $implicitOutputs[] = "writes to session state ({$funcName})";
-                }
-            }
-        }
-    }
-
-    // Props mode checks for property access
-    if ($props) {
-        // Property access
-        if (
-            $node instanceof Expr\PropertyFetch &&
-            $node->var instanceof Expr\Variable &&
-            $node->var->name === "this" &&
-            $node->name instanceof Node\Identifier
-        ) {
-            $propName = $node->name->toString();
-            if ($isWrite) {
-                $implicitOutputs[] = "wrote to object property \$this->{$propName}";
-            } else {
-                $implicitInputs[] = "read from object property \$this->{$propName}";
-            }
-        }
-
-        // Static property access
-        if (
-            $node instanceof Expr\StaticPropertyFetch &&
-            $node->name instanceof Node\VarLikeIdentifier
-        ) {
-            $propName = $node->name->name;
-            $className =
-                $node->class instanceof Node\Name
-                    ? $node->class->toString()
-                    : "...";
-            if ($isWrite) {
-                $implicitOutputs[] = "wrote to static property {$className}::\${$propName}";
-            } else {
-                $implicitInputs[] = "read from static property {$className}::\${$propName}";
-            }
-        }
-    }
-
-    // Generic traversal
-    if (!($node instanceof Node\FunctionLike)) {
-        foreach ($node->getSubNodeNames() as $subName) {
-            $sub = $node->$subName;
-            if (is_array($sub)) {
-                foreach ($sub as $child) {
-                    if ($child instanceof Node) {
-                        [
-                            $localAssignmentsSet,
-                            $implicitInputs,
-                            $implicitOutputs,
-                        ] = walkNodeForImplicitness(
-                            $child,
-                            $paramSet,
-                            $globalDeclsSet,
-                            $superglobalSet,
-                            $outputFunctionSet,
-                            $localAssignmentsSet,
-                            $implicitInputs,
-                            $implicitOutputs,
-                            $isWrite,
-                            $verbose,
-                            $strict,
-                            $props,
-                        );
-                    }
-                }
-            } elseif ($sub instanceof Node) {
-                [
-                    $localAssignmentsSet,
-                    $implicitInputs,
-                    $implicitOutputs,
-                ] = walkNodeForImplicitness(
-                    $sub,
-                    $paramSet,
-                    $globalDeclsSet,
-                    $superglobalSet,
-                    $outputFunctionSet,
-                    $localAssignmentsSet,
-                    $implicitInputs,
-                    $implicitOutputs,
-                    $isWrite,
-                    $verbose,
-                    $strict,
-                    $props,
-                );
-            }
-        }
-    }
-
-    return [$localAssignmentsSet, $implicitInputs, $implicitOutputs];
-}
-
-/**
- * Helper to convert a dimension expression into a readable string.
- */
-/**
- * @param \PhpParser\Node\Expr|null $dim
- */
-function dimToString($dim): ?string
-{
-    if ($dim === null) {
-        return null;
-    }
-    if ($dim instanceof Node\Scalar\String_) {
-        return "'" . $dim->value . "'";
-    }
-    if ($dim instanceof Node\Scalar\LNumber) {
-        return (string) $dim->value;
-    }
-    if ($dim instanceof Expr\Variable && is_string($dim->name)) {
-        return '$' . $dim->name;
-    }
-
-    return null;
 }
 
 /**
