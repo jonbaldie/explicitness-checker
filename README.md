@@ -28,6 +28,23 @@ function add($a, $b) {
 
 The tool uses nikic's PHP Parser library to parse PHP code and analyze the explicitness of your functions and class methods.
 
+### Which functions are checked, and how they're named
+
+Every function-like with a body is checked on its own, wherever it's declared, and whether or not the file declares a namespace:
+
+| Declared as | Reported as |
+|---|---|
+| Function (including inside `if` blocks or other functions) | Fully qualified name, e.g. `App\Sub\send_mail` |
+| Method of a named class, trait or enum | Fully qualified class, e.g. `App\Sub\Mailer::send` |
+| Method of an anonymous class (`new class { ... }`) | `class@anonymous::send` |
+| Closure or arrow function | `{closure}` |
+
+Abstract and interface methods have no body and aren't checked. Rows are listed in source order.
+
+A function's analysis stops at any closure, arrow function, nested function or class declared inside it: code in there, including `global` declarations, belongs to that inner function-like, which gets its own row. So a closure that declares `global $x` doesn't make the enclosing function's local `$x` look like a global.
+
+**Behaviour change:** earlier versions skipped closures, arrow functions, anonymous-class methods and conditionally declared functions in files without a namespace, dropped the namespace from method names, and let a closure's `global` declarations leak into the enclosing function. Upgrading can therefore add rows, remove false `global` findings from enclosing functions, rename methods, and change the exit code.
+
 ## Why should I care about explicitness?
 
 **Implicit inputs and outputs fundamentally limit the modularity and reusability of your code.**

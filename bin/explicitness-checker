@@ -55,9 +55,9 @@ const SERIOUS_VIOLATION_MARKERS = [
 use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Finding;
 use JonBaldie\ExplicitnessChecker\FunctionAnalysis;
+use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
+use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\Error;
-use PhpParser\Node;
-use PhpParser\Node\Stmt;
 use PhpParser\ParserFactory;
 
 // Try to find autoload.php in different locations
@@ -465,8 +465,9 @@ function findPhpFiles(
 
 /**
  * Analyze a PHP AST for implicit read/write operations.
- */
-/**
+ *
+ * Checks every function-like FunctionLikeFinder finds, in source order.
+ *
  * @param \PhpParser\Node\Stmt[] $ast
  * @return array<int, array<string, mixed>>
  */
@@ -478,81 +479,16 @@ function analyzeAstForImplicitness(
     bool $props,
 ): array {
     $findings = [];
-
-    $nodeQueue = new SplQueue();
-    foreach ($ast as $n) {
-        $nodeQueue->enqueue($n);
-    }
-
-    while (!$nodeQueue->isEmpty()) {
-        /** @var Node $node */
-        $node = $nodeQueue->dequeue();
-
-        if ($node instanceof Stmt\Namespace_) {
-            $nsName = $node->name ? $node->name->toString() : "";
-            verbosePrint(
-                $verbose,
-                "Entering namespace: " . ($nsName ?: "<global>"),
-            );
-            $innerFindings = analyzeAstForImplicitnessInContext(
-                $node->stmts,
-                $filePath,
-                $nsName,
-                "",
-                $verbose,
-                $strict,
-                $props,
-            );
-            foreach ($innerFindings as $f) {
-                $findings[] = $f;
-            }
-
-            continue;
-        }
-
-        if (
-            $node instanceof Stmt\Class_ ||
-            $node instanceof Stmt\Interface_ ||
-            $node instanceof Stmt\Trait_
-        ) {
-            $name = $node->name ? $node->name->toString() : null;
-            $classFq = $name !== null ? $name : "";
-            verbosePrint(
-                $verbose,
-                "Found top-level class/trait/interface: " .
-                    ($classFq ?: "<anonymous>"),
-            );
-            $innerFindings = analyzeAstForImplicitnessInContext(
-                $node->stmts,
-                $filePath,
-                "",
-                $classFq,
-                $verbose,
-                $strict,
-                $props,
-            );
-            foreach ($innerFindings as $f) {
-                $findings[] = $f;
-            }
-
-            continue;
-        }
-
-        if ($node instanceof Stmt\Function_) {
-            $f = analyzeFunctionLikeNode(
-                $node,
-                $filePath,
-                null,
-                "",
-                $verbose,
-                $strict,
-                $props,
-            );
-            if ($f !== null) {
-                $findings[] = $f;
-            }
-
-            continue;
+    foreach ((new FunctionLikeFinder())->find($ast) as $functionLike) {
+        $finding = analyzeFunctionLikeNode(
+            $functionLike,
+            $filePath,
+            $verbose,
+            $strict,
+            $props,
+        );
+        if ($finding !== null) {
+            $findings[] = $finding;
         }
     }
 
@@ -560,103 +496,7 @@ function analyzeAstForImplicitness(
 }
 
 /**
- * Analyzes statements within a specific context for implicitness.
- */
-/**
- * @param \PhpParser\Node\Stmt[] $stmts
- * @return array<int, array<string, mixed>>
- */
-function analyzeAstForImplicitnessInContext(
-    array $stmts,
-    string $filePath,
-    string $namespace = "",
-    string $className = "",
-    bool $verbose = false,
-    bool $strict = false,
-    bool $props = false,
-): array {
-    $findings = [];
-    $nodeQueue = new SplQueue();
-    foreach ($stmts as $s) {
-        $nodeQueue->enqueue($s);
-    }
-
-    while (!$nodeQueue->isEmpty()) {
-        /** @var Node $node */
-        $node = $nodeQueue->dequeue();
-
-        if (
-            $node instanceof Stmt\Class_ ||
-            $node instanceof Stmt\Interface_ ||
-            $node instanceof Stmt\Trait_
-        ) {
-            $name = $node->name ? $node->name->toString() : null;
-            $subClass =
-                $name !== null
-                    ? ($className
-                        ? $className . "\\" . $name
-                        : $name)
-                    : $className;
-            verbosePrint(
-                $verbose,
-                "Descending into class/trait/interface: " .
-                    ($subClass ?: "<anonymous>"),
-            );
-            $innerFindings = analyzeAstForImplicitnessInContext(
-                $node->stmts,
-                $filePath,
-                $namespace,
-                $subClass,
-                $verbose,
-                $strict,
-                $props,
-            );
-            foreach ($innerFindings as $f) {
-                $findings[] = $f;
-            }
-
-            continue;
-        }
-
-        if (
-            $node instanceof Stmt\ClassMethod ||
-            $node instanceof Stmt\Function_
-        ) {
-            $f = analyzeFunctionLikeNode(
-                $node,
-                $filePath,
-                $className ?: null,
-                $namespace,
-                $verbose,
-                $strict,
-                $props,
-            );
-            if ($f !== null) {
-                $findings[] = $f;
-            }
-
-            continue;
-        }
-
-        foreach ($node->getSubNodeNames() as $subName) {
-            $sub = $node->$subName;
-            if (is_array($sub)) {
-                foreach ($sub as $child) {
-                    if ($child instanceof Node) {
-                        $nodeQueue->enqueue($child);
-                    }
-                }
-            } elseif ($sub instanceof Node) {
-                $nodeQueue->enqueue($sub);
-            }
-        }
-    }
-
-    return $findings;
-}
-
-/**
- * Analyzes a specific function-like node for implicitness.
+ * Analyzes one function-like for implicitness.
  *
  * Detection lives in the shared Analyser; this builds the CLI's finding row
  * and verbose messages from its result.
@@ -664,20 +504,15 @@ function analyzeAstForImplicitnessInContext(
  * @return array<string, mixed>|null
  */
 function analyzeFunctionLikeNode(
-    Node\FunctionLike $node,
+    CheckedFunctionLike $functionLike,
     string $filePath,
-    ?string $className = null,
-    string $namespace = "",
-    bool $verbose = false,
-    bool $strict = false,
-    bool $props = false,
+    bool $verbose,
+    bool $strict,
+    bool $props,
 ): ?array {
-    if ($node->getStmts() === null) {
-        return null;
-    }
-
+    $node = $functionLike->getNode();
     $analysis = (new Analyser())->analyse($node, $strict, $props);
-    $funcName = getFunctionName($node, $className, $namespace);
+    $funcName = $functionLike->getName();
     $implicitInputs = findingDescriptions($analysis->getImplicitInputs());
     $implicitOutputs = findingDescriptions($analysis->getImplicitOutputs());
 
@@ -768,32 +603,6 @@ function printAnalysisVerbosely(
                 implode("; ", $implicitOutputs),
         );
     }
-}
-
-/**
- * Get the fully qualified name of a function/method.
- */
-function getFunctionName(
-    Node\FunctionLike $node,
-    ?string $className,
-    string $namespace,
-): string {
-    $funcName = "<anonymous>";
-    if ($node instanceof Stmt\Function_) {
-        $funcName = $node->name->toString();
-        if ($namespace) {
-            $funcName = $namespace . "\\" . $funcName;
-        }
-    } elseif ($node instanceof Stmt\ClassMethod) {
-        $methodName = $node->name->toString();
-        if ($className) {
-            $funcName = $className . "::" . $methodName;
-        } else {
-            $funcName = $methodName;
-        }
-    }
-
-    return $funcName;
 }
 
 /**
