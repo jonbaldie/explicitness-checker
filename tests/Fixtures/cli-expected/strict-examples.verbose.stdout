@@ -1,0 +1,64 @@
+[verbose] Starting analysis for path: test-fixtures/strict-examples.php
+[verbose] Path is file and ends with .php: test-fixtures/strict-examples.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/strict-examples.php
+[verbose] Analyzing function/method: UserSession::__construct (line 22)
+[verbose]   Parameters for UserSession::__construct: username
+[verbose]   No implicit inputs/outputs detected for UserSession::__construct
+[verbose] Analyzing function/method: UserSession::greet (line 31)
+[verbose]   No implicit inputs/outputs detected for UserSession::greet
+[verbose] Analyzing function/method: UserSession::incrementLoginCount (line 40)
+[verbose]   No implicit inputs/outputs detected for UserSession::incrementLoginCount
+[verbose] Analyzing function/method: AppAnalytics::recordPageView (line 59)
+[verbose]   No implicit inputs/outputs detected for AppAnalytics::recordPageView
+[verbose] Analyzing function/method: AppAnalytics::logEvent (line 68)
+[verbose]   Parameters for AppAnalytics::logEvent: eventName
+[verbose]   No implicit inputs/outputs detected for AppAnalytics::logEvent
+[verbose] Analyzing function/method: debug_user_data (line 84)
+[verbose]   Parameters for debug_user_data: user
+[verbose]   No implicit inputs/outputs detected for debug_user_data
+[verbose] Analyzing function/method: inspect_and_die (line 92)
+[verbose]   Parameters for inspect_and_die: data
+[verbose]   No implicit inputs/outputs detected for inspect_and_die
+[verbose] Analyzing function/method: get_database_url (line 103)
+[verbose]   No implicit inputs/outputs detected for get_database_url
+[verbose] Analyzing function/method: configure_environment (line 111)
+[verbose]   No implicit inputs/outputs detected for configure_environment
+[verbose] Analyzing function/method: get_current_timestamp (line 121)
+[verbose]   No implicit inputs/outputs detected for get_current_timestamp
+[verbose] Analyzing function/method: format_current_date (line 129)
+[verbose]   No implicit inputs/outputs detected for format_current_date
+[verbose] Analyzing function/method: benchmark_operation (line 137)
+[verbose]   No implicit inputs/outputs detected for benchmark_operation
+[verbose] Analyzing function/method: generate_random_id (line 151)
+[verbose]   No implicit inputs/outputs detected for generate_random_id
+[verbose] Analyzing function/method: create_secure_token (line 159)
+[verbose]   No implicit inputs/outputs detected for create_secure_token
+[verbose] Analyzing function/method: seed_random_generator (line 169)
+[verbose]   No implicit inputs/outputs detected for seed_random_generator
+[verbose] Analyzing function/method: check_config_file (line 179)
+[verbose]   No implicit inputs/outputs detected for check_config_file
+[verbose] Analyzing function/method: get_file_info (line 187)
+[verbose]   Parameters for get_file_info: path
+[verbose]   No implicit inputs/outputs detected for get_file_info
+[verbose] Analyzing function/method: list_config_files (line 200)
+[verbose]   No implicit inputs/outputs detected for list_config_files
+[verbose] Analyzing function/method: send_json_response (line 210)
+[verbose]   Parameters for send_json_response: data
+[verbose]   No implicit inputs/outputs detected for send_json_response
+[verbose] Analyzing function/method: set_user_preferences (line 219)
+[verbose]   Parameters for set_user_preferences: theme
+[verbose]   No implicit inputs/outputs detected for set_user_preferences
+[verbose] Analyzing function/method: log_user_action (line 230)
+[verbose]   Parameters for log_user_action: action
+[verbose]   No implicit inputs/outputs detected for log_user_action
+[verbose] Analyzing function/method: validate_input (line 238)
+[verbose]   Parameters for validate_input: input
+[verbose]   No implicit inputs/outputs detected for validate_input
+[verbose] Analyzing function/method: initialize_user_session (line 254)
+[verbose]   No implicit inputs/outputs detected for initialize_user_session
+[verbose] Analyzing function/method: get_session_info (line 262)
+[verbose]   No implicit inputs/outputs detected for get_session_info
+[verbose] Analyzing function/method: logout_user (line 273)
+[verbose]   No implicit inputs/outputs detected for logout_user
+No implicit inputs or outputs found.

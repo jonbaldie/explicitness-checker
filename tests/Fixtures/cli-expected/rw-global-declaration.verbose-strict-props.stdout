@@ -1,0 +1,33 @@
+[verbose] Starting analysis for path: test-fixtures/read-write-context/global-declaration.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: test-fixtures/read-write-context/global-declaration.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/read-write-context/global-declaration.php
+[verbose] Analyzing function/method: writeOnly (line 5)
+[verbose]   Declared globals in writeOnly: counter
+[verbose]   Implicit outputs for writeOnly: wrote to global variable $counter
+[verbose] Analyzing function/method: declaredButUnused (line 11)
+[verbose]   Declared globals in declaredButUnused: unused
+[verbose]   No implicit inputs/outputs detected for declaredButUnused
+[verbose] Analyzing function/method: readAndWrite (line 16)
+[verbose]   Declared globals in readAndWrite: total
+[verbose]   Implicit inputs for readAndWrite: read from global variable $total
+[verbose]   Implicit outputs for readAndWrite: wrote to global variable $total
+Analyzing...
+
+Results:
+
++------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
+| File                   | Line | Function     | Implicit Inputs                  | Implicit Outputs                  | Severity |
++------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
+| global-declaration.php | 5    | writeOnly    |                                  | wrote to global variable $counter | Serious  |
+| global-declaration.php | 16   | readAndWrite | read from global variable $total | wrote to global variable $total   | Serious  |
++------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

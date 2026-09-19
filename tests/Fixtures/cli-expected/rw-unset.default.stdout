@@ -1,0 +1,18 @@
+Analyzing...
+
+Results:
+
++-----------+------+--------------------+-----------------+---------------------------------+----------+
+| File      | Line | Function           | Implicit Inputs | Implicit Outputs                | Severity |
++-----------+------+--------------------+-----------------+---------------------------------+----------+
+| unset.php | 5    | logout             |                 | wrote to superglobal $_SESSION  | Serious  |
+| unset.php | 10   | forgetGlobal       |                 | wrote to global variable $cache | Serious  |
+| unset.php | 16   | forgetGlobalsEntry |                 | wrote to $GLOBALS['registry']   | Serious  |
++-----------+------+--------------------+-----------------+---------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

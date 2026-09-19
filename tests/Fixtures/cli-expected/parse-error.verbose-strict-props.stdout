@@ -1,0 +1,7 @@
+[verbose] Starting analysis for path: tests/Fixtures/cli/parse-error.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: tests/Fixtures/cli/parse-error.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/cli/parse-error.php
+No implicit inputs or outputs found.

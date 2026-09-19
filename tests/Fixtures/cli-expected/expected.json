@@ -1,0 +1,590 @@
+{
+    "bad.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "bad.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "bad.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "bad.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "bad.strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "bad.verbose-strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "good.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "good.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "good.strict": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "good.props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "good.strict-props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "good.verbose-strict-props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "strict-examples.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "strict-examples.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "strict-examples.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "strict-examples.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "strict-examples.strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "strict-examples.verbose-strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "bodyless.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "bodyless.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "bodyless.strict": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "bodyless.props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "bodyless.strict-props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "bodyless.verbose-strict-props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "closure-global-bleed.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "closure-global-bleed.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "closure-global-bleed.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "closure-global-bleed.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "closure-global-bleed.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "closure-global-bleed.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "env-access.default": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "env-access.verbose": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "env-access.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "env-access.props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "env-access.strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "env-access.verbose-strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "repeated-input.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "repeated-input.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "repeated-input.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "repeated-input.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "repeated-input.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "repeated-input.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-global.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "scope-namespaced.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "trait-method.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-array-index.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-foreach-catch.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-global-declaration.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-unset.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "minor-only.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "minor-only.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "minor-only.strict": {
+        "exitCode": 1,
+        "stderr": ""
+    },
+    "minor-only.props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "minor-only.strict-props": {
+        "exitCode": 1,
+        "stderr": ""
+    },
+    "minor-only.verbose-strict-props": {
+        "exitCode": 1,
+        "stderr": ""
+    },
+    "parse-error.default": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error.verbose": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error.strict": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error.props": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error.strict-props": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error.verbose-strict-props": {
+        "exitCode": 0,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "fixtures-dir.default": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fixtures-dir.verbose": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fixtures-dir.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fixtures-dir.props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fixtures-dir.strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fixtures-dir.verbose-strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "cli-dir.default": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "cli-dir.verbose": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "cli-dir.strict": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "cli-dir.props": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "cli-dir.strict-props": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "cli-dir.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "no-arguments": {
+        "exitCode": 2,
+        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "flags-only": {
+        "exitCode": 2,
+        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "missing-path": {
+        "exitCode": 2,
+        "stderr": "Path not found: does-not-exist.php\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "missing-path.verbose": {
+        "exitCode": 2,
+        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "empty-path": {
+        "exitCode": 2,
+        "stderr": "Path not found: \nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "non-php-file": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "non-php-file.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "unknown-flags-ignored": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "second-path-ignored": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "flags-after-path": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "trailing-slash-dir": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "exclude-equals": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-separate": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-slashes-trimmed": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-missing-value": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-path-prefix": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "exclude-path-prefix.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "exclude-other-dir.verbose": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "exclude-empty": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "vendor-dir-itself": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "include-pattern-equals": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "include-pattern-separate": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-escaped-slash": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-no-match-file": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "include-pattern-no-match-file.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "include-pattern-match-file.verbose": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-missing-value": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-empty": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-last-wins": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-pattern-equals": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-pattern-separate": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-pattern-file": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "exclude-pattern-file.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "exclude-pattern-other-file": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-pattern-missing-value": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-pattern-dir.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "include-pattern-dir.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "both-patterns": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "both-patterns.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    }
+}

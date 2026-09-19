@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| File             | Line | Function                         | Implicit Inputs                        | Implicit Outputs | Severity |
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| scope-global.php | 9    | scope_conditional                | read from global variable $conditional |                  | Serious  |
+| scope-global.php | 18   | class@anonymous::anonymousMethod | read from superglobal $_GET            |                  | Serious  |
+| scope-global.php | 26   | ScopeNamed::namedMethod          | read from global variable $named       |                  | Serious  |
+| scope-global.php | 35   | {closure}                        | read from superglobal $_POST           |                  | Serious  |
+| scope-global.php | 38   | {closure}                        | read from superglobal $_COOKIE         |                  | Serious  |
+| scope-global.php | 44   | {closure}                        | read from superglobal $_GET            |                  | Serious  |
++------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

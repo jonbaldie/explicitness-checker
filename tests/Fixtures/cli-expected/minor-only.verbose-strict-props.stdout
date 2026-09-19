@@ -1,0 +1,28 @@
+[verbose] Starting analysis for path: tests/Fixtures/cli/minor-only.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: tests/Fixtures/cli/minor-only.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/cli/minor-only.php
+[verbose] Analyzing function/method: greet (line 6)
+[verbose]   Parameters for greet: name
+[verbose]   Implicit outputs for greet: writes to standard output (echo)
+[verbose] Analyzing function/method: declaresButNeverUsesGlobal (line 11)
+[verbose]   Declared globals in declaresButNeverUsesGlobal: unused
+[verbose]   No implicit inputs/outputs detected for declaresButNeverUsesGlobal
+Analyzing...
+
+Results:
+
++----------------+------+----------+-----------------+----------------------------------+----------+
+| File           | Line | Function | Implicit Inputs | Implicit Outputs                 | Severity |
++----------------+------+----------+-----------------+----------------------------------+----------+
+| minor-only.php | 6    | greet    |                 | writes to standard output (echo) | Minor    |
++----------------+------+----------+-----------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 1 (exit code 1)
+  Exit code: 1
+

@@ -1,0 +1,2 @@
+# The vendor/ directory here is a fixture for the CLI's default exclusion.
+!vendor/

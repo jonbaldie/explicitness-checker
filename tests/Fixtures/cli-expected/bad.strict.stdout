@@ -1,0 +1,22 @@
+Analyzing...
+
+Results:
+
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+| File             | Line | Function                | Implicit Inputs                                                  | Implicit Outputs                                                               | Severity |
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+| bad-examples.php | 28   | uses_global_var         | read from global variable $some_global_number                    | writes to standard output (echo); wrote to global variable $some_global_number | Serious  |
+| bad-examples.php | 44   | uses_globals_array      | read from $GLOBALS['app_name']                                   | wrote to $GLOBALS['app_name']                                                  | Serious  |
+| bad-examples.php | 58   | reads_superglobals      | read from superglobal $_GET; read from superglobal $_POST        |                                                                                | Serious  |
+| bad-examples.php | 70   | writes_superglobals     | read from superglobal $_SESSION                                  | wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE                  | Serious  |
+| bad-examples.php | 84   | config_and_store_change | read from global variable $config; reads system time (microtime) | wrote to $GLOBALS['store']                                                     | Critical |
+| bad-examples.php | 112  | inc_global_counter      | read from global variable $some_global_number                    | wrote to global variable $some_global_number                                   | Serious  |
+| bad-examples.php | 122  | {closure}               | read from $GLOBALS['app_name']                                   | wrote to $GLOBALS['app_name']                                                  | Serious  |
++------------------+------+-------------------------+------------------------------------------------------------------+--------------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
