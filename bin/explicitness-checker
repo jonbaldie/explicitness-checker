@@ -1529,6 +1529,9 @@ function printReport(array $allFindings): int
     return $exitCode;
 }
 
-// Run main with CLI args and exit with return code
-exit(main($argv));
+// Run main with CLI args and exit with return code.
+// Read $_SERVER['argv'] rather than $argv: static analysis can't assume $argv
+// exists, because that depends on the register_argc_argv ini setting.
+$cliArguments = $_SERVER["argv"] ?? [];
+exit(main(is_array($cliArguments) ? array_values(array_filter($cliArguments, "is_string")) : []));
 
