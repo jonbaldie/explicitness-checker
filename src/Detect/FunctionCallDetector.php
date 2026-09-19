@@ -32,10 +32,12 @@ class FunctionCallDetector implements Detector
 
     /**
      * Function name => [category, is output, description prefix].
+     *
+     * echo and print are language constructs, handled by
+     * LanguageConstructDetector. So are exit and die, but `\exit()` and
+     * `\die()` parse as function calls, and are real functions since PHP 8.4.
      */
     protected const CATALOGUE = [
-        'echo' => self::STDOUT,
-        'print' => self::STDOUT,
         'printf' => self::STDOUT,
         'vprintf' => self::STDOUT,
         'var_dump' => self::STDOUT,

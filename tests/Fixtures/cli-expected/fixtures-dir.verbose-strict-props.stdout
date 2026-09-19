@@ -3,7 +3,7 @@
 [verbose] Props mode enabled.
 [verbose] Scanning directory recursively: test-fixtures
 [verbose] Excluding directories: vendor
-[verbose] Found 15 PHP file(s).
+[verbose] Found 16 PHP file(s).
 [verbose] Parsing file: test-fixtures/bad-examples.php
 [verbose] Analyzing function/method: uses_global_var (line 28)
 [verbose]   Declared globals in uses_global_var: some_global_number
@@ -53,6 +53,11 @@
 [verbose]   Implicit inputs for readApiKey: read from superglobal $_ENV
 [verbose] Analyzing function/method: writeAppEnv (line 12)
 [verbose]   Implicit outputs for writeAppEnv: wrote to superglobal $_ENV
+[verbose] Parsing file: test-fixtures/fully-qualified-exit.php
+[verbose] Analyzing function/method: quits_as_a_function (line 9)
+[verbose]   Implicit outputs for quits_as_a_function: writes to standard output (exit)
+[verbose] Analyzing function/method: dies_as_a_function (line 14)
+[verbose]   Implicit outputs for dies_as_a_function: writes to standard output (die)
 [verbose] Parsing file: test-fixtures/good-examples.php
 [verbose] Analyzing function/method: add (line 21)
 [verbose]   Parameters for add: a, b
@@ -260,6 +265,8 @@ Results:
 | closure-global-bleed.php       | 38   | class@anonymous::readsGlobal          | read from global variable $z                                                                                                                        |                                                                                                                                                                                          | Serious  |
 | env-access.php                 | 7    | readApiKey                            | read from superglobal $_ENV                                                                                                                         |                                                                                                                                                                                          | Critical |
 | env-access.php                 | 12   | writeAppEnv                           |                                                                                                                                                     | wrote to superglobal $_ENV                                                                                                                                                               | Critical |
+| fully-qualified-exit.php       | 9    | quits_as_a_function                   |                                                                                                                                                     | writes to standard output (exit)                                                                                                                                                         | Minor    |
+| fully-qualified-exit.php       | 14   | dies_as_a_function                    |                                                                                                                                                     | writes to standard output (die)                                                                                                                                                          | Minor    |
 | namespaced-static-property.php | 26   | App\Sub\Consumer::reads               | read from static property App\Sub\Registry::$items; read from static property Other\Thing::$shared; read from static property Other\Config::$values |                                                                                                                                                                                          | Serious  |
 | namespaced-static-property.php | 31   | App\Sub\Consumer::writes              | read from static property self::$calls                                                                                                              | wrote to static property App\Sub\Registry::$count; wrote to static property App\Sub\Nested\Store::$cache; wrote to static property self::$calls; wrote to static property static::$calls | Serious  |
 | array-index.php                | 6    | indexBySuperglobal                    | read from superglobal $_GET                                                                                                                         |                                                                                                                                                                                          | Serious  |
@@ -320,6 +327,6 @@ Results:
 Summary:
   Critical violations: 21 (exit code 3)
   Serious violations: 44 (exit code 2)
-  Minor violations: 2 (exit code 1)
+  Minor violations: 4 (exit code 1)
   Exit code: 3
 

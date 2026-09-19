@@ -324,6 +324,19 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    /**
+     * `\exit()` and `\die()` parse as function calls, not language constructs.
+     */
+    public function testFullyQualifiedExitAndDieAreStandardOutputInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrors('fully-qualified-exit.php', [
+            [11, 'standardOutput', 'quits_as_a_function writes to standard output (exit).'],
+            [16, 'standardOutput', 'dies_as_a_function writes to standard output (die).'],
+        ]);
+    }
+
     public function testMethodsWithoutABodyReportNothing(): void
     {
         $this->analyse([self::FIXTURES . 'bodyless-methods.php'], []);
