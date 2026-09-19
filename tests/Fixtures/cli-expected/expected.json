@@ -239,6 +239,30 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "namespaced-static-property.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "namespaced-static-property.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "namespaced-static-property.strict": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "namespaced-static-property.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "namespaced-static-property.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "namespaced-static-property.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "rw-array-index.default": {
         "exitCode": 2,
         "stderr": ""

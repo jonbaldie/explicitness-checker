@@ -34,6 +34,7 @@ $targets = [
     'scope-global' => 'test-fixtures/scope-global.php',
     'scope-namespaced' => 'test-fixtures/scope-namespaced.php',
     'trait-method' => 'test-fixtures/trait-method.php',
+    'namespaced-static-property' => 'test-fixtures/namespaced-static-property.php',
     'rw-array-index' => 'test-fixtures/read-write-context/array-index.php',
     'rw-foreach-catch' => 'test-fixtures/read-write-context/foreach-catch.php',
     'rw-global-declaration' => 'test-fixtures/read-write-context/global-declaration.php',

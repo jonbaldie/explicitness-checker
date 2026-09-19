@@ -1,0 +1,9 @@
+[verbose] Starting analysis for path: test-fixtures/namespaced-static-property.php
+[verbose] Path is file and ends with .php: test-fixtures/namespaced-static-property.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/namespaced-static-property.php
+[verbose] Analyzing function/method: App\Sub\Consumer::reads (line 26)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::reads
+[verbose] Analyzing function/method: App\Sub\Consumer::writes (line 31)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::writes
+No implicit inputs or outputs found.

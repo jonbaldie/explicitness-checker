@@ -303,6 +303,27 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    /**
+     * Class names are resolved against the namespace and `use` imports, so
+     * `Registry::$items` and `\App\Sub\Registry::$items` are one input. The
+     * CLI must report the same (see testReportsWhatTheCliReports).
+     */
+    public function testStaticPropertyClassNamesAreFullyQualified(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('namespaced-static-property.php', [
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property App\\Sub\\Registry::$items.'],
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property Other\\Thing::$shared.'],
+            [28, 'staticProperty', 'App\\Sub\\Consumer::reads read from static property Other\\Config::$values.'],
+            [33, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property App\\Sub\\Registry::$count.'],
+            [34, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property App\\Sub\\Nested\\Store::$cache.'],
+            [35, 'staticProperty', 'App\\Sub\\Consumer::writes read from static property self::$calls.'],
+            [35, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property self::$calls.'],
+            [36, 'staticProperty', 'App\\Sub\\Consumer::writes wrote to static property static::$calls.'],
+        ]);
+    }
+
     public function testMethodsWithoutABodyReportNothing(): void
     {
         $this->analyse([self::FIXTURES . 'bodyless-methods.php'], []);

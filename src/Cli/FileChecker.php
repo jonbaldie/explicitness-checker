@@ -9,14 +9,19 @@ use JonBaldie\ExplicitnessChecker\Finding;
 use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\Error;
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 
 /**
  * Parses one file and checks every function-like in it, in source order.
  *
  * Detection lives in the shared Analyser; this turns its results into
- * Violations and verbose messages. A file that fails to parse is reported on
- * standard error and skipped.
+ * Violations and verbose messages. Names are resolved against the namespace
+ * and `use` imports as PHPStan resolves them, so the CLI and the PHPStan rule
+ * report the same names. A file that fails to parse is reported on standard
+ * error and skipped.
  */
 class FileChecker
 {
@@ -56,7 +61,7 @@ class FileChecker
         }
 
         $violations = [];
-        foreach ((new FunctionLikeFinder())->find($ast) as $functionLike) {
+        foreach ((new FunctionLikeFinder())->find($this->resolveNames($ast)) as $functionLike) {
             $violation = $this->checkFunctionLike($functionLike, $file);
             if ($violation !== null) {
                 $violations[] = $violation;
@@ -64,6 +69,18 @@ class FileChecker
         }
 
         return $violations;
+    }
+
+    /**
+     * Resolves names with the options PHPStan's own NameResolver service uses.
+     *
+     * @param array<Node> $ast
+     *
+     * @return array<Node>
+     */
+    protected function resolveNames(array $ast): array
+    {
+        return (new NodeTraverser(new NameResolver(null, ['preserveOriginalNames' => true])))->traverse($ast);
     }
 
     protected function checkFunctionLike(CheckedFunctionLike $functionLike, string $file): ?Violation
