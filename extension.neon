@@ -21,9 +21,11 @@ services:
 	-
 		class: JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder
 	-
-		class: JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule
+		class: JonBaldie\ExplicitnessChecker\Mode
 		arguments:
 			strict: %explicitness.strict%
 			props: %explicitness.props%
+	-
+		class: JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule
 		tags:
 			- phpstan.rules.rule

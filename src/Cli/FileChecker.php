@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
+use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PhpParser\Error;
@@ -29,8 +30,7 @@ class FileChecker
         protected Analyser $analyser,
         protected FunctionLikeFinder $finder,
         protected Console $console,
-        protected bool $strict,
-        protected bool $props,
+        protected Mode $mode,
     ) {
     }
 
@@ -86,7 +86,7 @@ class FileChecker
     protected function checkFunctionLike(CheckedFunctionLike $functionLike, string $file): ?Violation
     {
         $node = $functionLike->getNode();
-        $analysis = $this->analyser->analyse($node, $this->strict, $this->props);
+        $analysis = $this->analyser->analyse($node, $this->mode);
         $name = $functionLike->getName();
         $inputs = $analysis->getImplicitInputs();
         $outputs = $analysis->getImplicitOutputs();

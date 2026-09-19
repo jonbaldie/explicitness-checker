@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Tests\PHPStan;
 
 use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Category;
+use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PHPStan\Rules\Rule;
@@ -114,7 +115,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected function getRule(): Rule
     {
-        return new ImplicitInputOutputRule(new Analyser(), new FunctionLikeFinder(), $this->strict, $this->props);
+        return new ImplicitInputOutputRule(new Analyser(), new FunctionLikeFinder(), new Mode($this->strict, $this->props));
     }
 
     public function testBadExamplesInDefaultMode(): void

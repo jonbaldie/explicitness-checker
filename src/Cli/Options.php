@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use JonBaldie\ExplicitnessChecker\Mode;
+
 /**
  * The parsed command line.
  */
@@ -12,8 +14,7 @@ class Options
     public function __construct(
         protected string $path,
         protected bool $verbose,
-        protected bool $strict,
-        protected bool $props,
+        protected Mode $mode,
         protected FileFilter $filter,
     ) {
     }
@@ -31,14 +32,9 @@ class Options
         return $this->verbose;
     }
 
-    public function isStrict(): bool
+    public function getMode(): Mode
     {
-        return $this->strict;
-    }
-
-    public function isProps(): bool
-    {
-        return $this->props;
+        return $this->mode;
     }
 
     public function getFilter(): FileFilter
