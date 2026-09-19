@@ -1,7 +1,7 @@
 {
   "name": "jonbaldie/explicitness-checker",
   "description": "A tool to analyze explicitness of PHP code (implicit inputs/outputs).",
-  "type": "library",
+  "type": "phpstan-extension",
   "keywords": [
     "php",
     "static-analysis",
@@ -23,7 +23,8 @@
   ],
   "require": {
     "php": ">=8.0",
-    "nikic/php-parser": "^5.0"
+    "nikic/php-parser": "^5.0",
+    "phpstan/phpstan": "^2.1"
   },
   "bin": [
     "bin/explicitness-checker"
@@ -31,6 +32,37 @@
   "license": "MIT",
   "minimum-stability": "stable",
   "require-dev": {
-    "phpstan/phpstan": "^2.1"
+    "phpmd/phpmd": "^2.15",
+    "phpunit/phpunit": "^9.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "JonBaldie\\ExplicitnessChecker\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "JonBaldie\\ExplicitnessChecker\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "8.0.30"
+    },
+    "sort-packages": true
+  },
+  "scripts": {
+    "test": "phpunit",
+    "phpstan": "phpstan analyse",
+    "phpmd": "phpmd bin/explicitness-checker,src text phpmd.xml --suffixes php,",
+    "infection": [
+      "sh tools/install-infection.sh",
+      "php tools/infection.phar --threads=max"
+    ]
+  },
+  "extra": {
+    "phpstan": {
+      "includes": ["extension.neon"]
+    }
   }
 }

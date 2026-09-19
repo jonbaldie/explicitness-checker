@@ -1,0 +1,6 @@
+# Turns on strict mode.
+includes:
+	- extension.neon
+parameters:
+	explicitness:
+		strict: true

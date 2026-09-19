@@ -1,0 +1,41 @@
+[verbose] Starting analysis for path: test-fixtures/scope-namespaced.php
+[verbose] Path is file and ends with .php: test-fixtures/scope-namespaced.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/scope-namespaced.php
+[verbose] Analyzing function/method: App\Sub\scope_conditional (line 11)
+[verbose]   Declared globals in App\Sub\scope_conditional: conditional
+[verbose]   Implicit inputs for App\Sub\scope_conditional: read from global variable $conditional
+[verbose] Analyzing function/method: class@anonymous::anonymousMethod (line 20)
+[verbose]   Implicit inputs for class@anonymous::anonymousMethod: read from superglobal $_GET
+[verbose] Analyzing function/method: App\Sub\ScopeNamed::namedMethod (line 28)
+[verbose]   Declared globals in App\Sub\ScopeNamed::namedMethod: named
+[verbose]   Implicit inputs for App\Sub\ScopeNamed::namedMethod: read from global variable $named
+[verbose] Analyzing function/method: App\Sub\ScopeNamed::makesClosures (line 35)
+[verbose]   No implicit inputs/outputs detected for App\Sub\ScopeNamed::makesClosures
+[verbose] Analyzing function/method: {closure} (line 37)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
+[verbose] Analyzing function/method: {closure} (line 40)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_COOKIE
+[verbose] Analyzing function/method: {closure} (line 46)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_GET
+Analyzing...
+
+Results:
+
++----------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| File                 | Line | Function                         | Implicit Inputs                        | Implicit Outputs | Severity |
++----------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+| scope-namespaced.php | 11   | App\Sub\scope_conditional        | read from global variable $conditional |                  | Serious  |
+| scope-namespaced.php | 20   | class@anonymous::anonymousMethod | read from superglobal $_GET            |                  | Serious  |
+| scope-namespaced.php | 28   | App\Sub\ScopeNamed::namedMethod  | read from global variable $named       |                  | Serious  |
+| scope-namespaced.php | 37   | {closure}                        | read from superglobal $_POST           |                  | Serious  |
+| scope-namespaced.php | 40   | {closure}                        | read from superglobal $_COOKIE         |                  | Serious  |
+| scope-namespaced.php | 46   | {closure}                        | read from superglobal $_GET            |                  | Serious  |
++----------------------+------+----------------------------------+----------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -1,0 +1,36 @@
+[verbose] Starting analysis for path: test-fixtures/nested-declarations.php
+[verbose] Path is file and ends with .php: test-fixtures/nested-declarations.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/nested-declarations.php
+[verbose] Analyzing function/method: declaresGlobalsAtSeveralDepths (line 9)
+[verbose]   Declared globals in declaresGlobalsAtSeveralDepths: first, second
+[verbose]   Implicit inputs for declaresGlobalsAtSeveralDepths: read from global variable $first; read from global variable $second
+[verbose] Analyzing function/method: {closure} (line 11)
+[verbose]   No implicit inputs/outputs detected for {closure}
+[verbose] Analyzing function/method: HasAnonymousClass::makesAnonymousClass (line 27)
+[verbose]   No implicit inputs/outputs detected for HasAnonymousClass::makesAnonymousClass
+[verbose] Analyzing function/method: class@anonymous::run (line 30)
+[verbose]   No implicit inputs/outputs detected for class@anonymous::run
+[verbose] Analyzing function/method: HasAnonymousClass::readsGlobalAfterwards (line 36)
+[verbose]   Declared globals in HasAnonymousClass::readsGlobalAfterwards: counter
+[verbose]   Implicit inputs for HasAnonymousClass::readsGlobalAfterwards: read from global variable $counter
+[verbose] Analyzing function/method: DynamicProperties::readsDynamicAndNestedProperties (line 48)
+[verbose]   Parameters for DynamicProperties::readsDynamicAndNestedProperties: name, other
+[verbose]   No implicit inputs/outputs detected for DynamicProperties::readsDynamicAndNestedProperties
+Analyzing...
+
+Results:
+
++-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
+| File                    | Line | Function                                 | Implicit Inputs                                                     | Implicit Outputs | Severity |
++-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
+| nested-declarations.php | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                  | Serious  |
+| nested-declarations.php | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                  | Serious  |
++-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

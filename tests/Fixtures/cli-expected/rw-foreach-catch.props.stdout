@@ -1,0 +1,18 @@
+Analyzing...
+
+Results:
+
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+| File              | Line | Function              | Implicit Inputs                  | Implicit Outputs                    | Severity |
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+| foreach-catch.php | 6    | iterateIntoGlobal     | read from global variable $items | wrote to global variable $item      | Serious  |
+| foreach-catch.php | 13   | iterateKeysIntoGlobal | read from superglobal $_POST     | wrote to global variable $position  | Serious  |
+| foreach-catch.php | 20   | catchIntoGlobal       |                                  | wrote to global variable $lastError | Serious  |
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

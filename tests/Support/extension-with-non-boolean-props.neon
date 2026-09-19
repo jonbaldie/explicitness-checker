@@ -1,0 +1,6 @@
+# Sets explicitness.props to a string, which the schema rejects.
+includes:
+	- extension.neon
+parameters:
+	explicitness:
+		props: 'yes'

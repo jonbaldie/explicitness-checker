@@ -4,7 +4,7 @@ A PHP command-line tool (`bin/explicitness-checker`) that uses `nikic/php-parser
 
 ## Verification
 
-CI in `.github/workflows/` defines the required checks: PHPStan on `bin/explicitness-checker` and fixture runs against `test-fixtures/`. Run the same commands locally before opening a PR.
+CI in `.github/workflows/` defines the required checks, which enforce `CODING_STANDARDS.md`: PHPStan at level max (`composer phpstan`), PHPMD (`composer phpmd`), PHPUnit, and Infection with MSI >= 60 and covered MSI >= 80 (`composer infection`, needs pcov or xdebug), plus fixture runs against `test-fixtures/`. Run the same commands locally before opening a PR.
 
 ## Agent skills
 

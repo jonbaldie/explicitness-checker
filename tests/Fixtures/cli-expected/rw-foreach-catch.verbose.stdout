@@ -1,0 +1,33 @@
+[verbose] Starting analysis for path: test-fixtures/read-write-context/foreach-catch.php
+[verbose] Path is file and ends with .php: test-fixtures/read-write-context/foreach-catch.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/read-write-context/foreach-catch.php
+[verbose] Analyzing function/method: iterateIntoGlobal (line 6)
+[verbose]   Declared globals in iterateIntoGlobal: items, item
+[verbose]   Implicit inputs for iterateIntoGlobal: read from global variable $items
+[verbose]   Implicit outputs for iterateIntoGlobal: wrote to global variable $item
+[verbose] Analyzing function/method: iterateKeysIntoGlobal (line 13)
+[verbose]   Declared globals in iterateKeysIntoGlobal: position
+[verbose]   Implicit inputs for iterateKeysIntoGlobal: read from superglobal $_POST
+[verbose]   Implicit outputs for iterateKeysIntoGlobal: wrote to global variable $position
+[verbose] Analyzing function/method: catchIntoGlobal (line 20)
+[verbose]   Declared globals in catchIntoGlobal: lastError
+[verbose]   Implicit outputs for catchIntoGlobal: wrote to global variable $lastError
+Analyzing...
+
+Results:
+
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+| File              | Line | Function              | Implicit Inputs                  | Implicit Outputs                    | Severity |
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+| foreach-catch.php | 6    | iterateIntoGlobal     | read from global variable $items | wrote to global variable $item      | Serious  |
+| foreach-catch.php | 13   | iterateKeysIntoGlobal | read from superglobal $_POST     | wrote to global variable $position  | Serious  |
+| foreach-catch.php | 20   | catchIntoGlobal       |                                  | wrote to global variable $lastError | Serious  |
++-------------------+------+-----------------------+----------------------------------+-------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

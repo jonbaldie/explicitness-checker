@@ -28,6 +28,23 @@ function add($a, $b) {
 
 The tool uses nikic's PHP Parser library to parse PHP code and analyze the explicitness of your functions and class methods.
 
+### Which functions are checked, and how they're named
+
+Every function-like with a body is checked on its own, wherever it's declared, and whether or not the file declares a namespace:
+
+| Declared as | Reported as |
+|---|---|
+| Function (including inside `if` blocks or other functions) | Fully qualified name, e.g. `App\Sub\send_mail` |
+| Method of a named class, trait or enum | Fully qualified class, e.g. `App\Sub\Mailer::send` |
+| Method of an anonymous class (`new class { ... }`) | `class@anonymous::send` |
+| Closure or arrow function | `{closure}` |
+
+Abstract and interface methods have no body and aren't checked. Rows are listed in source order.
+
+A function's analysis stops at any closure, arrow function, nested function or class declared inside it: code in there, including `global` declarations, belongs to that inner function-like, which gets its own row. So a closure that declares `global $x` doesn't make the enclosing function's local `$x` look like a global.
+
+**Behaviour change:** earlier versions skipped closures, arrow functions, anonymous-class methods and conditionally declared functions in files without a namespace, dropped the namespace from method names, and let a closure's `global` declarations leak into the enclosing function. Upgrading can therefore add rows, remove false `global` findings from enclosing functions, rename methods, and change the exit code.
+
 ## Why should I care about explicitness?
 
 **Implicit inputs and outputs fundamentally limit the modularity and reusability of your code.**
@@ -108,6 +125,8 @@ The tool categorizes violations into three severity levels:
   - Session functions (`session_start`, `session_id`)
   - Error logging (`error_log`, `trigger_error`)
 
+**Behaviour change:** `$_ENV` access used to be Serious, like the other superglobals. It is now Critical, the same as `getenv`, so a run whose worst finding is `$_ENV` access now exits with 3 instead of 2.
+
 #### Exit Codes for CI Integration
 
 - **0**: No violations found
@@ -131,4 +150,101 @@ Results:
 | File | Line | Function | Implicit Inputs | Implicit Outputs |
 |------|------|----------|-----------------|------------------|
 | Calculator.php | 12 | add | read from global variable $some_global_number | wrote to global variable $some_global_number |
+```
+
+## PHPStan extension
+
+This package also ships a [PHPStan](https://phpstan.org/) rule that reports the same implicit inputs and outputs as the CLI, as PHPStan errors. It finds and names function-likes the same way the CLI does (see "[Which functions are checked, and how they're named](#which-functions-are-checked-and-how-theyre-named)" above): a function-like the CLI reports is reported by the rule under the same name, wherever it's declared. The one thing the extension doesn't inherit from the CLI is file selection: the CLI walks the path you give it, filtered by `--exclude`/`--include-pattern`/`--exclude-pattern`; the rule analyses whatever `paths` (and `excludePaths`) your own PHPStan configuration already includes. See [#12](https://github.com/jonbaldie/explicitness-checker/issues/12) for the history here.
+
+### Installation
+
+With [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer), the extension is picked up automatically once both packages are required — no further configuration needed:
+
+```bash
+composer require --dev phpstan/extension-installer jonbaldie/explicitness-checker
+```
+
+Without it, require the package and include its config yourself:
+
+```bash
+composer require --dev jonbaldie/explicitness-checker
+```
+
+```neon
+# phpstan.neon
+includes:
+    - vendor/jonbaldie/explicitness-checker/extension.neon
+```
+
+Either way, run `vendor/bin/phpstan analyse` as usual; violations appear alongside your other PHPStan errors.
+
+### `strict` and `props` parameters
+
+`explicitness.strict` and `explicitness.props` mirror the CLI's `--strict` and `--props` flags and both default to `false`:
+
+```neon
+parameters:
+    explicitness:
+        strict: true
+        props: true
+```
+
+### Categories and identifiers
+
+Every error the rule reports carries one of these `explicitness.<category>` identifiers. Categories marked `strict` or `props` only appear once the matching parameter above is `true`; the rest are always on.
+
+| Category | Identifier | Enabled by |
+|---|---|---|
+| Global variable (`global $x`) | `explicitness.globalVariable` | default |
+| Superglobal (`$_GET`, `$_ENV`, etc.) | `explicitness.superglobal` | default |
+| `$GLOBALS` array | `explicitness.globalsArray` | default |
+| Standard output (`echo`, `print`, `var_dump`, ...) | `explicitness.standardOutput` | `strict` |
+| File I/O (`file_get_contents`, `fwrite`, ...) | `explicitness.file` | `strict` |
+| File system checks (`file_exists`, `is_dir`, ...) | `explicitness.fileSystem` | `strict` |
+| Environment variables (`getenv`, `putenv`) | `explicitness.environment` | `strict` |
+| System time (`time`, `date`, `microtime`, ...) | `explicitness.time` | `strict` |
+| Random number generator (`rand`, `random_int`, ...) | `explicitness.random` | `strict` |
+| HTTP headers (`header`, `setcookie`, ...) | `explicitness.httpHeaders` | `strict` |
+| Error log (`error_log`, `trigger_error`, ...) | `explicitness.errorLog` | `strict` |
+| Session (`session_start`, `session_id`, ...) | `explicitness.session` | `strict` |
+| Object property (`$this->property`) | `explicitness.objectProperty` | `props` |
+| Static property (`ClassName::$property`) | `explicitness.staticProperty` | `props` |
+
+### Ignoring or baselining a category
+
+To ignore a category everywhere, add it to `ignoreErrors` by identifier:
+
+```neon
+parameters:
+    ignoreErrors:
+        - identifier: explicitness.standardOutput
+```
+
+To grandfather in existing violations instead, run `vendor/bin/phpstan analyse --generate-baseline`. Each generated baseline entry keeps its `identifier`, so you can hand-edit `phpstan-baseline.neon` afterwards to drop the entries for a category you'd rather start enforcing straight away.
+
+### Overlap with `jonbaldie/phpstan-extension-accessing-globals`
+
+[`jonbaldie/phpstan-extension-accessing-globals`](https://github.com/jonbaldie/phpstan-extension-accessing-globals) also reports on global and superglobal access, under its own identifiers. If you install both, the same line can be reported twice:
+
+- `explicitness.globalVariable` and `explicitness.globalsArray` overlap with that extension's default `access.global` and `modify.global` identifiers (`global $x` and `$GLOBALS[...]` access and modification).
+- `explicitness.superglobal` overlaps with its default `access.superglobal.nested` and `modify.superglobal.nested` identifiers, since this extension only ever checks function bodies, which that extension always treats as a nested scope.
+- `explicitness.staticProperty` (with `explicitness.props: true`) overlaps with its opinionated `property.static` identifier, if you've enabled that extension's opinionated rule set.
+- With `explicitness.strict: true`, `explicitness.time`, `explicitness.random`, `explicitness.environment`, `explicitness.file`, `explicitness.fileSystem`, `explicitness.httpHeaders`, `explicitness.errorLog` and `explicitness.session` overlap with its opinionated `function.impure` identifier, which reports calls to a fixed list of impure built-in functions. The lists only partly match: `function.impure` also covers functions this extension doesn't (`strtotime`, `unlink`, `exec`, ...), and doesn't cover `srand`, `mt_srand`, `setrawcookie`, `http_response_code`, `trigger_error`, `user_error` or `session_write_close`. `explicitness.standardOutput` doesn't overlap.
+
+Pick one extension as the source of truth for each pair and ignore the other's identifier for it, e.g. to keep `jonbaldie/phpstan-extension-accessing-globals` as the source of truth for global and superglobal access:
+
+```neon
+parameters:
+    ignoreErrors:
+        - identifier: explicitness.globalVariable
+        - identifier: explicitness.globalsArray
+        - identifier: explicitness.superglobal
+```
+
+For `function.impure`, neither side is a superset of the other, so ignoring either one loses some coverage. If you run both extensions strictly, one option is to keep this extension's per-category identifiers and ignore `function.impure`:
+
+```neon
+parameters:
+    ignoreErrors:
+        - identifier: function.impure
 ```

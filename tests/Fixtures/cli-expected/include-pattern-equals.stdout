@@ -1,0 +1,31 @@
+Analyzing...
+
+Results:
+
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| File                     | Line | Function                       | Implicit Inputs                                                     | Implicit Outputs                                             | Severity |
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| array-index.php          | 6    | indexBySuperglobal             | read from superglobal $_GET                                         |                                                              | Serious  |
+| array-index.php          | 12   | writeGlobalAtGlobalIndex       | read from global variable $key                                      | wrote to global variable $map                                | Serious  |
+| array-index.php          | 18   | nestedIndexes                  | read from superglobal $_GET; read from superglobal $_POST           | wrote to superglobal $_SESSION                               | Serious  |
+| array-index.php          | 28   | IndexedCache::put              | read from superglobal $_COOKIE                                      |                                                              | Serious  |
+| foreach-catch.php        | 6    | iterateIntoGlobal              | read from global variable $items                                    | wrote to global variable $item                               | Serious  |
+| foreach-catch.php        | 13   | iterateKeysIntoGlobal          | read from superglobal $_POST                                        | wrote to global variable $position                           | Serious  |
+| foreach-catch.php        | 20   | catchIntoGlobal                |                                                                     | wrote to global variable $lastError                          | Serious  |
+| global-declaration.php   | 5    | writeOnly                      |                                                                     | wrote to global variable $counter                            | Serious  |
+| global-declaration.php   | 16   | readAndWrite                   | read from global variable $total                                    | wrote to global variable $total                              | Serious  |
+| operators-and-bodies.php | 6    | addsToGlobal                   | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                              | Serious  |
+| operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
+| operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies  | read from superglobal $_POST; read from superglobal $_COOKIE        |                                                              | Serious  |
+| operators-and-bodies.php | 31   | globalsArrayKeys               | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS |                                                              | Serious  |
+| unset.php                | 5    | logout                         |                                                                     | wrote to superglobal $_SESSION                               | Serious  |
+| unset.php                | 10   | forgetGlobal                   |                                                                     | wrote to global variable $cache                              | Serious  |
+| unset.php                | 16   | forgetGlobalsEntry             |                                                                     | wrote to $GLOBALS['registry']                                | Serious  |
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 16 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

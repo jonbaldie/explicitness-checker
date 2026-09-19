@@ -1,0 +1,6 @@
+# Misspells explicitness.strict, which the schema rejects.
+includes:
+	- extension.neon
+parameters:
+	explicitness:
+		strcit: true

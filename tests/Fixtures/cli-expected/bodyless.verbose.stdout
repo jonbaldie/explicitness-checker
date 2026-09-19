@@ -1,0 +1,5 @@
+[verbose] Starting analysis for path: test-fixtures/bodyless-methods.php
+[verbose] Path is file and ends with .php: test-fixtures/bodyless-methods.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/bodyless-methods.php
+No implicit inputs or outputs found.

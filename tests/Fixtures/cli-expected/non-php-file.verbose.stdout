@@ -1,0 +1,4 @@
+[verbose] Starting analysis for path: test-fixtures/check-regressions.sh
+[verbose] Path is file but not PHP: test-fixtures/check-regressions.sh
+[verbose] Found 0 PHP file(s).
+No PHP files found in test-fixtures/check-regressions.sh

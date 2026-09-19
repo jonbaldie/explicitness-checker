@@ -1,2 +1,5 @@
 vendor/
 resources/
+.phpunit.result.cache
+build/
+tools/infection.phar

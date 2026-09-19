@@ -1,0 +1,332 @@
+[verbose] Starting analysis for path: test-fixtures
+[verbose] Scanning directory recursively: test-fixtures
+[verbose] Excluding directories: vendor
+[verbose] Found 18 PHP file(s).
+[verbose] Parsing file: test-fixtures/bad-examples.php
+[verbose] Analyzing function/method: uses_global_var (line 28)
+[verbose]   Declared globals in uses_global_var: some_global_number
+[verbose]   Implicit inputs for uses_global_var: read from global variable $some_global_number
+[verbose]   Implicit outputs for uses_global_var: wrote to global variable $some_global_number
+[verbose] Analyzing function/method: uses_globals_array (line 44)
+[verbose]   Implicit inputs for uses_globals_array: read from $GLOBALS['app_name']
+[verbose]   Implicit outputs for uses_globals_array: wrote to $GLOBALS['app_name']
+[verbose] Analyzing function/method: reads_superglobals (line 58)
+[verbose]   Implicit inputs for reads_superglobals: read from superglobal $_GET; read from superglobal $_POST
+[verbose] Analyzing function/method: writes_superglobals (line 70)
+[verbose]   Implicit inputs for writes_superglobals: read from superglobal $_SESSION
+[verbose]   Implicit outputs for writes_superglobals: wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE
+[verbose] Analyzing function/method: config_and_store_change (line 84)
+[verbose]   Declared globals in config_and_store_change: config
+[verbose]   Implicit inputs for config_and_store_change: read from global variable $config
+[verbose]   Implicit outputs for config_and_store_change: wrote to $GLOBALS['store']
+[verbose] Analyzing function/method: variable_variable_global_read (line 100)
+[verbose]   Parameters for variable_variable_global_read: name
+[verbose]   No implicit inputs/outputs detected for variable_variable_global_read
+[verbose] Analyzing function/method: inc_global_counter (line 112)
+[verbose]   Declared globals in inc_global_counter: some_global_number
+[verbose]   Implicit inputs for inc_global_counter: read from global variable $some_global_number
+[verbose]   Implicit outputs for inc_global_counter: wrote to global variable $some_global_number
+[verbose] Analyzing function/method: {closure} (line 122)
+[verbose]   Implicit inputs for {closure}: read from $GLOBALS['app_name']
+[verbose]   Implicit outputs for {closure}: wrote to $GLOBALS['app_name']
+[verbose] Parsing file: test-fixtures/bodyless-methods.php
+[verbose] Parsing file: test-fixtures/closure-global-bleed.php
+[verbose] Analyzing function/method: outer_with_closure (line 9)
+[verbose]   No implicit inputs/outputs detected for outer_with_closure
+[verbose] Analyzing function/method: {closure} (line 12)
+[verbose]   Declared globals in {closure}: x
+[verbose]   Implicit inputs for {closure}: read from global variable $x
+[verbose] Analyzing function/method: outer_with_nested_function (line 21)
+[verbose]   No implicit inputs/outputs detected for outer_with_nested_function
+[verbose] Analyzing function/method: nested_reads_global (line 24)
+[verbose]   Declared globals in nested_reads_global: y
+[verbose]   Implicit inputs for nested_reads_global: read from global variable $y
+[verbose] Analyzing function/method: outer_with_anonymous_class (line 34)
+[verbose]   No implicit inputs/outputs detected for outer_with_anonymous_class
+[verbose] Analyzing function/method: class@anonymous::readsGlobal (line 38)
+[verbose]   Declared globals in class@anonymous::readsGlobal: z
+[verbose]   Implicit inputs for class@anonymous::readsGlobal: read from global variable $z
+[verbose] Parsing file: test-fixtures/env-access.php
+[verbose] Analyzing function/method: readApiKey (line 7)
+[verbose]   Implicit inputs for readApiKey: read from superglobal $_ENV
+[verbose] Analyzing function/method: writeAppEnv (line 12)
+[verbose]   Implicit outputs for writeAppEnv: wrote to superglobal $_ENV
+[verbose] Parsing file: test-fixtures/fully-qualified-exit.php
+[verbose] Analyzing function/method: quits_as_a_function (line 9)
+[verbose]   No implicit inputs/outputs detected for quits_as_a_function
+[verbose] Analyzing function/method: dies_as_a_function (line 14)
+[verbose]   No implicit inputs/outputs detected for dies_as_a_function
+[verbose] Parsing file: test-fixtures/good-examples.php
+[verbose] Analyzing function/method: add (line 21)
+[verbose]   Parameters for add: a, b
+[verbose]   No implicit inputs/outputs detected for add
+[verbose] Analyzing function/method: squareAll (line 32)
+[verbose]   Parameters for squareAll: items
+[verbose]   No implicit inputs/outputs detected for squareAll
+[verbose] Analyzing function/method: loginUser (line 49)
+[verbose]   Parameters for loginUser: session, user
+[verbose]   No implicit inputs/outputs detected for loginUser
+[verbose] Analyzing function/method: processWithConfig (line 66)
+[verbose]   Parameters for processWithConfig: config, input
+[verbose]   No implicit inputs/outputs detected for processWithConfig
+[verbose] Analyzing function/method: callLogger (line 82)
+[verbose]   Parameters for callLogger: logger, message
+[verbose]   No implicit inputs/outputs detected for callLogger
+[verbose] Analyzing function/method: Calculator::add (line 102)
+[verbose]   Parameters for Calculator::add: x, y
+[verbose]   No implicit inputs/outputs detected for Calculator::add
+[verbose] Analyzing function/method: Calculator::scale (line 113)
+[verbose]   Parameters for Calculator::scale: values, factor
+[verbose]   No implicit inputs/outputs detected for Calculator::scale
+[verbose] Analyzing function/method: composeExample (line 128)
+[verbose]   No implicit inputs/outputs detected for composeExample
+[verbose] Analyzing function/method: {closure} (line 151)
+[verbose]   Parameters for {closure}: a, b
+[verbose]   No implicit inputs/outputs detected for {closure}
+[verbose] Parsing file: test-fixtures/namespaced-static-property.php
+[verbose] Analyzing function/method: App\Sub\Consumer::reads (line 26)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::reads
+[verbose] Analyzing function/method: App\Sub\Consumer::writes (line 31)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Consumer::writes
+[verbose] Parsing file: test-fixtures/nested-declarations.php
+[verbose] Analyzing function/method: declaresGlobalsAtSeveralDepths (line 9)
+[verbose]   Declared globals in declaresGlobalsAtSeveralDepths: first, second
+[verbose]   Implicit inputs for declaresGlobalsAtSeveralDepths: read from global variable $first; read from global variable $second
+[verbose] Analyzing function/method: {closure} (line 11)
+[verbose]   No implicit inputs/outputs detected for {closure}
+[verbose] Analyzing function/method: HasAnonymousClass::makesAnonymousClass (line 27)
+[verbose]   No implicit inputs/outputs detected for HasAnonymousClass::makesAnonymousClass
+[verbose] Analyzing function/method: class@anonymous::run (line 30)
+[verbose]   No implicit inputs/outputs detected for class@anonymous::run
+[verbose] Analyzing function/method: HasAnonymousClass::readsGlobalAfterwards (line 36)
+[verbose]   Declared globals in HasAnonymousClass::readsGlobalAfterwards: counter
+[verbose]   Implicit inputs for HasAnonymousClass::readsGlobalAfterwards: read from global variable $counter
+[verbose] Analyzing function/method: DynamicProperties::readsDynamicAndNestedProperties (line 48)
+[verbose]   Parameters for DynamicProperties::readsDynamicAndNestedProperties: name, other
+[verbose]   No implicit inputs/outputs detected for DynamicProperties::readsDynamicAndNestedProperties
+[verbose] Parsing file: test-fixtures/read-write-context/array-index.php
+[verbose] Analyzing function/method: indexBySuperglobal (line 6)
+[verbose]   Implicit inputs for indexBySuperglobal: read from superglobal $_GET
+[verbose] Analyzing function/method: writeGlobalAtGlobalIndex (line 12)
+[verbose]   Declared globals in writeGlobalAtGlobalIndex: map, key
+[verbose]   Implicit inputs for writeGlobalAtGlobalIndex: read from global variable $key
+[verbose]   Implicit outputs for writeGlobalAtGlobalIndex: wrote to global variable $map
+[verbose] Analyzing function/method: nestedIndexes (line 18)
+[verbose]   Implicit inputs for nestedIndexes: read from superglobal $_GET; read from superglobal $_POST
+[verbose]   Implicit outputs for nestedIndexes: wrote to superglobal $_SESSION
+[verbose] Analyzing function/method: IndexedCache::put (line 28)
+[verbose]   Implicit inputs for IndexedCache::put: read from superglobal $_COOKIE
+[verbose] Parsing file: test-fixtures/read-write-context/foreach-catch.php
+[verbose] Analyzing function/method: iterateIntoGlobal (line 6)
+[verbose]   Declared globals in iterateIntoGlobal: items, item
+[verbose]   Implicit inputs for iterateIntoGlobal: read from global variable $items
+[verbose]   Implicit outputs for iterateIntoGlobal: wrote to global variable $item
+[verbose] Analyzing function/method: iterateKeysIntoGlobal (line 13)
+[verbose]   Declared globals in iterateKeysIntoGlobal: position
+[verbose]   Implicit inputs for iterateKeysIntoGlobal: read from superglobal $_POST
+[verbose]   Implicit outputs for iterateKeysIntoGlobal: wrote to global variable $position
+[verbose] Analyzing function/method: catchIntoGlobal (line 20)
+[verbose]   Declared globals in catchIntoGlobal: lastError
+[verbose]   Implicit outputs for catchIntoGlobal: wrote to global variable $lastError
+[verbose] Parsing file: test-fixtures/read-write-context/global-declaration.php
+[verbose] Analyzing function/method: writeOnly (line 5)
+[verbose]   Declared globals in writeOnly: counter
+[verbose]   Implicit outputs for writeOnly: wrote to global variable $counter
+[verbose] Analyzing function/method: declaredButUnused (line 11)
+[verbose]   Declared globals in declaredButUnused: unused
+[verbose]   No implicit inputs/outputs detected for declaredButUnused
+[verbose] Analyzing function/method: readAndWrite (line 16)
+[verbose]   Declared globals in readAndWrite: total
+[verbose]   Implicit inputs for readAndWrite: read from global variable $total
+[verbose]   Implicit outputs for readAndWrite: wrote to global variable $total
+[verbose] Parsing file: test-fixtures/read-write-context/operators-and-bodies.php
+[verbose] Analyzing function/method: addsToGlobal (line 6)
+[verbose]   Declared globals in addsToGlobal: total
+[verbose]   Implicit inputs for addsToGlobal: read from global variable $total; read from superglobal $_GET
+[verbose]   Implicit outputs for addsToGlobal: wrote to global variable $total
+[verbose] Analyzing function/method: incrementsAndDecrementsGlobals (line 12)
+[verbose]   Declared globals in incrementsAndDecrementsGlobals: up, down
+[verbose]   Implicit inputs for incrementsAndDecrementsGlobals: read from global variable $up; read from global variable $down
+[verbose]   Implicit outputs for incrementsAndDecrementsGlobals: wrote to global variable $up; wrote to global variable $down
+[verbose] Analyzing function/method: readsInsideLoopAndCatchBodies (line 19)
+[verbose]   Parameters for readsInsideLoopAndCatchBodies: rows
+[verbose]   Implicit inputs for readsInsideLoopAndCatchBodies: read from superglobal $_POST; read from superglobal $_COOKIE
+[verbose] Analyzing function/method: globalsArrayKeys (line 31)
+[verbose]   Parameters for globalsArrayKeys: key
+[verbose]   Implicit inputs for globalsArrayKeys: read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS
+[verbose] Analyzing function/method: variableVariable (line 40)
+[verbose]   No implicit inputs/outputs detected for variableVariable
+[verbose] Parsing file: test-fixtures/read-write-context/unset.php
+[verbose] Analyzing function/method: logout (line 5)
+[verbose]   Implicit outputs for logout: wrote to superglobal $_SESSION
+[verbose] Analyzing function/method: forgetGlobal (line 10)
+[verbose]   Declared globals in forgetGlobal: cache
+[verbose]   Implicit outputs for forgetGlobal: wrote to global variable $cache
+[verbose] Analyzing function/method: forgetGlobalsEntry (line 16)
+[verbose]   Implicit outputs for forgetGlobalsEntry: wrote to $GLOBALS['registry']
+[verbose] Analyzing function/method: Memo::clear (line 26)
+[verbose]   No implicit inputs/outputs detected for Memo::clear
+[verbose] Parsing file: test-fixtures/repeated-input.php
+[verbose] Analyzing function/method: repeats_inputs (line 8)
+[verbose]   Declared globals in repeats_inputs: counter
+[verbose]   Implicit inputs for repeats_inputs: read from superglobal $_GET
+[verbose]   Implicit outputs for repeats_inputs: wrote to global variable $counter
+[verbose] Parsing file: test-fixtures/scope-global.php
+[verbose] Analyzing function/method: scope_conditional (line 9)
+[verbose]   Declared globals in scope_conditional: conditional
+[verbose]   Implicit inputs for scope_conditional: read from global variable $conditional
+[verbose] Analyzing function/method: class@anonymous::anonymousMethod (line 18)
+[verbose]   Implicit inputs for class@anonymous::anonymousMethod: read from superglobal $_GET
+[verbose] Analyzing function/method: ScopeNamed::namedMethod (line 26)
+[verbose]   Declared globals in ScopeNamed::namedMethod: named
+[verbose]   Implicit inputs for ScopeNamed::namedMethod: read from global variable $named
+[verbose] Analyzing function/method: ScopeNamed::makesClosures (line 33)
+[verbose]   No implicit inputs/outputs detected for ScopeNamed::makesClosures
+[verbose] Analyzing function/method: {closure} (line 35)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
+[verbose] Analyzing function/method: {closure} (line 38)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_COOKIE
+[verbose] Analyzing function/method: {closure} (line 44)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_GET
+[verbose] Parsing file: test-fixtures/scope-namespaced.php
+[verbose] Analyzing function/method: App\Sub\scope_conditional (line 11)
+[verbose]   Declared globals in App\Sub\scope_conditional: conditional
+[verbose]   Implicit inputs for App\Sub\scope_conditional: read from global variable $conditional
+[verbose] Analyzing function/method: class@anonymous::anonymousMethod (line 20)
+[verbose]   Implicit inputs for class@anonymous::anonymousMethod: read from superglobal $_GET
+[verbose] Analyzing function/method: App\Sub\ScopeNamed::namedMethod (line 28)
+[verbose]   Declared globals in App\Sub\ScopeNamed::namedMethod: named
+[verbose]   Implicit inputs for App\Sub\ScopeNamed::namedMethod: read from global variable $named
+[verbose] Analyzing function/method: App\Sub\ScopeNamed::makesClosures (line 35)
+[verbose]   No implicit inputs/outputs detected for App\Sub\ScopeNamed::makesClosures
+[verbose] Analyzing function/method: {closure} (line 37)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
+[verbose] Analyzing function/method: {closure} (line 40)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_COOKIE
+[verbose] Analyzing function/method: {closure} (line 46)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_GET
+[verbose] Parsing file: test-fixtures/strict-examples.php
+[verbose] Analyzing function/method: UserSession::__construct (line 22)
+[verbose]   Parameters for UserSession::__construct: username
+[verbose]   No implicit inputs/outputs detected for UserSession::__construct
+[verbose] Analyzing function/method: UserSession::greet (line 31)
+[verbose]   No implicit inputs/outputs detected for UserSession::greet
+[verbose] Analyzing function/method: UserSession::incrementLoginCount (line 40)
+[verbose]   No implicit inputs/outputs detected for UserSession::incrementLoginCount
+[verbose] Analyzing function/method: AppAnalytics::recordPageView (line 59)
+[verbose]   No implicit inputs/outputs detected for AppAnalytics::recordPageView
+[verbose] Analyzing function/method: AppAnalytics::logEvent (line 68)
+[verbose]   Parameters for AppAnalytics::logEvent: eventName
+[verbose]   No implicit inputs/outputs detected for AppAnalytics::logEvent
+[verbose] Analyzing function/method: debug_user_data (line 84)
+[verbose]   Parameters for debug_user_data: user
+[verbose]   No implicit inputs/outputs detected for debug_user_data
+[verbose] Analyzing function/method: inspect_and_die (line 92)
+[verbose]   Parameters for inspect_and_die: data
+[verbose]   No implicit inputs/outputs detected for inspect_and_die
+[verbose] Analyzing function/method: get_database_url (line 103)
+[verbose]   No implicit inputs/outputs detected for get_database_url
+[verbose] Analyzing function/method: configure_environment (line 111)
+[verbose]   No implicit inputs/outputs detected for configure_environment
+[verbose] Analyzing function/method: get_current_timestamp (line 121)
+[verbose]   No implicit inputs/outputs detected for get_current_timestamp
+[verbose] Analyzing function/method: format_current_date (line 129)
+[verbose]   No implicit inputs/outputs detected for format_current_date
+[verbose] Analyzing function/method: benchmark_operation (line 137)
+[verbose]   No implicit inputs/outputs detected for benchmark_operation
+[verbose] Analyzing function/method: generate_random_id (line 151)
+[verbose]   No implicit inputs/outputs detected for generate_random_id
+[verbose] Analyzing function/method: create_secure_token (line 159)
+[verbose]   No implicit inputs/outputs detected for create_secure_token
+[verbose] Analyzing function/method: seed_random_generator (line 169)
+[verbose]   No implicit inputs/outputs detected for seed_random_generator
+[verbose] Analyzing function/method: check_config_file (line 179)
+[verbose]   No implicit inputs/outputs detected for check_config_file
+[verbose] Analyzing function/method: get_file_info (line 187)
+[verbose]   Parameters for get_file_info: path
+[verbose]   No implicit inputs/outputs detected for get_file_info
+[verbose] Analyzing function/method: list_config_files (line 200)
+[verbose]   No implicit inputs/outputs detected for list_config_files
+[verbose] Analyzing function/method: send_json_response (line 210)
+[verbose]   Parameters for send_json_response: data
+[verbose]   No implicit inputs/outputs detected for send_json_response
+[verbose] Analyzing function/method: set_user_preferences (line 219)
+[verbose]   Parameters for set_user_preferences: theme
+[verbose]   No implicit inputs/outputs detected for set_user_preferences
+[verbose] Analyzing function/method: log_user_action (line 230)
+[verbose]   Parameters for log_user_action: action
+[verbose]   No implicit inputs/outputs detected for log_user_action
+[verbose] Analyzing function/method: validate_input (line 238)
+[verbose]   Parameters for validate_input: input
+[verbose]   No implicit inputs/outputs detected for validate_input
+[verbose] Analyzing function/method: initialize_user_session (line 254)
+[verbose]   No implicit inputs/outputs detected for initialize_user_session
+[verbose] Analyzing function/method: get_session_info (line 262)
+[verbose]   No implicit inputs/outputs detected for get_session_info
+[verbose] Analyzing function/method: logout_user (line 273)
+[verbose]   No implicit inputs/outputs detected for logout_user
+[verbose] Parsing file: test-fixtures/trait-method.php
+[verbose] Analyzing function/method: App\Traits\ReadsGlobals::readsSession (line 13)
+[verbose]   Implicit inputs for App\Traits\ReadsGlobals::readsSession: read from superglobal $_SESSION
+[verbose] Analyzing function/method: App\Traits\UnusedTrait::readsServer (line 21)
+[verbose]   Implicit inputs for App\Traits\UnusedTrait::readsServer: read from superglobal $_SERVER
+Analyzing...
+
+Results:
+
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+---------------------------------------------------------------+----------+
+| File                     | Line | Function                                 | Implicit Inputs                                                     | Implicit Outputs                                              | Severity |
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+---------------------------------------------------------------+----------+
+| bad-examples.php         | 28   | uses_global_var                          | read from global variable $some_global_number                       | wrote to global variable $some_global_number                  | Serious  |
+| bad-examples.php         | 44   | uses_globals_array                       | read from $GLOBALS['app_name']                                      | wrote to $GLOBALS['app_name']                                 | Serious  |
+| bad-examples.php         | 58   | reads_superglobals                       | read from superglobal $_GET; read from superglobal $_POST           |                                                               | Serious  |
+| bad-examples.php         | 70   | writes_superglobals                      | read from superglobal $_SESSION                                     | wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE | Serious  |
+| bad-examples.php         | 84   | config_and_store_change                  | read from global variable $config                                   | wrote to $GLOBALS['store']                                    | Serious  |
+| bad-examples.php         | 112  | inc_global_counter                       | read from global variable $some_global_number                       | wrote to global variable $some_global_number                  | Serious  |
+| bad-examples.php         | 122  | {closure}                                | read from $GLOBALS['app_name']                                      | wrote to $GLOBALS['app_name']                                 | Serious  |
+| closure-global-bleed.php | 12   | {closure}                                | read from global variable $x                                        |                                                               | Serious  |
+| closure-global-bleed.php | 24   | nested_reads_global                      | read from global variable $y                                        |                                                               | Serious  |
+| closure-global-bleed.php | 38   | class@anonymous::readsGlobal             | read from global variable $z                                        |                                                               | Serious  |
+| env-access.php           | 7    | readApiKey                               | read from superglobal $_ENV                                         |                                                               | Critical |
+| env-access.php           | 12   | writeAppEnv                              |                                                                     | wrote to superglobal $_ENV                                    | Critical |
+| nested-declarations.php  | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                                                               | Serious  |
+| nested-declarations.php  | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                                                               | Serious  |
+| array-index.php          | 6    | indexBySuperglobal                       | read from superglobal $_GET                                         |                                                               | Serious  |
+| array-index.php          | 12   | writeGlobalAtGlobalIndex                 | read from global variable $key                                      | wrote to global variable $map                                 | Serious  |
+| array-index.php          | 18   | nestedIndexes                            | read from superglobal $_GET; read from superglobal $_POST           | wrote to superglobal $_SESSION                                | Serious  |
+| array-index.php          | 28   | IndexedCache::put                        | read from superglobal $_COOKIE                                      |                                                               | Serious  |
+| foreach-catch.php        | 6    | iterateIntoGlobal                        | read from global variable $items                                    | wrote to global variable $item                                | Serious  |
+| foreach-catch.php        | 13   | iterateKeysIntoGlobal                    | read from superglobal $_POST                                        | wrote to global variable $position                            | Serious  |
+| foreach-catch.php        | 20   | catchIntoGlobal                          |                                                                     | wrote to global variable $lastError                           | Serious  |
+| global-declaration.php   | 5    | writeOnly                                |                                                                     | wrote to global variable $counter                             | Serious  |
+| global-declaration.php   | 16   | readAndWrite                             | read from global variable $total                                    | wrote to global variable $total                               | Serious  |
+| operators-and-bodies.php | 6    | addsToGlobal                             | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                               | Serious  |
+| operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals           | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down  | Serious  |
+| operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies            | read from superglobal $_POST; read from superglobal $_COOKIE        |                                                               | Serious  |
+| operators-and-bodies.php | 31   | globalsArrayKeys                         | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS |                                                               | Serious  |
+| unset.php                | 5    | logout                                   |                                                                     | wrote to superglobal $_SESSION                                | Serious  |
+| unset.php                | 10   | forgetGlobal                             |                                                                     | wrote to global variable $cache                               | Serious  |
+| unset.php                | 16   | forgetGlobalsEntry                       |                                                                     | wrote to $GLOBALS['registry']                                 | Serious  |
+| repeated-input.php       | 8    | repeats_inputs                           | read from superglobal $_GET                                         | wrote to global variable $counter                             | Serious  |
+| scope-global.php         | 9    | scope_conditional                        | read from global variable $conditional                              |                                                               | Serious  |
+| scope-global.php         | 18   | class@anonymous::anonymousMethod         | read from superglobal $_GET                                         |                                                               | Serious  |
+| scope-global.php         | 26   | ScopeNamed::namedMethod                  | read from global variable $named                                    |                                                               | Serious  |
+| scope-global.php         | 35   | {closure}                                | read from superglobal $_POST                                        |                                                               | Serious  |
+| scope-global.php         | 38   | {closure}                                | read from superglobal $_COOKIE                                      |                                                               | Serious  |
+| scope-global.php         | 44   | {closure}                                | read from superglobal $_GET                                         |                                                               | Serious  |
+| scope-namespaced.php     | 11   | App\Sub\scope_conditional                | read from global variable $conditional                              |                                                               | Serious  |
+| scope-namespaced.php     | 20   | class@anonymous::anonymousMethod         | read from superglobal $_GET                                         |                                                               | Serious  |
+| scope-namespaced.php     | 28   | App\Sub\ScopeNamed::namedMethod          | read from global variable $named                                    |                                                               | Serious  |
+| scope-namespaced.php     | 37   | {closure}                                | read from superglobal $_POST                                        |                                                               | Serious  |
+| scope-namespaced.php     | 40   | {closure}                                | read from superglobal $_COOKIE                                      |                                                               | Serious  |
+| scope-namespaced.php     | 46   | {closure}                                | read from superglobal $_GET                                         |                                                               | Serious  |
+| trait-method.php         | 13   | App\Traits\ReadsGlobals::readsSession    | read from superglobal $_SESSION                                     |                                                               | Serious  |
+| trait-method.php         | 21   | App\Traits\UnusedTrait::readsServer      | read from superglobal $_SERVER                                      |                                                               | Serious  |
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+---------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 2 (exit code 3)
+  Serious violations: 43 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

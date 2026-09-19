@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++-----------------+------+--------------------------+-----------------------------------------------------------+---------------------------------------+----------+
+| File            | Line | Function                 | Implicit Inputs                                           | Implicit Outputs                      | Severity |
++-----------------+------+--------------------------+-----------------------------------------------------------+---------------------------------------+----------+
+| array-index.php | 6    | indexBySuperglobal       | read from superglobal $_GET                               |                                       | Serious  |
+| array-index.php | 12   | writeGlobalAtGlobalIndex | read from global variable $key                            | wrote to global variable $map         | Serious  |
+| array-index.php | 18   | nestedIndexes            | read from superglobal $_GET; read from superglobal $_POST | wrote to superglobal $_SESSION        | Serious  |
+| array-index.php | 28   | IndexedCache::put        | read from superglobal $_COOKIE                            | wrote to object property $this->items | Serious  |
++-----------------+------+--------------------------+-----------------------------------------------------------+---------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

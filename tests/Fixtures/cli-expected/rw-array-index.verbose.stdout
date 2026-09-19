@@ -1,0 +1,34 @@
+[verbose] Starting analysis for path: test-fixtures/read-write-context/array-index.php
+[verbose] Path is file and ends with .php: test-fixtures/read-write-context/array-index.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/read-write-context/array-index.php
+[verbose] Analyzing function/method: indexBySuperglobal (line 6)
+[verbose]   Implicit inputs for indexBySuperglobal: read from superglobal $_GET
+[verbose] Analyzing function/method: writeGlobalAtGlobalIndex (line 12)
+[verbose]   Declared globals in writeGlobalAtGlobalIndex: map, key
+[verbose]   Implicit inputs for writeGlobalAtGlobalIndex: read from global variable $key
+[verbose]   Implicit outputs for writeGlobalAtGlobalIndex: wrote to global variable $map
+[verbose] Analyzing function/method: nestedIndexes (line 18)
+[verbose]   Implicit inputs for nestedIndexes: read from superglobal $_GET; read from superglobal $_POST
+[verbose]   Implicit outputs for nestedIndexes: wrote to superglobal $_SESSION
+[verbose] Analyzing function/method: IndexedCache::put (line 28)
+[verbose]   Implicit inputs for IndexedCache::put: read from superglobal $_COOKIE
+Analyzing...
+
+Results:
+
++-----------------+------+--------------------------+-----------------------------------------------------------+--------------------------------+----------+
+| File            | Line | Function                 | Implicit Inputs                                           | Implicit Outputs               | Severity |
++-----------------+------+--------------------------+-----------------------------------------------------------+--------------------------------+----------+
+| array-index.php | 6    | indexBySuperglobal       | read from superglobal $_GET                               |                                | Serious  |
+| array-index.php | 12   | writeGlobalAtGlobalIndex | read from global variable $key                            | wrote to global variable $map  | Serious  |
+| array-index.php | 18   | nestedIndexes            | read from superglobal $_GET; read from superglobal $_POST | wrote to superglobal $_SESSION | Serious  |
+| array-index.php | 28   | IndexedCache::put        | read from superglobal $_COOKIE                            |                                | Serious  |
++-----------------+------+--------------------------+-----------------------------------------------------------+--------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

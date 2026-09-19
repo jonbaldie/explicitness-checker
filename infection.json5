@@ -1,0 +1,22 @@
+{
+    "$schema": "https://raw.githubusercontent.com/infection/infection/0.26.19/resources/schema.json",
+    "source": {
+        "directories": ["src"]
+    },
+    "logs": {
+        "text": "build/infection.log"
+    },
+    "tmpDir": "build/infection-tmp",
+    // Infection skips (without failing or counting them as killed) any mutant
+    // whose covering tests took longer than this on the initial run. The
+    // default of 10 seconds skipped most mutants on CI runners.
+    "timeout": 120,
+    "mutators": {
+        "@default": true,
+        // protected -> private is equivalent by design: CODING_STANDARDS.md
+        // requires protected over private, and nothing extends these classes.
+        "ProtectedVisibility": false
+    },
+    "minMsi": 60,
+    "minCoveredMsi": 80
+}
