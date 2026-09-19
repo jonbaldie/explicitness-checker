@@ -119,23 +119,12 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
-      - name: Check if test files exist
-        id: check-tests
-        run: |
-          if [ -d "tests" ] || [ -f "phpunit.xml" ] || [ -f "phpunit.xml.dist" ]; then
-            echo "tests-exist=true" >> $GITHUB_OUTPUT
-          else
-            echo "tests-exist=false" >> $GITHUB_OUTPUT
-          fi
-
+      # Fails if phpunit.xml.dist or vendor/bin/phpunit is missing, rather than
+      # skipping the tests.
       - name: Run tests
-        if: steps.check-tests.outputs.tests-exist == 'true'
         run: |
-          if [ -f "./vendor/bin/phpunit" ]; then
-            ./vendor/bin/phpunit
-          else
-            echo "PHPUnit not found in vendor/bin, skipping tests"
-          fi
+          test -f phpunit.xml.dist || { echo "phpunit.xml.dist not found"; exit 1; }
+          ./vendor/bin/phpunit
 
       - name: Test tool functionality
         run: |
