@@ -66,6 +66,11 @@ class ExtensionConfigTest extends TestCase
             self::ROOT . '/vendor/bin/phpstan',
             'analyse',
             '--no-progress',
+            // RawErrorFormatter only prints "[identifier=...]" when verbose,
+            // or when it detects it's running under an agent (env vars such
+            // as CLAUDECODE) — force it on so this test doesn't depend on
+            // who/what is running it.
+            '--verbose',
             '--error-format=raw',
             '--configuration=' . __DIR__ . '/../Support/' . $config,
             self::ROOT . '/' . $path,
