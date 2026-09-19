@@ -61,8 +61,8 @@ return $cases + [
     'missing-path' => ['does-not-exist.php'],
     'missing-path.verbose' => ['-v', 'does-not-exist'],
     'empty-path' => [''],
-    'non-php-file' => ['test-fixtures/check-regressions.sh'],
-    'non-php-file.verbose' => ['-v', 'test-fixtures/check-regressions.sh'],
+    'non-php-file' => ['README.md'],
+    'non-php-file.verbose' => ['-v', 'README.md'],
 
     // Argument parsing.
     'unknown-flags-ignored' => ['--unknown', '-x', '-', 'test-fixtures/env-access.php'],
@@ -82,6 +82,10 @@ return $cases + [
     // Include and exclude patterns (#4).
     'include-pattern-equals' => ['--include-pattern=read-write-context/', 'test-fixtures'],
     'include-pattern-separate' => ['--include-pattern', 'env-access\.php$', 'test-fixtures'],
+    'include-pattern-slash-file' => ['--include-pattern=test-fixtures/', 'test-fixtures/env-access.php'],
+    'include-pattern-escaped-slash-file' => ['--include-pattern=test-fixtures\/env', 'test-fixtures/env-access.php'],
+    'include-pattern-readme-example' => ['--include-pattern=test-fixtures/.*\.php$', 'test-fixtures/env-access.php'],
+    'include-pattern-slash-directory' => ['--include-pattern=/env-access\.php$', 'test-fixtures'],
     'include-pattern-escaped-slash' => ['--include-pattern=test-fixtures\/env', 'test-fixtures'],
     'include-pattern-no-match-file' => ['--include-pattern=src/', 'test-fixtures/env-access.php'],
     'include-pattern-no-match-file.verbose' => ['-v', '--include-pattern=src/', 'test-fixtures/env-access.php'],

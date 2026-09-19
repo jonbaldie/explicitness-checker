@@ -55,9 +55,12 @@
     "test": "phpunit",
     "phpstan": "phpstan analyse",
     "phpmd": "phpmd bin/explicitness-checker,src text phpmd.xml --suffixes php,",
+    "standards": "php tools/check-standards.php",
     "infection": [
       "sh tools/install-infection.sh",
-      "php tools/infection.phar --threads=max"
+      "rm -f build/infection.json",
+      "php tools/infection.phar --threads=max",
+      "php tools/check-infection-skips.php"
     ]
   },
   "extra": {

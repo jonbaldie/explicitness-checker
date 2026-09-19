@@ -4,12 +4,15 @@
         "directories": ["src"]
     },
     "logs": {
-        "text": "build/infection.log"
+        "text": "build/infection.log",
+        // Read by tools/check-infection-skips.php, which `composer infection` runs next.
+        "json": "build/infection.json"
     },
     "tmpDir": "build/infection-tmp",
     // Infection skips (without failing or counting them as killed) any mutant
     // whose covering tests took longer than this on the initial run. The
     // default of 10 seconds skipped most mutants on CI runners.
+    // tools/check-infection-skips.php fails the run if any are skipped.
     "timeout": 120,
     "mutators": {
         "@default": true,

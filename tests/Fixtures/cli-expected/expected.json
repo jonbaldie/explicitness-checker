@@ -658,5 +658,21 @@
     "both-patterns.verbose": {
         "exitCode": 0,
         "stderr": ""
+    },
+    "include-pattern-readme-example": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-slash-directory": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-slash-file": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include-pattern-escaped-slash-file": {
+        "exitCode": 3,
+        "stderr": ""
     }
 }
