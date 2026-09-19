@@ -1,4 +1,4 @@
-[verbose] Starting analysis for path: test-fixtures/check-regressions.sh
-[verbose] Path is file but not PHP: test-fixtures/check-regressions.sh
+[verbose] Starting analysis for path: README.md
+[verbose] Path is file but not PHP: README.md
 [verbose] Found 0 PHP file(s).
-No PHP files found in test-fixtures/check-regressions.sh
+No PHP files found in README.md

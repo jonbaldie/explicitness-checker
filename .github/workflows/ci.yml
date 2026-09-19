@@ -47,6 +47,9 @@ jobs:
       - name: Run PHPMD (unusedcode, codesize, design)
         run: composer phpmd
 
+      - name: Check protected over private, and no mocks in tests
+        run: composer standards
+
   mutation:
     name: Mutation Testing
     runs-on: ubuntu-latest
@@ -81,7 +84,8 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
-      # Fails below the minMsi / minCoveredMsi set in infection.json5.
+      # Fails below the minMsi / minCoveredMsi set in infection.json5, or if
+      # any mutant is skipped for taking longer than the timeout.
       - name: Run Infection
         run: composer infection
 
@@ -126,14 +130,3 @@ jobs:
           test -f phpunit.xml.dist || { echo "phpunit.xml.dist not found"; exit 1; }
           ./vendor/bin/phpunit
 
-      - name: Test tool functionality
-        run: |
-          # Test good examples (should pass with exit code 0)
-          echo "Testing good examples..."
-          php bin/explicitness-checker test-fixtures/good-examples.php || exit_code=$?
-          exit_code=${exit_code:-0}
-          if [ $exit_code -ne 0 ]; then
-            echo "ERROR: good-examples.php should pass but failed with exit code $exit_code"
-            exit 1
-          fi
-          echo "✓ good-examples.php passed as expected"
