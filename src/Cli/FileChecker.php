@@ -48,14 +48,10 @@ class FileChecker
         }
 
         try {
-            $ast = $this->parser->parse($code);
+            // Only a parser with a non-throwing error handler returns null.
+            $ast = $this->parser->parse($code) ?? [];
         } catch (Error $error) {
             $this->console->error("Parse error in {$file}: " . $error->getMessage() . PHP_EOL);
-
-            return [];
-        }
-        if ($ast === null) {
-            $this->console->verbose("No AST produced for file: {$file}");
 
             return [];
         }
@@ -72,7 +68,7 @@ class FileChecker
     }
 
     /**
-     * Resolves names with the options PHPStan's own NameResolver service uses.
+     * Resolves names to fully qualified ones, as PHPStan's parser does.
      *
      * @param array<Node> $ast
      *
@@ -80,7 +76,7 @@ class FileChecker
      */
     protected function resolveNames(array $ast): array
     {
-        return (new NodeTraverser(new NameResolver(null, ['preserveOriginalNames' => true])))->traverse($ast);
+        return (new NodeTraverser(new NameResolver()))->traverse($ast);
     }
 
     protected function checkFunctionLike(CheckedFunctionLike $functionLike, string $file): ?Violation

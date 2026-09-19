@@ -39,7 +39,7 @@ class ArgumentParser
 
         $arguments = array_slice($argv, 1);
         while ($arguments !== []) {
-            $argument = (string) array_shift($arguments);
+            $argument = array_shift($arguments);
             if (isset(self::SWITCHES[$argument])) {
                 $switches[self::SWITCHES[$argument]] = true;
                 continue;
@@ -82,7 +82,7 @@ class ArgumentParser
                 return [$name, substr($argument, strlen($name) + 1)];
             }
             if ($argument === $name && $remaining !== []) {
-                return [$name, (string) array_shift($remaining)];
+                return [$name, array_shift($remaining)];
             }
         }
 

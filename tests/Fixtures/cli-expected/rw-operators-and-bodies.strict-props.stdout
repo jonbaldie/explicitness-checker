@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| File                     | Line | Function                       | Implicit Inputs                                                     | Implicit Outputs                                             | Severity |
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| operators-and-bodies.php | 6    | addsToGlobal                   | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                              | Serious  |
+| operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
+| operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies  | read from superglobal $_POST; read from superglobal $_COOKIE        | writes to standard output (echo)                             | Serious  |
+| operators-and-bodies.php | 31   | globalsArrayKeys               | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS | writes to standard output (echo)                             | Serious  |
++--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

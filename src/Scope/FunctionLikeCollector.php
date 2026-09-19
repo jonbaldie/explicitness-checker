@@ -40,9 +40,6 @@ class FunctionLikeCollector extends NodeVisitorAbstract
 
     public function leaveNode(Node $node): ?int
     {
-        if ($node instanceof Stmt\Namespace_) {
-            $this->namespace = '';
-        }
         if ($node instanceof Stmt\ClassLike) {
             array_pop($this->classes);
         }

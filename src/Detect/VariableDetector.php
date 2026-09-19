@@ -6,8 +6,8 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 
 /**
  * Reads and writes of variables declared `global`, and of superglobals.
@@ -45,12 +45,11 @@ class VariableDetector implements Detector
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
-        if (!$node instanceof Expr\Variable || !is_string($node->name)) {
+        $name = VariableName::of($node);
+        if ($name === null) {
             return;
         }
-
-        $name = $node->name;
-        if ($name === 'this' || isset($this->parameters[$name])) {
+        if (isset($this->parameters[$name])) {
             return;
         }
 

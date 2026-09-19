@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
 use JonBaldie\ExplicitnessChecker\Scope\ScopeBoundary;
+use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 use SplQueue;
 
@@ -39,7 +39,9 @@ class GlobalDeclarations
             }
             if ($node instanceof Stmt\Global_) {
                 foreach ($this->declaredNames($node) as $name) {
-                    $names[$name] = true;
+                    if (!in_array($name, $names, true)) {
+                        $names[] = $name;
+                    }
                 }
 
                 continue;
@@ -50,7 +52,7 @@ class GlobalDeclarations
             }
         }
 
-        return array_map('strval', array_keys($names));
+        return $names;
     }
 
     /**
@@ -60,8 +62,9 @@ class GlobalDeclarations
     {
         $names = [];
         foreach ($global->vars as $var) {
-            if ($var instanceof Expr\Variable && is_string($var->name)) {
-                $names[] = $var->name;
+            $name = VariableName::of($var);
+            if ($name !== null) {
+                $names[] = $name;
             }
         }
 

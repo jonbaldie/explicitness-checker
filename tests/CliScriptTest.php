@@ -9,6 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Runs the real CLI script and PHPStan as subprocesses.
+ *
+ * Subprocesses run unmutated code and aren't measured for coverage, so keeping
+ * them out of the classes that cover src/ keeps them out of each mutant's run.
  */
 class CliScriptTest extends TestCase
 {
@@ -62,6 +65,21 @@ class CliScriptTest extends TestCase
 
         self::assertStringNotContainsString('argv', $output);
         self::assertSame(0, $exitCode, $output);
+    }
+
+    /**
+     * Runs bin/explicitness-checker as a subprocess on every golden CLI case.
+     *
+     * @dataProvider \JonBaldie\ExplicitnessChecker\Tests\CliOutputTest::cliCases
+     *
+     * @param list<string> $arguments
+     */
+    public function testBinScript(array $arguments, string $stdout, string $stderr, int $exitCode): void
+    {
+        self::assertSame(
+            [$exitCode, $stdout, $stderr],
+            Process::run(array_merge([PHP_BINARY, 'bin/explicitness-checker'], $arguments)),
+        );
     }
 
     /**

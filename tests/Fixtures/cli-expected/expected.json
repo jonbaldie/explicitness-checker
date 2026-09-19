@@ -359,6 +359,54 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "rw-operators-and-bodies.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-operators-and-bodies.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-operators-and-bodies.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-operators-and-bodies.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-operators-and-bodies.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "rw-operators-and-bodies.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "nested-declarations.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "minor-only.default": {
         "exitCode": 0,
         "stderr": ""

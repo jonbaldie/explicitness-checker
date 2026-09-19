@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
@@ -47,10 +48,8 @@ class GlobalsArrayDetector implements Detector
         if ($dim instanceof Scalar\Int_) {
             return (string) $dim->value;
         }
-        if ($dim instanceof Expr\Variable && is_string($dim->name)) {
-            return '$' . $dim->name;
-        }
+        $name = VariableName::of($dim);
 
-        return null;
+        return $name === null ? null : '$' . $name;
     }
 }

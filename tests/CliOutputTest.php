@@ -10,7 +10,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Pins the CLI's stdout, stderr and exit code, byte for byte, for every case in
- * tests/Support/cli-cases.php against tests/Fixtures/cli-expected/.
+ * tests/Support/cli-cases.php against tests/Fixtures/cli-expected/, run
+ * in-process. CliScriptTest runs the same cases through bin/explicitness-checker.
  */
 class CliOutputTest extends TestCase
 {
@@ -19,7 +20,7 @@ class CliOutputTest extends TestCase
     /**
      * @return iterable<string, array{list<string>, string, string, int}>
      */
-    public function cliCases(): iterable
+    public static function cliCases(): iterable
     {
         /** @var array<string, list<string>> $cases */
         $cases = require Process::ROOT . '/tests/Support/cli-cases.php';
@@ -67,21 +68,6 @@ class CliOutputTest extends TestCase
         self::assertSame(
             [$exitCode, $stdout, $stderr],
             [$actualExitCode, (string) stream_get_contents($out), (string) stream_get_contents($err)],
-        );
-    }
-
-    /**
-     * Runs bin/explicitness-checker as a subprocess.
-     *
-     * @dataProvider cliCases
-     *
-     * @param list<string> $arguments
-     */
-    public function testBinScript(array $arguments, string $stdout, string $stderr, int $exitCode): void
-    {
-        self::assertSame(
-            [$exitCode, $stdout, $stderr],
-            Process::run(array_merge([PHP_BINARY, 'bin/explicitness-checker'], $arguments)),
         );
     }
 }
