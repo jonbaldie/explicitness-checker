@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -12,23 +13,9 @@ use PHPUnit\Framework\TestCase;
  */
 class NameResolutionTest extends TestCase
 {
-    protected const ROOT = __DIR__ . '/..';
-
     public function testStaticPropertyClassNamesAreFullyQualified(): void
     {
-        $command = [
-            PHP_BINARY,
-            self::ROOT . '/bin/explicitness-checker',
-            '--props',
-            self::ROOT . '/test-fixtures/namespaced-static-property.php',
-        ];
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-        $output = (string) stream_get_contents($pipes[1]);
-        $errors = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
+        [$exitCode, $output, $errors] = Process::cli(['--props', Process::ROOT . '/test-fixtures/namespaced-static-property.php']);
 
         $rows = [];
         foreach (explode("\n", $output) as $line) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
 use JonBaldie\ExplicitnessChecker\Cli\Application;
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,8 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 class CliOutputTest extends TestCase
 {
-    protected const ROOT = __DIR__ . '/..';
-    protected const EXPECTED = self::ROOT . '/tests/Fixtures/cli-expected';
+    protected const EXPECTED = Process::ROOT . '/tests/Fixtures/cli-expected';
 
     /**
      * @return iterable<string, array{list<string>, string, string, int}>
@@ -22,7 +22,7 @@ class CliOutputTest extends TestCase
     public function cliCases(): iterable
     {
         /** @var array<string, list<string>> $cases */
-        $cases = require self::ROOT . '/tests/Support/cli-cases.php';
+        $cases = require Process::ROOT . '/tests/Support/cli-cases.php';
         $expected = json_decode((string) file_get_contents(self::EXPECTED . '/expected.json'), true);
         self::assertIsArray($expected);
 
@@ -55,7 +55,7 @@ class CliOutputTest extends TestCase
 
         $cwd = getcwd();
         self::assertIsString($cwd);
-        chdir(self::ROOT);
+        chdir(Process::ROOT);
         try {
             $actualExitCode = (new Application($out, $err))->run(array_merge(['bin/explicitness-checker'], $arguments));
         } finally {
@@ -79,18 +79,9 @@ class CliOutputTest extends TestCase
      */
     public function testBinScript(array $arguments, string $stdout, string $stderr, int $exitCode): void
     {
-        $command = array_merge([PHP_BINARY, 'bin/explicitness-checker'], $arguments);
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-
-        $actualStdout = (string) stream_get_contents($pipes[1]);
-        $actualStderr = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
         self::assertSame(
             [$exitCode, $stdout, $stderr],
-            [proc_close($process), $actualStdout, $actualStderr],
+            Process::run(array_merge([PHP_BINARY, 'bin/explicitness-checker'], $arguments)),
         );
     }
 }

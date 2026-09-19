@@ -8,6 +8,7 @@ use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule;
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
@@ -26,8 +27,7 @@ use RecursiveIteratorIterator;
  */
 class ImplicitInputOutputRuleTest extends RuleTestCase
 {
-    protected const ROOT = __DIR__ . '/../..';
-    protected const FIXTURES = self::ROOT . '/test-fixtures/';
+    protected const FIXTURES = Process::ROOT . '/test-fixtures/';
 
     /**
      * What default mode reports on bad-examples.php, with identifiers.
@@ -435,18 +435,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
      */
     protected function cliMessages(string $fixture, array $flags): array
     {
-        $command = array_merge(
-            [PHP_BINARY, self::ROOT . '/bin/explicitness-checker'],
-            $flags,
-            [self::FIXTURES . $fixture],
-        );
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-        $output = (string) stream_get_contents($pipes[1]);
-        $errors = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        proc_close($process);
+        [, $output, $errors] = Process::cli(array_merge($flags, [self::FIXTURES . $fixture]));
         self::assertSame('', $errors);
 
         $messages = [];

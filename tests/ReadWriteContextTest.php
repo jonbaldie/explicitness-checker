@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,8 +15,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ReadWriteContextTest extends TestCase
 {
-    protected const ROOT = __DIR__ . '/..';
-
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -87,20 +86,7 @@ class ReadWriteContextTest extends TestCase
      */
     protected function reportedRows(string $fixture): array
     {
-        $command = [
-            PHP_BINARY,
-            self::ROOT . '/bin/explicitness-checker',
-            '--props',
-            self::ROOT . '/test-fixtures/read-write-context/' . $fixture,
-        ];
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-        $output = (string) stream_get_contents($pipes[1]);
-        $errors = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        proc_close($process);
-
+        [, $output, $errors] = Process::cli(['--props', Process::ROOT . '/test-fixtures/read-write-context/' . $fixture]);
         self::assertSame('', $errors);
 
         $rows = [];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -11,8 +12,6 @@ use PHPUnit\Framework\TestCase;
  */
 class CliScriptTest extends TestCase
 {
-    protected const ROOT = __DIR__ . '/..';
-
     /**
      * @return iterable<string, array{list<string>, string, int}>
      */
@@ -33,20 +32,14 @@ class CliScriptTest extends TestCase
      */
     public function testCliExitCodeOnFixture(array $flags, string $fixture, int $expectedExitCode): void
     {
-        $command = array_merge(
-            [PHP_BINARY, self::ROOT . '/bin/explicitness-checker'],
-            $flags,
-            [self::ROOT . '/test-fixtures/' . $fixture],
-        );
-
-        [$exitCode, $output] = $this->runCommand($command);
+        [$exitCode, $output] = $this->combined(Process::cli(array_merge($flags, [Process::ROOT . '/test-fixtures/' . $fixture])));
 
         self::assertSame($expectedExitCode, $exitCode, $output);
     }
 
     public function testCliWithoutPathPrintsUsage(): void
     {
-        [$exitCode, $output] = $this->runCommand([PHP_BINARY, self::ROOT . '/bin/explicitness-checker']);
+        [$exitCode, $output] = $this->combined(Process::cli([]));
 
         self::assertSame(2, $exitCode);
         self::assertStringContainsString('Usage: explicitness-checker', $output);
@@ -58,40 +51,26 @@ class CliScriptTest extends TestCase
      */
     public function testPhpstanLevelSixPassesWithoutRegisteredArgv(): void
     {
-        [$exitCode, $output] = $this->runCommand([
+        [$exitCode, $output] = $this->combined(Process::run([
             PHP_BINARY,
             '-d',
             'register_argc_argv=0',
             '-d',
             'phpstan.restarted=1',
-            self::ROOT . '/tests/Support/phpstan-without-argv.php',
-        ]);
+            Process::ROOT . '/tests/Support/phpstan-without-argv.php',
+        ]));
 
         self::assertStringNotContainsString('argv', $output);
         self::assertSame(0, $exitCode, $output);
     }
 
     /**
-     * @param list<string> $command
+     * @param array{int, string, string} $result exit code, stdout, stderr
      *
-     * @return array{int, string}
+     * @return array{int, string} exit code, stdout then stderr
      */
-    protected function runCommand(array $command): array
+    protected function combined(array $result): array
     {
-        $stderr = tmpfile();
-        self::assertIsResource($stderr);
-
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => $stderr], $pipes, self::ROOT);
-        self::assertIsResource($process);
-
-        $output = (string) stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        $exitCode = proc_close($process);
-
-        rewind($stderr);
-        $output .= (string) stream_get_contents($stderr);
-        fclose($stderr);
-
-        return [$exitCode, $output];
+        return [$result[0], $result[1] . $result[2]];
     }
 }

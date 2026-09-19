@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests\PHPStan;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -11,8 +12,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ExtensionConfigTest extends TestCase
 {
-    protected const ROOT = __DIR__ . '/../..';
-
     public function testExtensionReportsBadExamplesWithIdentifiers(): void
     {
         [$exitCode, $output] = $this->analyse('extension.neon', 'test-fixtures/bad-examples.php');
@@ -113,7 +112,7 @@ class ExtensionConfigTest extends TestCase
     {
         $command = [
             PHP_BINARY,
-            self::ROOT . '/vendor/bin/phpstan',
+            Process::ROOT . '/vendor/bin/phpstan',
             'analyse',
             '--no-progress',
             // RawErrorFormatter only prints "[identifier=...]" when verbose,
@@ -123,14 +122,10 @@ class ExtensionConfigTest extends TestCase
             '--verbose',
             '--error-format=raw',
             '--configuration=' . __DIR__ . '/../Support/' . $config,
-            self::ROOT . '/' . $path,
+            Process::ROOT . '/' . $path,
         ];
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, self::ROOT);
-        self::assertIsResource($process);
-        $output = (string) stream_get_contents($pipes[1]) . (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
+        [$exitCode, $stdout, $stderr] = Process::run($command);
 
-        return [proc_close($process), $output];
+        return [$exitCode, $stdout . $stderr];
     }
 }
