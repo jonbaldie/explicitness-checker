@@ -42,7 +42,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyse --level 6 bin/explicitness-checker
+        run: ./vendor/bin/phpstan analyse --level 6 bin/explicitness-checker src
 
   test:
     name: Tests

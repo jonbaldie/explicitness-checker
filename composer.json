@@ -54,7 +54,7 @@
   "scripts": {
     "test": "phpunit",
     "phpstan": "phpstan analyse",
-    "phpmd": "phpmd bin/explicitness-checker text phpmd.xml --suffixes ''",
+    "phpmd": "phpmd bin/explicitness-checker,src text phpmd.xml --suffixes php,",
     "infection": [
       "sh tools/install-infection.sh",
       "php tools/infection.phar --threads=max"
