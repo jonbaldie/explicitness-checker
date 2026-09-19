@@ -9,7 +9,6 @@ use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
 use JonBaldie\ExplicitnessChecker\Walk\GlobalDeclarations;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 
 /**
  * Finds the implicit inputs and outputs of one function-like node.
@@ -44,8 +43,9 @@ class Analyser
     {
         $names = [];
         foreach ($node->getParams() as $param) {
-            if ($param->var instanceof Expr\Variable && is_string($param->var->name)) {
-                $names[] = $param->var->name;
+            $name = VariableName::of($param->var);
+            if ($name !== null) {
+                $names[] = $name;
             }
         }
 
