@@ -33,7 +33,7 @@ class ExtensionConfigTest extends TestCase
         self::assertSame(0, $exitCode, $output);
     }
 
-    public function testStrictIsOffByDefault(): void
+    public function testStrictAndPropsAreOffByDefault(): void
     {
         [$exitCode, $output] = $this->analyse('extension.neon', 'test-fixtures/strict-examples.php');
 
@@ -53,6 +53,29 @@ class ExtensionConfigTest extends TestCase
         self::assertSame(29, substr_count($output, '[identifier=explicitness.'), $output);
     }
 
+    public function testPropsParameterTurnsOnPropsMode(): void
+    {
+        [$exitCode, $output] = $this->analyse('extension-with-props.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString(
+            'strict-examples.php:24:UserSession::__construct wrote to object property $this->username. '
+            . '[identifier=explicitness.objectProperty]',
+            $output,
+        );
+        self::assertSame(8, substr_count($output, '[identifier=explicitness.'), $output);
+    }
+
+    public function testStrictAndPropsCombine(): void
+    {
+        [$exitCode, $output] = $this->analyse('extension-with-strict-and-props.neon', 'test-fixtures/strict-examples.php');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString('[identifier=explicitness.environment]', $output);
+        self::assertStringContainsString('[identifier=explicitness.objectProperty]', $output);
+        self::assertSame(37,substr_count($output, '[identifier=explicitness.'), $output);
+    }
+
     /**
      * @return iterable<string, array{string, string}>
      */
@@ -66,11 +89,9 @@ class ExtensionConfigTest extends TestCase
             'extension-with-misspelled-strict.neon',
             "/Unexpected item 'parameters\\W+explicitness\\W+strcit'/u",
         ];
-        // Until #18 declares it, setting props fails rather than being
-        // silently ignored.
-        yield 'undeclared props' => [
-            'extension-with-props.neon',
-            "/Unexpected item 'parameters\\W+explicitness\\W+props'/u",
+        yield 'non-boolean props' => [
+            'extension-with-non-boolean-props.neon',
+            "/The item 'parameters\\W+explicitness\\W+props' expects to be bool/u",
         ];
     }
 

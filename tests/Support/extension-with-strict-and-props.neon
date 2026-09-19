@@ -1,6 +1,7 @@
-# Turns on props mode.
+# Turns on strict and props modes together.
 includes:
 	- extension.neon
 parameters:
 	explicitness:
+		strict: true
 		props: true

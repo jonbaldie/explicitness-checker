@@ -29,6 +29,37 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     protected const FIXTURES = self::ROOT . '/test-fixtures/';
 
     /**
+     * What default mode reports on bad-examples.php, with identifiers.
+     */
+    protected const BAD_EXAMPLES_IN_DEFAULT_MODE = [
+        [34, 'globalVariable', 'uses_global_var read from global variable $some_global_number.'],
+        [36, 'globalVariable', 'uses_global_var wrote to global variable $some_global_number.'],
+        [48, 'globalsArray', 'uses_globals_array read from $GLOBALS[\'app_name\'].'],
+        [50, 'globalsArray', 'uses_globals_array wrote to $GLOBALS[\'app_name\'].'],
+        [61, 'superglobal', 'reads_superglobals read from superglobal $_GET.'],
+        [62, 'superglobal', 'reads_superglobals read from superglobal $_POST.'],
+        [73, 'superglobal', 'writes_superglobals read from superglobal $_SESSION.'],
+        [74, 'superglobal', 'writes_superglobals wrote to superglobal $_SESSION.'],
+        [78, 'superglobal', 'writes_superglobals wrote to superglobal $_COOKIE.'],
+        [89, 'globalVariable', 'config_and_store_change read from global variable $config.'],
+        [93, 'globalsArray', 'config_and_store_change wrote to $GLOBALS[\'store\'].'],
+        [116, 'globalVariable', 'inc_global_counter read from global variable $some_global_number.'],
+        [116, 'globalVariable', 'inc_global_counter wrote to global variable $some_global_number.'],
+        [124, 'globalsArray', '{closure} read from $GLOBALS[\'app_name\'].'],
+        [125, 'globalsArray', '{closure} wrote to $GLOBALS[\'app_name\'].'],
+    ];
+
+    /**
+     * What strict mode reports on bad-examples.php: the default-mode errors
+     * plus echo and microtime.
+     */
+    protected const BAD_EXAMPLES_IN_STRICT_MODE = [
+        ...self::BAD_EXAMPLES_IN_DEFAULT_MODE,
+        [34, 'standardOutput', 'uses_global_var writes to standard output (echo).'],
+        [93, 'time', 'config_and_store_change reads system time (microtime).'],
+    ];
+
+    /**
      * What strict mode reports on strict-examples.php.
      */
     protected const STRICT_EXAMPLES_IN_STRICT_MODE = [
@@ -61,6 +92,20 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         [265, 'session', 'get_session_info reads session state (session_id).'],
         [266, 'session', 'get_session_info reads session state (session_name).'],
         [275, 'session', 'logout_user writes to session state (session_destroy).'],
+    ];
+
+    /**
+     * What props mode reports on strict-examples.php.
+     */
+    protected const STRICT_EXAMPLES_IN_PROPS_MODE = [
+        [24, 'objectProperty', 'UserSession::__construct wrote to object property $this->username.'],
+        [33, 'objectProperty', 'UserSession::greet read from object property $this->username.'],
+        [42, 'objectProperty', 'UserSession::incrementLoginCount read from object property $this->loginCount.'],
+        [42, 'objectProperty', 'UserSession::incrementLoginCount wrote to object property $this->loginCount.'],
+        [61, 'staticProperty', 'AppAnalytics::recordPageView read from static property self::$pageViews.'],
+        [61, 'staticProperty', 'AppAnalytics::recordPageView wrote to static property self::$pageViews.'],
+        [70, 'staticProperty', 'AppAnalytics::logEvent read from static property self::$pageViews.'],
+        [71, 'staticProperty', 'AppAnalytics::logEvent wrote to static property self::$events.'],
     ];
 
     protected bool $strict = false;
@@ -107,25 +152,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     {
         $this->strict = true;
 
-        $this->assertErrors('bad-examples.php', [
-            [34, 'globalVariable', 'uses_global_var read from global variable $some_global_number.'],
-            [34, 'standardOutput', 'uses_global_var writes to standard output (echo).'],
-            [36, 'globalVariable', 'uses_global_var wrote to global variable $some_global_number.'],
-            [48, 'globalsArray', 'uses_globals_array read from $GLOBALS[\'app_name\'].'],
-            [50, 'globalsArray', 'uses_globals_array wrote to $GLOBALS[\'app_name\'].'],
-            [61, 'superglobal', 'reads_superglobals read from superglobal $_GET.'],
-            [62, 'superglobal', 'reads_superglobals read from superglobal $_POST.'],
-            [73, 'superglobal', 'writes_superglobals read from superglobal $_SESSION.'],
-            [74, 'superglobal', 'writes_superglobals wrote to superglobal $_SESSION.'],
-            [78, 'superglobal', 'writes_superglobals wrote to superglobal $_COOKIE.'],
-            [89, 'globalVariable', 'config_and_store_change read from global variable $config.'],
-            [93, 'globalsArray', 'config_and_store_change wrote to $GLOBALS[\'store\'].'],
-            [93, 'time', 'config_and_store_change reads system time (microtime).'],
-            [116, 'globalVariable', 'inc_global_counter read from global variable $some_global_number.'],
-            [116, 'globalVariable', 'inc_global_counter wrote to global variable $some_global_number.'],
-            [124, 'globalsArray', '{closure} read from $GLOBALS[\'app_name\'].'],
-            [125, 'globalsArray', '{closure} wrote to $GLOBALS[\'app_name\'].'],
-        ]);
+        $this->assertErrors('bad-examples.php', self::BAD_EXAMPLES_IN_STRICT_MODE);
     }
 
     public function testGoodExamplesReportNothingInStrictMode(): void
@@ -144,6 +171,57 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->strict = true;
 
         $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_STRICT_MODE);
+    }
+
+    /**
+     * bad-examples.php touches no properties, so props mode adds nothing.
+     */
+    public function testBadExamplesInPropsMode(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('bad-examples.php', self::BAD_EXAMPLES_IN_DEFAULT_MODE);
+    }
+
+    public function testGoodExamplesReportNothingInPropsMode(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('good-examples.php', []);
+    }
+
+    public function testStrictExamplesInPropsMode(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_PROPS_MODE);
+    }
+
+    public function testBadExamplesInStrictAndPropsMode(): void
+    {
+        $this->strict = true;
+        $this->props = true;
+
+        $this->assertErrors('bad-examples.php', self::BAD_EXAMPLES_IN_STRICT_MODE);
+    }
+
+    public function testGoodExamplesReportNothingInStrictAndPropsMode(): void
+    {
+        $this->strict = true;
+        $this->props = true;
+
+        $this->assertErrors('good-examples.php', []);
+    }
+
+    public function testStrictExamplesInStrictAndPropsMode(): void
+    {
+        $this->strict = true;
+        $this->props = true;
+
+        $this->assertErrors(
+            'strict-examples.php',
+            array_merge(self::STRICT_EXAMPLES_IN_STRICT_MODE, self::STRICT_EXAMPLES_IN_PROPS_MODE),
+        );
     }
 
     /**
@@ -262,6 +340,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             $name = substr($file, strlen(self::FIXTURES));
             yield $name . ', default' => [$name, []];
             yield $name . ', strict' => [$name, ['--strict']];
+            yield $name . ', props' => [$name, ['--props']];
+            yield $name . ', strict and props' => [$name, ['--strict', '--props']];
         }
     }
 
