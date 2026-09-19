@@ -2,46 +2,52 @@ Analyzing...
 
 Results:
 
-+--------------------------+------+---------------------------------------+-----------------------------------------------------------+-------------------------------------+----------+
-| File                     | Line | Function                              | Implicit Inputs                                           | Implicit Outputs                    | Severity |
-+--------------------------+------+---------------------------------------+-----------------------------------------------------------+-------------------------------------+----------+
-| closure-global-bleed.php | 12   | {closure}                             | read from global variable $x                              |                                     | Serious  |
-| closure-global-bleed.php | 24   | nested_reads_global                   | read from global variable $y                              |                                     | Serious  |
-| closure-global-bleed.php | 38   | class@anonymous::readsGlobal          | read from global variable $z                              |                                     | Serious  |
-| env-access.php           | 7    | readApiKey                            | read from superglobal $_ENV                               |                                     | Critical |
-| env-access.php           | 12   | writeAppEnv                           |                                                           | wrote to superglobal $_ENV          | Critical |
-| array-index.php          | 6    | indexBySuperglobal                    | read from superglobal $_GET                               |                                     | Serious  |
-| array-index.php          | 12   | writeGlobalAtGlobalIndex              | read from global variable $key                            | wrote to global variable $map       | Serious  |
-| array-index.php          | 18   | nestedIndexes                         | read from superglobal $_GET; read from superglobal $_POST | wrote to superglobal $_SESSION      | Serious  |
-| array-index.php          | 28   | IndexedCache::put                     | read from superglobal $_COOKIE                            |                                     | Serious  |
-| foreach-catch.php        | 6    | iterateIntoGlobal                     | read from global variable $items                          | wrote to global variable $item      | Serious  |
-| foreach-catch.php        | 13   | iterateKeysIntoGlobal                 | read from superglobal $_POST                              | wrote to global variable $position  | Serious  |
-| foreach-catch.php        | 20   | catchIntoGlobal                       |                                                           | wrote to global variable $lastError | Serious  |
-| global-declaration.php   | 5    | writeOnly                             |                                                           | wrote to global variable $counter   | Serious  |
-| global-declaration.php   | 16   | readAndWrite                          | read from global variable $total                          | wrote to global variable $total     | Serious  |
-| unset.php                | 5    | logout                                |                                                           | wrote to superglobal $_SESSION      | Serious  |
-| unset.php                | 10   | forgetGlobal                          |                                                           | wrote to global variable $cache     | Serious  |
-| unset.php                | 16   | forgetGlobalsEntry                    |                                                           | wrote to $GLOBALS['registry']       | Serious  |
-| repeated-input.php       | 8    | repeats_inputs                        | read from superglobal $_GET                               | wrote to global variable $counter   | Serious  |
-| scope-global.php         | 9    | scope_conditional                     | read from global variable $conditional                    |                                     | Serious  |
-| scope-global.php         | 18   | class@anonymous::anonymousMethod      | read from superglobal $_GET                               |                                     | Serious  |
-| scope-global.php         | 26   | ScopeNamed::namedMethod               | read from global variable $named                          |                                     | Serious  |
-| scope-global.php         | 35   | {closure}                             | read from superglobal $_POST                              |                                     | Serious  |
-| scope-global.php         | 38   | {closure}                             | read from superglobal $_COOKIE                            |                                     | Serious  |
-| scope-global.php         | 44   | {closure}                             | read from superglobal $_GET                               |                                     | Serious  |
-| scope-namespaced.php     | 11   | App\Sub\scope_conditional             | read from global variable $conditional                    |                                     | Serious  |
-| scope-namespaced.php     | 20   | class@anonymous::anonymousMethod      | read from superglobal $_GET                               |                                     | Serious  |
-| scope-namespaced.php     | 28   | App\Sub\ScopeNamed::namedMethod       | read from global variable $named                          |                                     | Serious  |
-| scope-namespaced.php     | 37   | {closure}                             | read from superglobal $_POST                              |                                     | Serious  |
-| scope-namespaced.php     | 40   | {closure}                             | read from superglobal $_COOKIE                            |                                     | Serious  |
-| scope-namespaced.php     | 46   | {closure}                             | read from superglobal $_GET                               |                                     | Serious  |
-| trait-method.php         | 13   | App\Traits\ReadsGlobals::readsSession | read from superglobal $_SESSION                           |                                     | Serious  |
-| trait-method.php         | 21   | App\Traits\UnusedTrait::readsServer   | read from superglobal $_SERVER                            |                                     | Serious  |
-+--------------------------+------+---------------------------------------+-----------------------------------------------------------+-------------------------------------+----------+
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| File                     | Line | Function                                 | Implicit Inputs                                                     | Implicit Outputs                                             | Severity |
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| closure-global-bleed.php | 12   | {closure}                                | read from global variable $x                                        |                                                              | Serious  |
+| closure-global-bleed.php | 24   | nested_reads_global                      | read from global variable $y                                        |                                                              | Serious  |
+| closure-global-bleed.php | 38   | class@anonymous::readsGlobal             | read from global variable $z                                        |                                                              | Serious  |
+| env-access.php           | 7    | readApiKey                               | read from superglobal $_ENV                                         |                                                              | Critical |
+| env-access.php           | 12   | writeAppEnv                              |                                                                     | wrote to superglobal $_ENV                                   | Critical |
+| nested-declarations.php  | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                                                              | Serious  |
+| nested-declarations.php  | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                                                              | Serious  |
+| array-index.php          | 6    | indexBySuperglobal                       | read from superglobal $_GET                                         |                                                              | Serious  |
+| array-index.php          | 12   | writeGlobalAtGlobalIndex                 | read from global variable $key                                      | wrote to global variable $map                                | Serious  |
+| array-index.php          | 18   | nestedIndexes                            | read from superglobal $_GET; read from superglobal $_POST           | wrote to superglobal $_SESSION                               | Serious  |
+| array-index.php          | 28   | IndexedCache::put                        | read from superglobal $_COOKIE                                      |                                                              | Serious  |
+| foreach-catch.php        | 6    | iterateIntoGlobal                        | read from global variable $items                                    | wrote to global variable $item                               | Serious  |
+| foreach-catch.php        | 13   | iterateKeysIntoGlobal                    | read from superglobal $_POST                                        | wrote to global variable $position                           | Serious  |
+| foreach-catch.php        | 20   | catchIntoGlobal                          |                                                                     | wrote to global variable $lastError                          | Serious  |
+| global-declaration.php   | 5    | writeOnly                                |                                                                     | wrote to global variable $counter                            | Serious  |
+| global-declaration.php   | 16   | readAndWrite                             | read from global variable $total                                    | wrote to global variable $total                              | Serious  |
+| operators-and-bodies.php | 6    | addsToGlobal                             | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                              | Serious  |
+| operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals           | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
+| operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies            | read from superglobal $_POST; read from superglobal $_COOKIE        |                                                              | Serious  |
+| operators-and-bodies.php | 31   | globalsArrayKeys                         | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS |                                                              | Serious  |
+| unset.php                | 5    | logout                                   |                                                                     | wrote to superglobal $_SESSION                               | Serious  |
+| unset.php                | 10   | forgetGlobal                             |                                                                     | wrote to global variable $cache                              | Serious  |
+| unset.php                | 16   | forgetGlobalsEntry                       |                                                                     | wrote to $GLOBALS['registry']                                | Serious  |
+| repeated-input.php       | 8    | repeats_inputs                           | read from superglobal $_GET                                         | wrote to global variable $counter                            | Serious  |
+| scope-global.php         | 9    | scope_conditional                        | read from global variable $conditional                              |                                                              | Serious  |
+| scope-global.php         | 18   | class@anonymous::anonymousMethod         | read from superglobal $_GET                                         |                                                              | Serious  |
+| scope-global.php         | 26   | ScopeNamed::namedMethod                  | read from global variable $named                                    |                                                              | Serious  |
+| scope-global.php         | 35   | {closure}                                | read from superglobal $_POST                                        |                                                              | Serious  |
+| scope-global.php         | 38   | {closure}                                | read from superglobal $_COOKIE                                      |                                                              | Serious  |
+| scope-global.php         | 44   | {closure}                                | read from superglobal $_GET                                         |                                                              | Serious  |
+| scope-namespaced.php     | 11   | App\Sub\scope_conditional                | read from global variable $conditional                              |                                                              | Serious  |
+| scope-namespaced.php     | 20   | class@anonymous::anonymousMethod         | read from superglobal $_GET                                         |                                                              | Serious  |
+| scope-namespaced.php     | 28   | App\Sub\ScopeNamed::namedMethod          | read from global variable $named                                    |                                                              | Serious  |
+| scope-namespaced.php     | 37   | {closure}                                | read from superglobal $_POST                                        |                                                              | Serious  |
+| scope-namespaced.php     | 40   | {closure}                                | read from superglobal $_COOKIE                                      |                                                              | Serious  |
+| scope-namespaced.php     | 46   | {closure}                                | read from superglobal $_GET                                         |                                                              | Serious  |
+| trait-method.php         | 13   | App\Traits\ReadsGlobals::readsSession    | read from superglobal $_SESSION                                     |                                                              | Serious  |
+| trait-method.php         | 21   | App\Traits\UnusedTrait::readsServer      | read from superglobal $_SERVER                                      |                                                              | Serious  |
++--------------------------+------+------------------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
 
 Summary:
   Critical violations: 2 (exit code 3)
-  Serious violations: 30 (exit code 2)
+  Serious violations: 36 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 3
 
