@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Cli\Application;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,6 +35,39 @@ class CliOutputTest extends TestCase
                 (int) $expected[$name]['exitCode'],
             ];
         }
+    }
+
+    /**
+     * Runs the command in-process through Application::run, the entry point
+     * bin/explicitness-checker hands over to, so coverage and mutation testing
+     * see the CLI code.
+     *
+     * @dataProvider cliCases
+     *
+     * @param list<string> $arguments
+     */
+    public function testApplication(array $arguments, string $stdout, string $stderr, int $exitCode): void
+    {
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        self::assertIsResource($out);
+        self::assertIsResource($err);
+
+        $cwd = getcwd();
+        self::assertIsString($cwd);
+        chdir(self::ROOT);
+        try {
+            $actualExitCode = (new Application($out, $err))->run(array_merge(['bin/explicitness-checker'], $arguments));
+        } finally {
+            chdir($cwd);
+        }
+
+        rewind($out);
+        rewind($err);
+        self::assertSame(
+            [$exitCode, $stdout, $stderr],
+            [$actualExitCode, (string) stream_get_contents($out), (string) stream_get_contents($err)],
+        );
     }
 
     /**
