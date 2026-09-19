@@ -56,9 +56,9 @@ class PhpFileFinder
     protected function findInDirectory(string $path): array
     {
         $this->console->verbose("Scanning directory recursively: {$path}");
-        $this->console->verbose('Excluding directories: ' . implode(', ', $this->filter->getExcludeDirs()));
-        $this->verboseIfSet('Include pattern: ', $this->filter->getIncludePattern());
-        $this->verboseIfSet('Exclude pattern: ', $this->filter->getExcludePattern());
+        foreach ($this->filter->describe() as $line) {
+            $this->console->verbose($line);
+        }
 
         $found = [];
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS));
@@ -92,12 +92,5 @@ class PhpFileFinder
         $this->console->verbose("File excluded by pattern: {$filePath}");
 
         return false;
-    }
-
-    protected function verboseIfSet(string $label, ?string $value): void
-    {
-        if ($value !== null) {
-            $this->console->verbose($label . $value);
-        }
     }
 }

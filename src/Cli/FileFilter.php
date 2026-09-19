@@ -23,21 +23,22 @@ class FileFilter
     }
 
     /**
+     * The filter's settings, one line each, for verbose output. The patterns
+     * are only listed when set.
+     *
      * @return list<string>
      */
-    public function getExcludeDirs(): array
+    public function describe(): array
     {
-        return $this->excludeDirs;
-    }
+        $lines = ['Excluding directories: ' . implode(', ', $this->excludeDirs)];
+        if ($this->includePattern !== null) {
+            $lines[] = 'Include pattern: ' . $this->includePattern;
+        }
+        if ($this->excludePattern !== null) {
+            $lines[] = 'Exclude pattern: ' . $this->excludePattern;
+        }
 
-    public function getIncludePattern(): ?string
-    {
-        return $this->includePattern;
-    }
-
-    public function getExcludePattern(): ?string
-    {
-        return $this->excludePattern;
+        return $lines;
     }
 
     /**
