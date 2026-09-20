@@ -89,6 +89,8 @@ composer require jonbaldie/explicitness-checker --dev
   - Example: `--include-pattern="src/.*\.php$"` to only analyze PHP files in src/
 - `--exclude-pattern=pattern` or `--exclude-pattern pattern`: Exclude files matching the regex pattern
   - Example: `--exclude-pattern="test.*\.php$"` to exclude test files
+- Both patterns are checked before anything is analysed. A pattern that isn't a valid regular expression stops the run: the reason and the usage line go to stderr and the exit code is 2, so a mistyped filter fails the build instead of quietly analysing the wrong files.
+  - Example: `--include-pattern="src/("` prints `Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6`
 
 #### Filtering Examples
 
