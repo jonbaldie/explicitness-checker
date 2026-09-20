@@ -36,17 +36,46 @@ class Application
     public function run(array $argv): int
     {
         $options = (new ArgumentParser())->parse($argv);
-        if ($options !== null && !is_dir($options->getPath()) && !is_file($options->getPath())) {
-            fwrite($this->stderr, "Path not found: {$options->getPath()}\n");
-            $options = null;
-        }
         if ($options === null) {
-            fwrite($this->stderr, self::USAGE);
-
-            return 2;
+            return $this->usageError(null);
+        }
+        $problem = $this->problem($options);
+        if ($problem !== null) {
+            return $this->usageError($problem);
         }
 
         return $this->check($options);
+    }
+
+    /**
+     * Why the options cannot be used: a path that is neither a file nor a
+     * directory, or a filter pattern that does not compile. Null when the
+     * analysis can go ahead.
+     */
+    protected function problem(Options $options): ?string
+    {
+        $path = $options->getPath();
+        if (!is_dir($path) && !is_file($path)) {
+            return "Path not found: {$path}";
+        }
+
+        return $options->getFilter()->patternError();
+    }
+
+    /**
+     * Reports bad usage: the reason, when there is one to give, then the usage
+     * line, both on stderr.
+     *
+     * @return int the bad-usage exit code
+     */
+    protected function usageError(?string $reason): int
+    {
+        if ($reason !== null) {
+            fwrite($this->stderr, $reason . "\n");
+        }
+        fwrite($this->stderr, self::USAGE);
+
+        return 2;
     }
 
     protected function check(Options $options): int

@@ -10,6 +10,9 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
  */
 class FileFilter
 {
+    /** Prefix preg_match() puts on its warnings, dropped from the reason reported. */
+    protected const WARNING_PREFIX = 'preg_match(): ';
+
     /**
      * @param list<string> $excludeDirs
      * @param string|null  $includePattern regex body, without delimiters
@@ -60,6 +63,25 @@ class FileFilter
     }
 
     /**
+     * The reason the patterns cannot be used, naming the flag whose regex does
+     * not compile, or null when every pattern given compiles. Checked once
+     * before the file walk, so a bad pattern fails the run instead of making
+     * preg_match() warn per candidate file.
+     */
+    public function patternError(): ?string
+    {
+        $patterns = ['--include-pattern' => $this->includePattern, '--exclude-pattern' => $this->excludePattern];
+        foreach ($patterns as $flag => $pattern) {
+            $reason = $pattern === null ? null : $this->compileError($this->delimit($pattern));
+            if ($reason !== null) {
+                return "Invalid {$flag}: {$reason}";
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Whether the path matches the include pattern (if any) and not the
      * exclude pattern (if any).
      */
@@ -79,5 +101,22 @@ class FileFilter
     protected function delimit(string $pattern): string
     {
         return '/' . preg_replace('~\\\\.(*SKIP)(*FAIL)|/~s', '\\/', $pattern) . '/';
+    }
+
+    /**
+     * Compiles the delimited pattern against an empty subject, returning
+     * PCRE's complaint (without preg_match()'s own prefix) or null when the
+     * pattern compiles. The warning is read back rather than printed.
+     */
+    protected function compileError(string $delimited): ?string
+    {
+        if (@preg_match($delimited, '') !== false) {
+            return null;
+        }
+        $message = error_get_last()['message'] ?? '';
+
+        return str_starts_with($message, self::WARNING_PREFIX)
+            ? substr($message, strlen(self::WARNING_PREFIX))
+            : $message;
     }
 }
