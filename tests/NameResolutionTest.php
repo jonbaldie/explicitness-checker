@@ -15,12 +15,13 @@ class NameResolutionTest extends TestCase
 {
     public function testStaticPropertyClassNamesAreFullyQualified(): void
     {
-        [$exitCode, $output, $errors] = Process::cli(['--props', Process::ROOT . '/test-fixtures/namespaced-static-property.php']);
+        $path = Process::ROOT . '/test-fixtures/namespaced-static-property.php';
+        [$exitCode, $output, $errors] = Process::cli(['--props', $path]);
 
         $rows = [];
         foreach (explode("\n", $output) as $line) {
             $cells = array_map('trim', explode('|', $line));
-            if (count($cells) === 8 && $cells[1] === 'namespaced-static-property.php') {
+            if (count($cells) === 8 && $cells[1] === $path) {
                 $rows[] = [$cells[2], $cells[3], $cells[4], $cells[5]];
             }
         }

@@ -10,12 +10,12 @@ Analyzing...
 
 Results:
 
-+------------------+------+---------------------------------------+---------------------------------+------------------+----------+
-| File             | Line | Function                              | Implicit Inputs                 | Implicit Outputs | Severity |
-+------------------+------+---------------------------------------+---------------------------------+------------------+----------+
-| trait-method.php | 13   | App\Traits\ReadsGlobals::readsSession | read from superglobal $_SESSION |                  | Serious  |
-| trait-method.php | 21   | App\Traits\UnusedTrait::readsServer   | read from superglobal $_SERVER  |                  | Serious  |
-+------------------+------+---------------------------------------+---------------------------------+------------------+----------+
++--------------------------------+------+---------------------------------------+---------------------------------+------------------+----------+
+| File                           | Line | Function                              | Implicit Inputs                 | Implicit Outputs | Severity |
++--------------------------------+------+---------------------------------------+---------------------------------+------------------+----------+
+| test-fixtures/trait-method.php | 13   | App\Traits\ReadsGlobals::readsSession | read from superglobal $_SESSION |                  | Serious  |
+| test-fixtures/trait-method.php | 21   | App\Traits\UnusedTrait::readsServer   | read from superglobal $_SERVER  |                  | Serious  |
++--------------------------------+------+---------------------------------------+---------------------------------+------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

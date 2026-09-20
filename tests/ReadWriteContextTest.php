@@ -86,13 +86,14 @@ class ReadWriteContextTest extends TestCase
      */
     protected function reportedRows(string $fixture): array
     {
-        [, $output, $errors] = Process::cli(['--props', Process::ROOT . '/test-fixtures/read-write-context/' . $fixture]);
+        $path = Process::ROOT . '/test-fixtures/read-write-context/' . $fixture;
+        [, $output, $errors] = Process::cli(['--props', $path]);
         self::assertSame('', $errors);
 
         $rows = [];
         foreach (explode("\n", $output) as $line) {
             $cells = array_map('trim', explode('|', $line));
-            if (count($cells) !== 8 || $cells[1] !== $fixture) {
+            if (count($cells) !== 8 || $cells[1] !== $path) {
                 continue;
             }
             $rows[$cells[3]] = [$cells[4], $cells[5]];

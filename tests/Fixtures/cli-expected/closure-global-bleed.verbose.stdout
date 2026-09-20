@@ -21,13 +21,13 @@ Analyzing...
 
 Results:
 
-+--------------------------+------+------------------------------+------------------------------+------------------+----------+
-| File                     | Line | Function                     | Implicit Inputs              | Implicit Outputs | Severity |
-+--------------------------+------+------------------------------+------------------------------+------------------+----------+
-| closure-global-bleed.php | 12   | {closure}                    | read from global variable $x |                  | Serious  |
-| closure-global-bleed.php | 24   | nested_reads_global          | read from global variable $y |                  | Serious  |
-| closure-global-bleed.php | 38   | class@anonymous::readsGlobal | read from global variable $z |                  | Serious  |
-+--------------------------+------+------------------------------+------------------------------+------------------+----------+
++----------------------------------------+------+------------------------------+------------------------------+------------------+----------+
+| File                                   | Line | Function                     | Implicit Inputs              | Implicit Outputs | Severity |
++----------------------------------------+------+------------------------------+------------------------------+------------------+----------+
+| test-fixtures/closure-global-bleed.php | 12   | {closure}                    | read from global variable $x |                  | Serious  |
+| test-fixtures/closure-global-bleed.php | 24   | nested_reads_global          | read from global variable $y |                  | Serious  |
+| test-fixtures/closure-global-bleed.php | 38   | class@anonymous::readsGlobal | read from global variable $z |                  | Serious  |
++----------------------------------------+------+------------------------------+------------------------------+------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

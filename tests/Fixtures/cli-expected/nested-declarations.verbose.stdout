@@ -21,12 +21,12 @@ Analyzing...
 
 Results:
 
-+-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
-| File                    | Line | Function                                 | Implicit Inputs                                                     | Implicit Outputs | Severity |
-+-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
-| nested-declarations.php | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                  | Serious  |
-| nested-declarations.php | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                  | Serious  |
-+-------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
++---------------------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
+| File                                  | Line | Function                                 | Implicit Inputs                                                     | Implicit Outputs | Severity |
++---------------------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
+| test-fixtures/nested-declarations.php | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                  | Serious  |
+| test-fixtures/nested-declarations.php | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                  | Serious  |
++---------------------------------------+------+------------------------------------------+---------------------------------------------------------------------+------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

@@ -18,12 +18,12 @@ Analyzing...
 
 Results:
 
-+------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
-| File                   | Line | Function     | Implicit Inputs                  | Implicit Outputs                  | Severity |
-+------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
-| global-declaration.php | 5    | writeOnly    |                                  | wrote to global variable $counter | Serious  |
-| global-declaration.php | 16   | readAndWrite | read from global variable $total | wrote to global variable $total   | Serious  |
-+------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
++---------------------------------------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
+| File                                                    | Line | Function     | Implicit Inputs                  | Implicit Outputs                  | Severity |
++---------------------------------------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
+| test-fixtures/read-write-context/global-declaration.php | 5    | writeOnly    |                                  | wrote to global variable $counter | Serious  |
+| test-fixtures/read-write-context/global-declaration.php | 16   | readAndWrite | read from global variable $total | wrote to global variable $total   | Serious  |
++---------------------------------------------------------+------+--------------+----------------------------------+-----------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)
