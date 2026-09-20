@@ -674,5 +674,37 @@
     "include-pattern-escaped-slash-file": {
         "exitCode": 3,
         "stderr": ""
+    },
+    "include-pattern-invalid-file": {
+        "exitCode": 2,
+        "stderr": "Invalid --include-pattern: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "include-pattern-invalid-dir": {
+        "exitCode": 2,
+        "stderr": "Invalid --include-pattern: missing closing parenthesis at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "include-pattern-invalid.verbose": {
+        "exitCode": 2,
+        "stderr": "Invalid --include-pattern: missing closing parenthesis at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "exclude-pattern-invalid-file": {
+        "exitCode": 2,
+        "stderr": "Invalid --exclude-pattern: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "exclude-pattern-invalid-dir": {
+        "exitCode": 2,
+        "stderr": "Invalid --exclude-pattern: missing closing parenthesis at offset 3\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "both-patterns-invalid": {
+        "exitCode": 2,
+        "stderr": "Invalid --include-pattern: missing closing parenthesis at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "invalid-pattern-missing-path": {
+        "exitCode": 2,
+        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "invalid-pattern-last-wins": {
+        "exitCode": 3,
+        "stderr": ""
     }
 }

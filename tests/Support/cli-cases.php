@@ -103,4 +103,14 @@ return $cases + [
     'include-pattern-dir.verbose' => ['-v', '--include-pattern=nothing', 'tests/Fixtures/cli/nested'],
     'both-patterns' => ['--include-pattern=read-write-context', '--exclude-pattern=unset', 'test-fixtures'],
     'both-patterns.verbose' => ['-v', '--include-pattern=nested', '--exclude-pattern=Upper', 'tests/Fixtures/cli/nested'],
+
+    // Patterns that do not compile (#22).
+    'include-pattern-invalid-file' => ['--include-pattern=src/(', 'test-fixtures/env-access.php'],
+    'include-pattern-invalid-dir' => ['--include-pattern=(', 'test-fixtures'],
+    'include-pattern-invalid.verbose' => ['-v', '--include-pattern=(', 'test-fixtures'],
+    'exclude-pattern-invalid-file' => ['--exclude-pattern=[', 'test-fixtures/env-access.php'],
+    'exclude-pattern-invalid-dir' => ['--exclude-pattern=a(b', 'test-fixtures'],
+    'invalid-pattern-last-wins' => ['--include-pattern=(', '--include-pattern=env', 'test-fixtures'],
+    'both-patterns-invalid' => ['--include-pattern=(', '--exclude-pattern=[', 'test-fixtures'],
+    'invalid-pattern-missing-path' => ['--include-pattern=(', 'does-not-exist'],
 ];
