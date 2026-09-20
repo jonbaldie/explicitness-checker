@@ -14,31 +14,34 @@ class FileFilter
     protected const WARNING_PREFIX = 'preg_match(): ';
 
     /**
+     * Every occurrence of a pattern flag is kept: a file must match one of the
+     * include patterns (when any are given) and none of the exclude patterns.
+     *
      * @param list<string> $excludeDirs
-     * @param string|null  $includePattern regex body, without delimiters
-     * @param string|null  $excludePattern regex body, without delimiters
+     * @param list<string> $includePatterns regex bodies, without delimiters
+     * @param list<string> $excludePatterns regex bodies, without delimiters
      */
     public function __construct(
         protected array $excludeDirs,
-        protected ?string $includePattern,
-        protected ?string $excludePattern,
+        protected array $includePatterns,
+        protected array $excludePatterns,
     ) {
     }
 
     /**
-     * The filter's settings, one line each, for verbose output. The patterns
-     * are only listed when set.
+     * The filter's settings, one line each, for verbose output. Each pattern
+     * given gets its own line, in the order it was given.
      *
      * @return list<string>
      */
     public function describe(): array
     {
         $lines = ['Excluding directories: ' . implode(', ', $this->excludeDirs)];
-        if ($this->includePattern !== null) {
-            $lines[] = 'Include pattern: ' . $this->includePattern;
+        foreach ($this->includePatterns as $pattern) {
+            $lines[] = 'Include pattern: ' . $pattern;
         }
-        if ($this->excludePattern !== null) {
-            $lines[] = 'Exclude pattern: ' . $this->excludePattern;
+        foreach ($this->excludePatterns as $pattern) {
+            $lines[] = 'Exclude pattern: ' . $pattern;
         }
 
         return $lines;
@@ -64,15 +67,16 @@ class FileFilter
 
     /**
      * The reason the patterns cannot be used, naming the flag whose regex does
-     * not compile, or null when every pattern given compiles. Checked once
-     * before the file walk, so a bad pattern fails the run instead of making
-     * preg_match() warn per candidate file.
+     * not compile, or null when every pattern given compiles. Every occurrence
+     * of a flag is checked, so a bad pattern is caught wherever it was given.
+     * Checked once before the file walk, so a bad pattern fails the run instead
+     * of making preg_match() warn per candidate file.
      */
     public function patternError(): ?string
     {
-        $patterns = ['--include-pattern' => $this->includePattern, '--exclude-pattern' => $this->excludePattern];
-        foreach ($patterns as $flag => $pattern) {
-            $reason = $pattern === null ? null : $this->compileError($this->delimit($pattern));
+        $flags = ['--include-pattern' => $this->includePatterns, '--exclude-pattern' => $this->excludePatterns];
+        foreach ($flags as $flag => $patterns) {
+            $reason = $this->firstCompileError($patterns);
             if ($reason !== null) {
                 return "Invalid {$flag}: {$reason}";
             }
@@ -82,16 +86,51 @@ class FileFilter
     }
 
     /**
-     * Whether the path matches the include pattern (if any) and not the
-     * exclude pattern (if any).
+     * Whether the path matches one of the include patterns (when any were
+     * given) and none of the exclude patterns.
      */
     public function matchesPatterns(string $filePath): bool
     {
-        if ($this->includePattern !== null && !preg_match($this->delimit($this->includePattern), $filePath)) {
+        if ($this->includePatterns !== [] && !$this->matchesAny($this->includePatterns, $filePath)) {
             return false;
         }
 
-        return $this->excludePattern === null || !preg_match($this->delimit($this->excludePattern), $filePath);
+        return !$this->matchesAny($this->excludePatterns, $filePath);
+    }
+
+    /**
+     * Whether the path matches at least one of the patterns. No patterns means
+     * no match.
+     *
+     * @param list<string> $patterns regex bodies, without delimiters
+     */
+    protected function matchesAny(array $patterns, string $filePath): bool
+    {
+        foreach ($patterns as $pattern) {
+            if (preg_match($this->delimit($pattern), $filePath) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * PCRE's complaint about the first pattern in the list that does not
+     * compile, or null when they all do.
+     *
+     * @param list<string> $patterns regex bodies, without delimiters
+     */
+    protected function firstCompileError(array $patterns): ?string
+    {
+        foreach ($patterns as $pattern) {
+            $reason = $this->compileError($this->delimit($pattern));
+            if ($reason !== null) {
+                return $reason;
+            }
+        }
+
+        return null;
     }
 
     /**

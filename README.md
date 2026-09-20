@@ -88,10 +88,12 @@ composer require jonbaldie/explicitness-checker --dev
   - By default, `vendor/` is excluded
   - Example: `--exclude=tests --exclude=cache`
 - `--include-pattern=pattern` or `--include-pattern pattern`: Only analyze files matching the regex pattern
+  - Can be used multiple times; a file is analyzed if it matches any of the include patterns
   - Example: `--include-pattern="src/.*\.php$"` to only analyze PHP files in src/
 - `--exclude-pattern=pattern` or `--exclude-pattern pattern`: Exclude files matching the regex pattern
+  - Can be used multiple times; a file is excluded if it matches any of the exclude patterns
   - Example: `--exclude-pattern="test.*\.php$"` to exclude test files
-- Both patterns are checked before anything is analysed. A pattern that isn't a valid regular expression stops the run: the reason and the usage line go to stderr and the exit code is 2, so a mistyped filter fails the build instead of quietly analysing the wrong files.
+- Every pattern given is checked before anything is analysed. A pattern that isn't a valid regular expression stops the run: the reason and the usage line go to stderr and the exit code is 2, so a mistyped filter fails the build instead of quietly analysing the wrong files.
   - Example: `--include-pattern="src/("` prints `Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6`
 
 #### Filtering Examples
@@ -108,6 +110,9 @@ composer require jonbaldie/explicitness-checker --dev
 
 # Combine multiple filters
 ./vendor/bin/explicitness-checker --exclude=vendor --exclude-pattern=".*Test\.php$" ./project
+
+# Repeat a pattern flag to exclude several things at once
+./vendor/bin/explicitness-checker --exclude-pattern=".*Test\.php$" --exclude-pattern="/generated/" ./project
 ```
 
 ### Severity Levels and Exit Codes

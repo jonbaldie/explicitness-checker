@@ -615,7 +615,7 @@
         "exitCode": 3,
         "stderr": ""
     },
-    "include-pattern-last-wins": {
+    "include-pattern-one-matching": {
         "exitCode": 3,
         "stderr": ""
     },
@@ -658,6 +658,26 @@
     "both-patterns.verbose": {
         "exitCode": 0,
         "stderr": ""
+    },
+    "include-patterns-accumulate": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-patterns-accumulate": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "exclude-patterns-accumulate.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "exclude-patterns-first-invalid": {
+        "exitCode": 2,
+        "stderr": "Invalid --exclude-pattern: Compilation failed: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "include-patterns-first-invalid": {
+        "exitCode": 2,
+        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
     },
     "include-pattern-readme-example": {
         "exitCode": 3,
