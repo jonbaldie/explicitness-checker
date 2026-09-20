@@ -7,9 +7,17 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
 /**
  * Which PHP files to check: excluded directories (`--exclude`) and the
  * `--include-pattern` / `--exclude-pattern` regular expressions.
+ *
+ * A pattern that does not compile is reported by patternError() before any
+ * file is matched, rather than failing once per candidate file.
  */
 class FileFilter
 {
+    /**
+     * The part of PCRE's warning that names the caller rather than the fault.
+     */
+    protected const COMPILE_PREFIX = 'preg_match(): Compilation failed: ';
+
     /**
      * @param list<string> $excludeDirs
      * @param string|null  $includePattern regex body, without delimiters
@@ -57,6 +65,37 @@ class FileFilter
         }
 
         return false;
+    }
+
+    /**
+     * Why the first unusable pattern does not compile, naming the option it
+     * came from, or null when both patterns are usable. Callers must check
+     * this before matching: matchesPatterns() assumes compilable patterns.
+     */
+    public function patternError(): ?string
+    {
+        return $this->compileError('--include-pattern', $this->includePattern)
+            ?? $this->compileError('--exclude-pattern', $this->excludePattern);
+    }
+
+    /**
+     * Compiles the pattern against an empty subject to see whether PCRE takes
+     * it. PCRE reports a failure by returning false, but only explains it in a
+     * warning, which is suppressed here and read back from the error state.
+     */
+    protected function compileError(string $option, ?string $pattern): ?string
+    {
+        if ($pattern === null) {
+            return null;
+        }
+
+        error_clear_last();
+        if (@preg_match($this->delimit($pattern), '') !== false) {
+            return null;
+        }
+        $warning = error_get_last();
+
+        return "Invalid {$option}: " . str_replace(self::COMPILE_PREFIX, '', $warning['message'] ?? '');
     }
 
     /**

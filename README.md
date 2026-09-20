@@ -90,6 +90,17 @@ composer require jonbaldie/explicitness-checker --dev
 - `--exclude-pattern=pattern` or `--exclude-pattern pattern`: Exclude files matching the regex pattern
   - Example: `--exclude-pattern="test.*\.php$"` to exclude test files
 
+Both patterns are regular expressions written without delimiters. A pattern that
+does not compile is rejected before any file is read, with the reason on standard
+error and exit code 2, so a mistyped filter in CI fails the build rather than
+quietly analyzing nothing:
+
+```console
+$ explicitness-checker --include-pattern="src/(" ./project
+Invalid --include-pattern: missing closing parenthesis at offset 6
+Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project
+```
+
 #### Filtering Examples
 
 ```bash
@@ -131,7 +142,7 @@ The tool categorizes violations into three severity levels:
 
 - **0**: No violations found
 - **1**: Only minor violations found
-- **2**: Serious violations found (may include minor)
+- **2**: Serious violations found (may include minor), or the command was used incorrectly (no path, a path that does not exist, or a filter pattern that does not compile)
 - **3**: Critical violations found (may include serious and minor)
 
 The tool exits with the highest severity level found, making it easy to integrate into CI pipelines with appropriate failure thresholds.

@@ -14,7 +14,8 @@ use PhpParser\ParserFactory;
  * implicit inputs and outputs, prints a report, and returns the exit code.
  *
  * Exit codes: 0 clean or no PHP files, 1 minor, 2 serious or bad usage,
- * 3 critical.
+ * 3 critical. A pattern that does not compile is bad usage, reported before
+ * any file is looked at rather than silently filtering everything in or out.
  */
 class Application
 {
@@ -42,6 +43,12 @@ class Application
         }
         if ($options === null) {
             fwrite($this->stderr, self::USAGE);
+
+            return 2;
+        }
+        $patternError = $options->getFilter()->patternError();
+        if ($patternError !== null) {
+            fwrite($this->stderr, $patternError . "\n" . self::USAGE);
 
             return 2;
         }
