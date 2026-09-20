@@ -10,8 +10,9 @@ use PhpParser\NodeVisitorAbstract;
 
 /**
  * Node visitor behind FunctionLikeFinder: records every function-like with a
- * body, in traversal (source) order, tracking the namespace and the innermost
- * class-like for naming. Use one instance per traversal.
+ * body, in traversal (source) order, tracking the namespace, the innermost
+ * class-like and (through HookedProperties) the innermost hooked property for
+ * naming. Use one instance per traversal.
  */
 class FunctionLikeCollector extends NodeVisitorAbstract
 {
@@ -23,6 +24,13 @@ class FunctionLikeCollector extends NodeVisitorAbstract
     /** @var list<CheckedFunctionLike> */
     protected array $found = [];
 
+    protected HookedProperties $properties;
+
+    public function __construct()
+    {
+        $this->properties = new HookedProperties();
+    }
+
     public function enterNode(Node $node): ?int
     {
         if ($node instanceof Stmt\Namespace_) {
@@ -31,6 +39,7 @@ class FunctionLikeCollector extends NodeVisitorAbstract
         if ($node instanceof Stmt\ClassLike) {
             $this->classes[] = $this->classNameOf($node);
         }
+        $this->properties->enter($node);
         if ($node instanceof Node\FunctionLike && $node->getStmts() !== null) {
             $this->found[] = new CheckedFunctionLike($node, $this->nameOf($node));
         }
@@ -43,6 +52,7 @@ class FunctionLikeCollector extends NodeVisitorAbstract
         if ($node instanceof Stmt\ClassLike) {
             array_pop($this->classes);
         }
+        $this->properties->leave($node);
 
         return null;
     }
@@ -81,6 +91,6 @@ class FunctionLikeCollector extends NodeVisitorAbstract
             return FunctionLikeNames::method(end($this->classes) ?: null, $node->name->toString());
         }
 
-        return FunctionLikeNames::CLOSURE;
+        return $this->properties->hookName($node, end($this->classes) ?: null) ?? FunctionLikeNames::CLOSURE;
     }
 }
