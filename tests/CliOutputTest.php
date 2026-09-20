@@ -70,4 +70,74 @@ class CliOutputTest extends TestCase
             [$actualExitCode, (string) stream_get_contents($out), (string) stream_get_contents($err)],
         );
     }
+
+    /**
+     * Regression for #24: two same-basename files must produce distinct File
+     * cells that are the walked paths, not basename().
+     */
+    public function testSameBasenameFilesAreDistinguishable(): void
+    {
+        $files = $this->fileCells($this->runApplication(['tests/Fixtures/same-basename']));
+        sort($files);
+
+        self::assertSame(
+            [
+                'tests/Fixtures/same-basename/gen/nested/Calculator.php',
+                'tests/Fixtures/same-basename/src/Calculator.php',
+            ],
+            $files,
+        );
+    }
+
+    /**
+     * Regression for #24: a single-file run shows the walked path, not a
+     * shorter invented name.
+     */
+    public function testSingleFileRunShowsTheWalkedPath(): void
+    {
+        self::assertSame(
+            ['tests/Fixtures/same-basename/src/Calculator.php'],
+            $this->fileCells($this->runApplication(['tests/Fixtures/same-basename/src/Calculator.php'])),
+        );
+    }
+
+    /**
+     * @param list<string> $arguments
+     */
+    protected function runApplication(array $arguments): string
+    {
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        self::assertIsResource($out);
+        self::assertIsResource($err);
+
+        $cwd = getcwd();
+        self::assertIsString($cwd);
+        chdir(Process::ROOT);
+        try {
+            (new Application($out, $err))->run(array_merge(['bin/explicitness-checker'], $arguments));
+        } finally {
+            chdir($cwd);
+        }
+
+        rewind($out);
+
+        return (string) stream_get_contents($out);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function fileCells(string $stdout): array
+    {
+        $files = [];
+        foreach (explode("\n", $stdout) as $line) {
+            $cells = array_map('trim', explode('|', $line));
+            if (count($cells) === 8 && $cells[1] !== '' && $cells[1] !== 'File') {
+                $files[] = $cells[1];
+            }
+        }
+
+        return $files;
+    }
 }

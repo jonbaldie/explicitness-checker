@@ -35,7 +35,7 @@ class Report
             $severity = $violation->getSeverity();
             $counts[$severity]++;
             $rows[] = [
-                basename($violation->getFile()),
+                $violation->getFile(),
                 (string) $violation->getLine(),
                 $violation->getFunction(),
                 implode('; ', $violation->getInputs()),

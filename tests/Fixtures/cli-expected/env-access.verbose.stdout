@@ -10,12 +10,12 @@ Analyzing...
 
 Results:
 
-+----------------+------+-------------+-----------------------------+----------------------------+----------+
-| File           | Line | Function    | Implicit Inputs             | Implicit Outputs           | Severity |
-+----------------+------+-------------+-----------------------------+----------------------------+----------+
-| env-access.php | 7    | readApiKey  | read from superglobal $_ENV |                            | Critical |
-| env-access.php | 12   | writeAppEnv |                             | wrote to superglobal $_ENV | Critical |
-+----------------+------+-------------+-----------------------------+----------------------------+----------+
++------------------------------+------+-------------+-----------------------------+----------------------------+----------+
+| File                         | Line | Function    | Implicit Inputs             | Implicit Outputs           | Severity |
++------------------------------+------+-------------+-----------------------------+----------------------------+----------+
+| test-fixtures/env-access.php | 7    | readApiKey  | read from superglobal $_ENV |                            | Critical |
+| test-fixtures/env-access.php | 12   | writeAppEnv |                             | wrote to superglobal $_ENV | Critical |
++------------------------------+------+-------------+-----------------------------+----------------------------+----------+
 
 Summary:
   Critical violations: 2 (exit code 3)

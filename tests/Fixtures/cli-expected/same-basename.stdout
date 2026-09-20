@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++--------------------------------------------------------+------+----------+------------------------------+-----------------------------+----------+
+| File                                                   | Line | Function | Implicit Inputs              | Implicit Outputs            | Severity |
++--------------------------------------------------------+------+----------+------------------------------+-----------------------------+----------+
+| tests/Fixtures/same-basename/gen/nested/Calculator.php | 5    | App\add  | read from global variable $n | wrote to global variable $n | Serious  |
+| tests/Fixtures/same-basename/src/Calculator.php        | 5    | App\add  | read from global variable $n | wrote to global variable $n | Serious  |
++--------------------------------------------------------+------+----------+------------------------------+-----------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

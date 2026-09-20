@@ -151,7 +151,7 @@ Results:
 
 | File | Line | Function | Implicit Inputs | Implicit Outputs |
 |------|------|----------|-----------------|------------------|
-| Calculator.php | 12 | add | read from global variable $some_global_number | wrote to global variable $some_global_number |
+| ./path/to/your/project/Calculator.php | 12 | add | read from global variable $some_global_number | wrote to global variable $some_global_number |
 ```
 
 ## PHPStan extension

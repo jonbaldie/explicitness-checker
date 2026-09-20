@@ -2,14 +2,14 @@ Analyzing...
 
 Results:
 
-+-----------+------+--------------------+-----------------+----------------------------------------+----------+
-| File      | Line | Function           | Implicit Inputs | Implicit Outputs                       | Severity |
-+-----------+------+--------------------+-----------------+----------------------------------------+----------+
-| unset.php | 5    | logout             |                 | wrote to superglobal $_SESSION         | Serious  |
-| unset.php | 10   | forgetGlobal       |                 | wrote to global variable $cache        | Serious  |
-| unset.php | 16   | forgetGlobalsEntry |                 | wrote to $GLOBALS['registry']          | Serious  |
-| unset.php | 26   | Memo::clear        |                 | wrote to object property $this->cached | Serious  |
-+-----------+------+--------------------+-----------------+----------------------------------------+----------+
++--------------------------------------------+------+--------------------+-----------------+----------------------------------------+----------+
+| File                                       | Line | Function           | Implicit Inputs | Implicit Outputs                       | Severity |
++--------------------------------------------+------+--------------------+-----------------+----------------------------------------+----------+
+| test-fixtures/read-write-context/unset.php | 5    | logout             |                 | wrote to superglobal $_SESSION         | Serious  |
+| test-fixtures/read-write-context/unset.php | 10   | forgetGlobal       |                 | wrote to global variable $cache        | Serious  |
+| test-fixtures/read-write-context/unset.php | 16   | forgetGlobalsEntry |                 | wrote to $GLOBALS['registry']          | Serious  |
+| test-fixtures/read-write-context/unset.php | 26   | Memo::clear        |                 | wrote to object property $this->cached | Serious  |
++--------------------------------------------+------+--------------------+-----------------+----------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

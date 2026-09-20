@@ -441,7 +441,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $messages = [];
         foreach (explode("\n", $output) as $line) {
             $cells = array_map('trim', explode('|', $line));
-            if (count($cells) !== 8 || $cells[1] !== basename($fixture)) {
+            if (count($cells) !== 8 || $cells[1] !== self::FIXTURES . $fixture) {
                 continue;
             }
             foreach ([$cells[4], $cells[5]] as $descriptions) {

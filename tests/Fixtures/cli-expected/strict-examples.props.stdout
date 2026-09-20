@@ -2,15 +2,15 @@ Analyzing...
 
 Results:
 
-+---------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
-| File                | Line | Function                         | Implicit Inputs                             | Implicit Outputs                           | Severity |
-+---------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
-| strict-examples.php | 22   | UserSession::__construct         |                                             | wrote to object property $this->username   | Serious  |
-| strict-examples.php | 31   | UserSession::greet               | read from object property $this->username   |                                            | Serious  |
-| strict-examples.php | 40   | UserSession::incrementLoginCount | read from object property $this->loginCount | wrote to object property $this->loginCount | Serious  |
-| strict-examples.php | 59   | AppAnalytics::recordPageView     | read from static property self::$pageViews  | wrote to static property self::$pageViews  | Serious  |
-| strict-examples.php | 68   | AppAnalytics::logEvent           | read from static property self::$pageViews  | wrote to static property self::$events     | Serious  |
-+---------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
++-----------------------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
+| File                              | Line | Function                         | Implicit Inputs                             | Implicit Outputs                           | Severity |
++-----------------------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
+| test-fixtures/strict-examples.php | 22   | UserSession::__construct         |                                             | wrote to object property $this->username   | Serious  |
+| test-fixtures/strict-examples.php | 31   | UserSession::greet               | read from object property $this->username   |                                            | Serious  |
+| test-fixtures/strict-examples.php | 40   | UserSession::incrementLoginCount | read from object property $this->loginCount | wrote to object property $this->loginCount | Serious  |
+| test-fixtures/strict-examples.php | 59   | AppAnalytics::recordPageView     | read from static property self::$pageViews  | wrote to static property self::$pageViews  | Serious  |
+| test-fixtures/strict-examples.php | 68   | AppAnalytics::logEvent           | read from static property self::$pageViews  | wrote to static property self::$events     | Serious  |
++-----------------------------------+------+----------------------------------+---------------------------------------------+--------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

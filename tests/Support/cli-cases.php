@@ -110,4 +110,8 @@ return $cases + [
     'exclude-pattern-invalid' => ['--exclude-pattern=[', 'test-fixtures'],
     'both-patterns-invalid' => ['--include-pattern=src/(', '--exclude-pattern=[', 'test-fixtures'],
     'invalid-pattern-missing-path' => ['--include-pattern=src/(', 'does-not-exist'],
+
+    // Same-basename files must stay distinct in the File column (#24).
+    'same-basename' => ['tests/Fixtures/same-basename'],
+    'same-basename.file' => ['tests/Fixtures/same-basename/src/Calculator.php'],
 ];

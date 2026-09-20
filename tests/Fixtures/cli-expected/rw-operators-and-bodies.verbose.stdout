@@ -22,14 +22,14 @@ Analyzing...
 
 Results:
 
-+--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
-| File                     | Line | Function                       | Implicit Inputs                                                     | Implicit Outputs                                             | Severity |
-+--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
-| operators-and-bodies.php | 6    | addsToGlobal                   | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                              | Serious  |
-| operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
-| operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies  | read from superglobal $_POST; read from superglobal $_COOKIE        |                                                              | Serious  |
-| operators-and-bodies.php | 31   | globalsArrayKeys               | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS |                                                              | Serious  |
-+--------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
++-----------------------------------------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| File                                                      | Line | Function                       | Implicit Inputs                                                     | Implicit Outputs                                             | Severity |
++-----------------------------------------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
+| test-fixtures/read-write-context/operators-and-bodies.php | 6    | addsToGlobal                   | read from global variable $total; read from superglobal $_GET       | wrote to global variable $total                              | Serious  |
+| test-fixtures/read-write-context/operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
+| test-fixtures/read-write-context/operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies  | read from superglobal $_POST; read from superglobal $_COOKIE        |                                                              | Serious  |
+| test-fixtures/read-write-context/operators-and-bodies.php | 31   | globalsArrayKeys               | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS |                                                              | Serious  |
++-----------------------------------------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

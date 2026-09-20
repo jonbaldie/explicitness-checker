@@ -694,5 +694,13 @@
     "invalid-pattern-missing-path": {
         "exitCode": 2,
         "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "same-basename": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "same-basename.file": {
+        "exitCode": 2,
+        "stderr": ""
     }
 }

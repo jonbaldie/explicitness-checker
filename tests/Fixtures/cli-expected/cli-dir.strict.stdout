@@ -2,12 +2,12 @@ Analyzing...
 
 Results:
 
-+----------------+------+-----------------+------------------------------+----------------------------------+----------+
-| File           | Line | Function        | Implicit Inputs              | Implicit Outputs                 | Severity |
-+----------------+------+-----------------+------------------------------+----------------------------------+----------+
-| minor-only.php | 6    | greet           |                              | writes to standard output (echo) | Minor    |
-| UpperCase.PHP  | 4    | nestedReadsPost | read from superglobal $_POST |                                  | Serious  |
-+----------------+------+-----------------+------------------------------+----------------------------------+----------+
++-----------------------------------------+------+-----------------+------------------------------+----------------------------------+----------+
+| File                                    | Line | Function        | Implicit Inputs              | Implicit Outputs                 | Severity |
++-----------------------------------------+------+-----------------+------------------------------+----------------------------------+----------+
+| tests/Fixtures/cli/minor-only.php       | 6    | greet           |                              | writes to standard output (echo) | Minor    |
+| tests/Fixtures/cli/nested/UpperCase.PHP | 4    | nestedReadsPost | read from superglobal $_POST |                                  | Serious  |
++-----------------------------------------+------+-----------------+------------------------------+----------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

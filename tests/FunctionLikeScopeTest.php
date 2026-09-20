@@ -73,13 +73,14 @@ class FunctionLikeScopeTest extends TestCase
      */
     protected function runCli(string $fixture): array
     {
-        [$exitCode, $output, $errors] = Process::cli([Process::ROOT . '/test-fixtures/' . $fixture]);
+        $path = Process::ROOT . '/test-fixtures/' . $fixture;
+        [$exitCode, $output, $errors] = Process::cli([$path]);
         self::assertSame('', $errors);
 
         $rows = [];
         foreach (explode("\n", $output) as $line) {
             $cells = array_map('trim', explode('|', $line));
-            if (count($cells) !== 8 || $cells[1] !== $fixture) {
+            if (count($cells) !== 8 || $cells[1] !== $path) {
                 continue;
             }
             $rows[] = [$cells[2], $cells[3], $cells[4], $cells[5]];
