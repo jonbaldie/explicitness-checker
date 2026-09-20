@@ -6,6 +6,10 @@ A PHP command-line tool (`bin/explicitness-checker`) that uses `nikic/php-parser
 
 CI in `.github/workflows/` defines the required checks, which enforce `CODING_STANDARDS.md`: PHPStan at level max (`composer phpstan`), PHPMD (`composer phpmd`), protected over private and no mocks in tests (`composer standards`), PHPUnit (`composer test`), and Infection with MSI >= 60, covered MSI >= 80 and no skipped mutants (`composer infection`, needs pcov or xdebug). CLI output is pinned by the golden cases in `tests/Support/cli-cases.php`. Run the same commands locally before opening a PR.
 
+## Exploratory testing
+
+Reports from exploratory passes over the CLI and the PHPStan extension live in `docs/exploratory-testing/`, named `YYYY-MM-DD-<scope>.md`. Each one records the journeys exercised, the findings it filed as issues, the candidates it rejected, and the areas it did not reach. Read the most recent one before starting a pass so you explore somewhere new.
+
 ## Agent skills
 
 ### Issue tracker
