@@ -16,6 +16,8 @@ If your function accesses global variables not provided through its arguments, t
 $some_global_number = 10;
 
 function add($a, $b) {
+    global $some_global_number;
+
     echo "Calling add on $a and $b...\n"; // implicit output: printing to stdout
 
     --$some_global_number; // implicit output: decrementing global variable $some_global_number
@@ -143,15 +145,22 @@ The tool exits with the highest severity level found, making it easy to integrat
 ```
 $ ./vendor/bin/explicitness-checker ./path/to/your/project
 
-Analyzing ./path/to/your/project
-
-Thinking...
+Analyzing...
 
 Results:
 
-| File | Line | Function | Implicit Inputs | Implicit Outputs |
-|------|------|----------|-----------------|------------------|
-| ./path/to/your/project/Calculator.php | 12 | add | read from global variable $some_global_number | wrote to global variable $some_global_number |
++---------------------------------------+------+----------+-----------------------------------------------+----------------------------------------------+----------+
+| File                                  | Line | Function | Implicit Inputs                               | Implicit Outputs                             | Severity |
++---------------------------------------+------+----------+-----------------------------------------------+----------------------------------------------+----------+
+| ./path/to/your/project/Calculator.php | 4    | add      | read from global variable $some_global_number | wrote to global variable $some_global_number | Serious  |
++---------------------------------------+------+----------+-----------------------------------------------+----------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
 ```
 
 ## PHPStan extension
