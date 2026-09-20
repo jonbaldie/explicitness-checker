@@ -354,6 +354,25 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    /**
+     * #27: a property hook is named after its class, property and hook kind,
+     * under the CLI's names, and `{closure}` is left to the arrow function in
+     * one of the hooks.
+     */
+    public function testPropertyHooksAreNamedAfterTheirPropertyAndHookKind(): void
+    {
+        $this->props = true;
+
+        $this->assertErrors('property-hooks.php', [
+            [15, 'objectProperty', 'App\\Sub\\Temperature::$celsius::get read from object property $this->celsius.'],
+            [17, 'objectProperty', 'App\\Sub\\Temperature::$celsius::set wrote to object property $this->celsius.'],
+            [22, 'superglobal', 'App\\Sub\\Temperature::$source::get read from superglobal $_GET.'],
+            [26, 'objectProperty', 'App\\Sub\\Temperature::$label::get read from object property $this->label.'],
+            [34, 'superglobal', '{closure} read from superglobal $_POST.'],
+            [36, 'superglobal', 'class@anonymous::$reading::get read from superglobal $_SERVER.'],
+        ]);
+    }
+
     public function testEveryErrorHasAnExplicitnessCategoryIdentifier(): void
     {
         $identifiers = [];

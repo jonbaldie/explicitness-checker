@@ -722,5 +722,29 @@
     "same-basename.file": {
         "exitCode": 2,
         "stderr": ""
+    },
+    "property-hooks.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "property-hooks.verbose": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "property-hooks.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "property-hooks.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "property-hooks.strict-props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "property-hooks.verbose-strict-props": {
+        "exitCode": 2,
+        "stderr": ""
     }
 }

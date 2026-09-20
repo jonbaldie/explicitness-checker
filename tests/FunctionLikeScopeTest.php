@@ -66,15 +66,40 @@ class FunctionLikeScopeTest extends TestCase
     }
 
     /**
+     * #27: a property hook is a function-like with a body, so it's checked on
+     * its own, named after its class, property and hook kind. `{closure}` is
+     * still only for closures and arrow functions, including those in a hook.
+     */
+    public function testPropertyHooksAreNamedAfterTheirPropertyAndHookKind(): void
+    {
+        [$exitCode, $rows] = $this->runCli('property-hooks.php', ['--props']);
+
+        self::assertSame(
+            [
+                ['15', 'App\\Sub\\Temperature::$celsius::get', 'read from object property $this->celsius', ''],
+                ['16', 'App\\Sub\\Temperature::$celsius::set', '', 'wrote to object property $this->celsius'],
+                ['22', 'App\\Sub\\Temperature::$source::get', 'read from superglobal $_GET', ''],
+                ['26', 'App\\Sub\\Temperature::$label::get', 'read from object property $this->label', ''],
+                ['33', 'class@anonymous::$reading::get', 'read from superglobal $_SERVER', ''],
+                ['34', '{closure}', 'read from superglobal $_POST', ''],
+            ],
+            $rows,
+        );
+        self::assertSame(2, $exitCode);
+    }
+
+    /**
      * Runs the CLI on a fixture and returns its exit code and table rows as
      * [line, function, implicit inputs, implicit outputs].
      *
+     * @param list<string> $flags
+     *
      * @return array{int, list<list<string>>}
      */
-    protected function runCli(string $fixture): array
+    protected function runCli(string $fixture, array $flags = []): array
     {
         $path = Process::ROOT . '/test-fixtures/' . $fixture;
-        [$exitCode, $output, $errors] = Process::cli([$path]);
+        [$exitCode, $output, $errors] = Process::cli(array_merge($flags, [$path]));
         self::assertSame('', $errors);
 
         $rows = [];

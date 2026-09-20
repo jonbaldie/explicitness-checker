@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+| File                             | Line | Function                           | Implicit Inputs                          | Implicit Outputs                        | Severity |
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+| test-fixtures/property-hooks.php | 15   | App\Sub\Temperature::$celsius::get | read from object property $this->celsius |                                         | Serious  |
+| test-fixtures/property-hooks.php | 16   | App\Sub\Temperature::$celsius::set |                                          | wrote to object property $this->celsius | Serious  |
+| test-fixtures/property-hooks.php | 22   | App\Sub\Temperature::$source::get  | read from superglobal $_GET              |                                         | Serious  |
+| test-fixtures/property-hooks.php | 26   | App\Sub\Temperature::$label::get   | read from object property $this->label   |                                         | Serious  |
+| test-fixtures/property-hooks.php | 33   | class@anonymous::$reading::get     | read from superglobal $_SERVER           |                                         | Serious  |
+| test-fixtures/property-hooks.php | 34   | {closure}                          | read from superglobal $_POST             |                                         | Serious  |
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

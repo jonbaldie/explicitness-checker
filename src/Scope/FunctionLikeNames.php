@@ -11,6 +11,7 @@ namespace JonBaldie\ExplicitnessChecker\Scope;
  * - functions: fully qualified, e.g. `App\Sub\fn`,
  * - methods: fully qualified class, e.g. `App\Sub\K::m`,
  * - methods of anonymous classes: `class@anonymous::m`,
+ * - property hooks: the property then the hook, e.g. `App\Sub\K::$p::get`,
  * - closures and arrow functions: `{closure}`.
  */
 class FunctionLikeNames
@@ -32,5 +33,16 @@ class FunctionLikeNames
     public static function method(?string $className, string $methodName): string
     {
         return ($className ?? self::ANONYMOUS_CLASS) . '::' . $methodName;
+    }
+
+    /**
+     * A property hook, named after the property it belongs to and its kind
+     * (`get` or `set`), so hooks of different properties are told apart.
+     *
+     * @param string|null $className fully qualified class name, null for an anonymous class
+     */
+    public static function hook(?string $className, string $propertyName, string $hookName): string
+    {
+        return self::method($className, '$' . $propertyName) . '::' . $hookName;
     }
 }

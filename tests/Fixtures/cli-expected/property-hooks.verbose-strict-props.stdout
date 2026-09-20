@@ -1,0 +1,42 @@
+[verbose] Starting analysis for path: test-fixtures/property-hooks.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: test-fixtures/property-hooks.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: test-fixtures/property-hooks.php
+[verbose] Analyzing function/method: App\Sub\Temperature::$celsius::get (line 15)
+[verbose]   Implicit inputs for App\Sub\Temperature::$celsius::get: read from object property $this->celsius
+[verbose] Analyzing function/method: App\Sub\Temperature::$celsius::set (line 16)
+[verbose]   Implicit outputs for App\Sub\Temperature::$celsius::set: wrote to object property $this->celsius
+[verbose] Analyzing function/method: App\Sub\Temperature::$source::get (line 22)
+[verbose]   Implicit inputs for App\Sub\Temperature::$source::get: read from superglobal $_GET
+[verbose] Analyzing function/method: App\Sub\Temperature::__construct (line 25)
+[verbose]   Parameters for App\Sub\Temperature::__construct: label
+[verbose]   No implicit inputs/outputs detected for App\Sub\Temperature::__construct
+[verbose] Analyzing function/method: App\Sub\Temperature::$label::get (line 26)
+[verbose]   Implicit inputs for App\Sub\Temperature::$label::get: read from object property $this->label
+[verbose] Analyzing function/method: class@anonymous::$reading::get (line 33)
+[verbose]   Implicit inputs for class@anonymous::$reading::get: read from superglobal $_SERVER
+[verbose] Analyzing function/method: {closure} (line 34)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
+Analyzing...
+
+Results:
+
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+| File                             | Line | Function                           | Implicit Inputs                          | Implicit Outputs                        | Severity |
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+| test-fixtures/property-hooks.php | 15   | App\Sub\Temperature::$celsius::get | read from object property $this->celsius |                                         | Serious  |
+| test-fixtures/property-hooks.php | 16   | App\Sub\Temperature::$celsius::set |                                          | wrote to object property $this->celsius | Serious  |
+| test-fixtures/property-hooks.php | 22   | App\Sub\Temperature::$source::get  | read from superglobal $_GET              |                                         | Serious  |
+| test-fixtures/property-hooks.php | 26   | App\Sub\Temperature::$label::get   | read from object property $this->label   |                                         | Serious  |
+| test-fixtures/property-hooks.php | 33   | class@anonymous::$reading::get     | read from superglobal $_SERVER           |                                         | Serious  |
+| test-fixtures/property-hooks.php | 34   | {closure}                          | read from superglobal $_POST             |                                         | Serious  |
++----------------------------------+------+------------------------------------+------------------------------------------+-----------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -1,7 +1,7 @@
 [verbose] Starting analysis for path: test-fixtures
 [verbose] Scanning directory recursively: test-fixtures
 [verbose] Excluding directories: vendor
-[verbose] Found 18 PHP file(s).
+[verbose] Found 19 PHP file(s).
 [verbose] Parsing file: test-fixtures/bad-examples.php
 [verbose] Analyzing function/method: uses_global_var (line 28)
 [verbose]   Declared globals in uses_global_var: some_global_number
@@ -104,6 +104,22 @@
 [verbose] Analyzing function/method: DynamicProperties::readsDynamicAndNestedProperties (line 48)
 [verbose]   Parameters for DynamicProperties::readsDynamicAndNestedProperties: name, other
 [verbose]   No implicit inputs/outputs detected for DynamicProperties::readsDynamicAndNestedProperties
+[verbose] Parsing file: test-fixtures/property-hooks.php
+[verbose] Analyzing function/method: App\Sub\Temperature::$celsius::get (line 15)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Temperature::$celsius::get
+[verbose] Analyzing function/method: App\Sub\Temperature::$celsius::set (line 16)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Temperature::$celsius::set
+[verbose] Analyzing function/method: App\Sub\Temperature::$source::get (line 22)
+[verbose]   Implicit inputs for App\Sub\Temperature::$source::get: read from superglobal $_GET
+[verbose] Analyzing function/method: App\Sub\Temperature::__construct (line 25)
+[verbose]   Parameters for App\Sub\Temperature::__construct: label
+[verbose]   No implicit inputs/outputs detected for App\Sub\Temperature::__construct
+[verbose] Analyzing function/method: App\Sub\Temperature::$label::get (line 26)
+[verbose]   No implicit inputs/outputs detected for App\Sub\Temperature::$label::get
+[verbose] Analyzing function/method: class@anonymous::$reading::get (line 33)
+[verbose]   Implicit inputs for class@anonymous::$reading::get: read from superglobal $_SERVER
+[verbose] Analyzing function/method: {closure} (line 34)
+[verbose]   Implicit inputs for {closure}: read from superglobal $_POST
 [verbose] Parsing file: test-fixtures/read-write-context/array-index.php
 [verbose] Analyzing function/method: indexBySuperglobal (line 6)
 [verbose]   Implicit inputs for indexBySuperglobal: read from superglobal $_GET
@@ -291,6 +307,9 @@ Results:
 | test-fixtures/env-access.php                              | 12   | writeAppEnv                              |                                                                     | wrote to superglobal $_ENV                                    | Critical |
 | test-fixtures/nested-declarations.php                     | 9    | declaresGlobalsAtSeveralDepths           | read from global variable $first; read from global variable $second |                                                               | Serious  |
 | test-fixtures/nested-declarations.php                     | 36   | HasAnonymousClass::readsGlobalAfterwards | read from global variable $counter                                  |                                                               | Serious  |
+| test-fixtures/property-hooks.php                          | 22   | App\Sub\Temperature::$source::get        | read from superglobal $_GET                                         |                                                               | Serious  |
+| test-fixtures/property-hooks.php                          | 33   | class@anonymous::$reading::get           | read from superglobal $_SERVER                                      |                                                               | Serious  |
+| test-fixtures/property-hooks.php                          | 34   | {closure}                                | read from superglobal $_POST                                        |                                                               | Serious  |
 | test-fixtures/read-write-context/array-index.php          | 6    | indexBySuperglobal                       | read from superglobal $_GET                                         |                                                               | Serious  |
 | test-fixtures/read-write-context/array-index.php          | 12   | writeGlobalAtGlobalIndex                 | read from global variable $key                                      | wrote to global variable $map                                 | Serious  |
 | test-fixtures/read-write-context/array-index.php          | 18   | nestedIndexes                            | read from superglobal $_GET; read from superglobal $_POST           | wrote to superglobal $_SESSION                                | Serious  |
@@ -326,7 +345,7 @@ Results:
 
 Summary:
   Critical violations: 2 (exit code 3)
-  Serious violations: 43 (exit code 2)
+  Serious violations: 46 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 3
 

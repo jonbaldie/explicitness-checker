@@ -39,9 +39,10 @@ Every function-like with a body is checked on its own, wherever it's declared, a
 | Function (including inside `if` blocks or other functions) | Fully qualified name, e.g. `App\Sub\send_mail` |
 | Method of a named class, trait or enum | Fully qualified class, e.g. `App\Sub\Mailer::send` |
 | Method of an anonymous class (`new class { ... }`) | `class@anonymous::send` |
+| Property hook (PHP 8.4 `get`/`set`), including on a promoted constructor parameter | Fully qualified class, property and hook, e.g. `App\Sub\Temperature::$celsius::get`, or `class@anonymous::$celsius::get` for an anonymous class |
 | Closure or arrow function | `{closure}` |
 
-Abstract and interface methods have no body and aren't checked. Rows are listed in source order.
+Abstract and interface methods, and hooks declared without a body, aren't checked. Hooks are reported even when the tool itself runs on an older PHP version. Rows are listed in source order.
 
 A function's analysis stops at any closure, arrow function, nested function or class declared inside it: code in there, including `global` declarations, belongs to that inner function-like, which gets its own row. So a closure that declares `global $x` doesn't make the enclosing function's local `$x` look like a global.
 
