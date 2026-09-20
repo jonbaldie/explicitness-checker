@@ -92,7 +92,7 @@ return $cases + [
     'include-pattern-match-file.verbose' => ['-v', '--include-pattern=env', 'test-fixtures/env-access.php'],
     'include-pattern-missing-value' => ['test-fixtures/env-access.php', '--include-pattern'],
     'include-pattern-empty' => ['--include-pattern=', 'test-fixtures/env-access.php'],
-    'include-pattern-last-wins' => ['--include-pattern=nothing', '--include-pattern=env', 'test-fixtures'],
+    'include-pattern-one-matching' => ['--include-pattern=nothing', '--include-pattern=env', 'test-fixtures'],
     'exclude-pattern-equals' => ['--exclude-pattern=read-write-context/', 'test-fixtures'],
     'exclude-pattern-separate' => ['--exclude-pattern', 'examples', 'test-fixtures'],
     'exclude-pattern-file' => ['--exclude-pattern=test-fixtures/', 'test-fixtures/env-access.php'],
@@ -103,6 +103,13 @@ return $cases + [
     'include-pattern-dir.verbose' => ['-v', '--include-pattern=nothing', 'tests/Fixtures/cli/nested'],
     'both-patterns' => ['--include-pattern=read-write-context', '--exclude-pattern=unset', 'test-fixtures'],
     'both-patterns.verbose' => ['-v', '--include-pattern=nested', '--exclude-pattern=Upper', 'tests/Fixtures/cli/nested'],
+
+    // Repeating a pattern option accumulates, like repeating --exclude (#26).
+    'include-patterns-accumulate' => ['--include-pattern=env-access', '--include-pattern=repeated-input', 'test-fixtures'],
+    'exclude-patterns-accumulate' => ['--exclude-pattern=read-write-context', '--exclude-pattern=bad-examples', 'test-fixtures'],
+    'exclude-patterns-accumulate.verbose' => ['-v', '--exclude-pattern=Upper', '--exclude-pattern=nothing', 'tests/Fixtures/cli/nested'],
+    'exclude-patterns-first-invalid' => ['--exclude-pattern=[', '--exclude-pattern=env', 'test-fixtures'],
+    'include-patterns-first-invalid' => ['--include-pattern=src/(', '--include-pattern=env', 'test-fixtures'],
 
     // Patterns that do not compile (#22).
     'include-pattern-invalid' => ['--include-pattern=src/(', 'test-fixtures'],

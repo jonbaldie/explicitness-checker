@@ -11,9 +11,10 @@ use JonBaldie\ExplicitnessChecker\Mode;
  *
  * Switches can appear anywhere. Value options take their value either after
  * "=" or as the next argument; a value option with nothing after it is
- * ignored. "--exclude" accumulates on top of the default "vendor"; for the
- * two patterns the last one given wins. The first argument that does not
- * start with "-" is the path; later ones and unknown options are ignored.
+ * ignored. Every value option accumulates: "--exclude" on top of the default
+ * "vendor", and each pattern option over its earlier occurrences. The first
+ * argument that does not start with "-" is the path; later ones and unknown
+ * options are ignored.
  */
 class ArgumentParser
 {
@@ -62,7 +63,7 @@ class ArgumentParser
             $path,
             $switches['verbose'],
             new Mode($switches['strict'], $switches['props']),
-            new FileFilter($values['--exclude'], $this->last($values['--include-pattern']), $this->last($values['--exclude-pattern'])),
+            new FileFilter($values['--exclude'], $values['--include-pattern'], $values['--exclude-pattern']),
         );
     }
 
@@ -87,13 +88,5 @@ class ArgumentParser
         }
 
         return null;
-    }
-
-    /**
-     * @param list<string> $values
-     */
-    protected function last(array $values): ?string
-    {
-        return $values === [] ? null : $values[count($values) - 1];
     }
 }

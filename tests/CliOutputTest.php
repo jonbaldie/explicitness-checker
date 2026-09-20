@@ -102,6 +102,39 @@ class CliOutputTest extends TestCase
     }
 
     /**
+     * Regression for #26: every --exclude-pattern given is applied, not just
+     * the last one, so a file matching an earlier pattern is still skipped.
+     */
+    public function testRepeatedExcludePatternsAllApply(): void
+    {
+        $files = $this->fileCells($this->runApplication(
+            ['--exclude-pattern=gen/', '--exclude-pattern=src/', 'tests/Fixtures/same-basename'],
+        ));
+
+        self::assertSame([], $files);
+    }
+
+    /**
+     * Regression for #26: every --include-pattern given is applied, so a file
+     * matching any of them is analysed.
+     */
+    public function testRepeatedIncludePatternsAllApply(): void
+    {
+        $files = $this->fileCells($this->runApplication(
+            ['--include-pattern=gen/', '--include-pattern=src/', 'tests/Fixtures/same-basename'],
+        ));
+        sort($files);
+
+        self::assertSame(
+            [
+                'tests/Fixtures/same-basename/gen/nested/Calculator.php',
+                'tests/Fixtures/same-basename/src/Calculator.php',
+            ],
+            $files,
+        );
+    }
+
+    /**
      * @param list<string> $arguments
      */
     protected function runApplication(array $arguments): string
