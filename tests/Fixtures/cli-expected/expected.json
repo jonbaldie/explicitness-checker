@@ -531,10 +531,6 @@
         "exitCode": 0,
         "stderr": ""
     },
-    "unknown-flags-ignored": {
-        "exitCode": 3,
-        "stderr": ""
-    },
     "second-path-ignored": {
         "exitCode": 3,
         "stderr": ""
@@ -745,6 +741,38 @@
     },
     "property-hooks.verbose-strict-props": {
         "exitCode": 2,
+        "stderr": ""
+    },
+    "unknown-option": {
+        "exitCode": 2,
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-option-after-path": {
+        "exitCode": 2,
+        "stderr": "Unknown option: --prop\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-option-with-value": {
+        "exitCode": 2,
+        "stderr": "Unknown option: --exlude-pattern=minor\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-short-option": {
+        "exitCode": 2,
+        "stderr": "Unknown option: -x\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-option-lone-dash": {
+        "exitCode": 2,
+        "stderr": "Unknown option: -\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-option-missing-path": {
+        "exitCode": 2,
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "unknown-option-before-invalid-pattern": {
+        "exitCode": 2,
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "known-option-value-with-dash": {
+        "exitCode": 1,
         "stderr": ""
     }
 }

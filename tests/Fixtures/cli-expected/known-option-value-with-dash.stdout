@@ -1,0 +1,16 @@
+Analyzing...
+
+Results:
+
++-----------------------------------+------+----------+-----------------+----------------------------------+----------+
+| File                              | Line | Function | Implicit Inputs | Implicit Outputs                 | Severity |
++-----------------------------------+------+----------+-----------------+----------------------------------+----------+
+| tests/Fixtures/cli/minor-only.php | 6    | greet    |                 | writes to standard output (echo) | Minor    |
++-----------------------------------+------+----------+-----------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 1 (exit code 1)
+  Exit code: 1
+
