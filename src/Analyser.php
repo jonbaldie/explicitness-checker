@@ -15,12 +15,10 @@ use PhpParser\Node;
  *
  * Shared by the CLI and the PHPStan rule. Purely syntactic, prints nothing.
  *
- * The node is expected to come from an AST that php-parser's NameResolver has
- * run over (as FunctionLikeFinder's contract requires): detectors match names
- * as PHP resolves them, so an unresolved AST yields false positives for
- * imported function calls and source-spelled names for namespaced static
- * properties, with no error. To check source or an unresolved AST, use
- * SourceChecker, which resolves names for you.
+ * Resolved-AST contract: the node must come from an AST that php-parser's
+ * NameResolver has run over, as FunctionLikeFinder's contract requires. To
+ * check source or an unresolved AST, use SourceChecker, which resolves names
+ * for you.
  */
 class Analyser
 {

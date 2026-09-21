@@ -67,8 +67,9 @@ class FileChecker
         $outputs = $result->getOutputs();
 
         $this->console->verbose("Analyzing function/method: {$name} (line {$result->getLine()})");
-        $this->verboseList("  Declared globals in {$name}: ", ', ', $result->getAnalysis()->getDeclaredGlobals());
-        $this->verboseList("  Parameters for {$name}: ", ', ', $result->getAnalysis()->getParameters());
+        $analysis = $result->getAnalysis();
+        $this->verboseList("  Declared globals in {$name}: ", ', ', $analysis->getDeclaredGlobals());
+        $this->verboseList("  Parameters for {$name}: ", ', ', $analysis->getParameters());
 
         if ($inputs === [] && $outputs === []) {
             $this->console->verbose("  No implicit inputs/outputs detected for {$name}");

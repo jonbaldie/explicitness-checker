@@ -24,8 +24,8 @@ use PHPStan\Rules\RuleErrorBuilder;
  * FunctionLikeFinder, so both tools check the same code under the same names.
  * PHPStan's scope isn't used for naming: it names anonymous classes after the
  * file path, and analyses trait methods once per using class (or not at all).
- * PHPStan's parser resolves names itself, which satisfies the resolved-AST
- * contract of FunctionLikeFinder and Analyser; SourceChecker's own resolution
+ * PHPStan's parser resolves names itself, which satisfies
+ * FunctionLikeFinder's resolved-AST contract; SourceChecker's own resolution
  * stays out of this hot path.
  *
  * @implements Rule<FileNode>
