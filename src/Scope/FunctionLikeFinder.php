@@ -12,6 +12,13 @@ use PhpParser\NodeTraverser;
  * function and method with a body wherever it's declared (inside conditional
  * blocks, anonymous classes, other function-likes, with or without a
  * namespace), plus every closure and arrow function. Source order.
+ *
+ * The AST is expected to have php-parser's NameResolver run over it first:
+ * detectors match names as PHP resolves them, so an unresolved AST yields
+ * false positives for imported function calls and source-spelled names for
+ * namespaced static properties, with no error. SourceChecker owns the
+ * resolution; the PHPStan rule receives already-resolved nodes from PHPStan's
+ * parser. To check source or an unresolved AST, use SourceChecker.
  */
 class FunctionLikeFinder
 {
