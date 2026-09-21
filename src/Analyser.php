@@ -14,6 +14,11 @@ use PhpParser\Node;
  * Finds the implicit inputs and outputs of one function-like node.
  *
  * Shared by the CLI and the PHPStan rule. Purely syntactic, prints nothing.
+ *
+ * Resolved-AST contract: the node must come from an AST that php-parser's
+ * NameResolver has run over, as FunctionLikeFinder's contract requires. To
+ * check source or an unresolved AST, use SourceChecker, which resolves names
+ * for you.
  */
 class Analyser
 {

@@ -4,31 +4,25 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
-use JonBaldie\ExplicitnessChecker\Analyser;
+use JonBaldie\ExplicitnessChecker\FunctionResult;
 use JonBaldie\ExplicitnessChecker\Mode;
-use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
-use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
+use JonBaldie\ExplicitnessChecker\SourceChecker;
 use PhpParser\Error;
-use PhpParser\Node;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
-use PhpParser\Parser;
 
 /**
  * Parses one file and checks every function-like in it, in source order.
  *
- * Detection lives in the shared Analyser; this turns its results into
- * Violations and verbose messages. Names are resolved against the namespace
- * and `use` imports as PHPStan resolves them, so the CLI and the PHPStan rule
- * report the same names. A file that fails to parse is reported on standard
- * error and skipped.
+ * Parsing, name resolution, discovery and analysis live in the shared
+ * SourceChecker; this is what remains genuinely CLI: reading the file,
+ * verbose messages, and turning results into Violations. Names are resolved
+ * against the namespace and `use` imports as PHPStan resolves them, so the
+ * CLI and the PHPStan rule report the same names. A file that fails to parse
+ * is reported on standard error and skipped.
  */
 class FileChecker
 {
     public function __construct(
-        protected Parser $parser,
-        protected Analyser $analyser,
-        protected FunctionLikeFinder $finder,
+        protected SourceChecker $sourceChecker,
         protected Console $console,
         protected Mode $mode,
     ) {
@@ -48,8 +42,7 @@ class FileChecker
         }
 
         try {
-            // Only a parser with a non-throwing error handler returns null.
-            $ast = $this->parser->parse($code) ?? [];
+            $results = $this->sourceChecker->check($code, $this->mode);
         } catch (Error $error) {
             $this->console->error("Parse error in {$file}: " . $error->getMessage() . PHP_EOL);
 
@@ -57,8 +50,8 @@ class FileChecker
         }
 
         $violations = [];
-        foreach ($this->finder->find($this->resolveNames($ast)) as $functionLike) {
-            $violation = $this->checkFunctionLike($functionLike, $file);
+        foreach ($results as $result) {
+            $violation = $this->violation($result, $file);
             if ($violation !== null) {
                 $violations[] = $violation;
             }
@@ -67,27 +60,14 @@ class FileChecker
         return $violations;
     }
 
-    /**
-     * Resolves names to fully qualified ones, as PHPStan's parser does.
-     *
-     * @param array<Node> $ast
-     *
-     * @return array<Node>
-     */
-    protected function resolveNames(array $ast): array
+    protected function violation(FunctionResult $result, string $file): ?Violation
     {
-        return (new NodeTraverser(new NameResolver()))->traverse($ast);
-    }
+        $name = $result->getName();
+        $inputs = $result->getInputs();
+        $outputs = $result->getOutputs();
 
-    protected function checkFunctionLike(CheckedFunctionLike $functionLike, string $file): ?Violation
-    {
-        $node = $functionLike->getNode();
-        $analysis = $this->analyser->analyse($node, $this->mode);
-        $name = $functionLike->getName();
-        $inputs = $analysis->getImplicitInputs();
-        $outputs = $analysis->getImplicitOutputs();
-
-        $this->console->verbose("Analyzing function/method: {$name} (line {$node->getStartLine()})");
+        $this->console->verbose("Analyzing function/method: {$name} (line {$result->getLine()})");
+        $analysis = $result->getAnalysis();
         $this->verboseList("  Declared globals in {$name}: ", ', ', $analysis->getDeclaredGlobals());
         $this->verboseList("  Parameters for {$name}: ", ', ', $analysis->getParameters());
 
@@ -96,7 +76,8 @@ class FileChecker
 
             return null;
         }
-        $violation = new Violation($file, $node->getStartLine(), $name, $inputs, $outputs);
+
+        $violation = new Violation($file, $result->getLine(), $name, $inputs, $outputs);
         $this->verboseList("  Implicit inputs for {$name}: ", '; ', $violation->getInputs());
         $this->verboseList("  Implicit outputs for {$name}: ", '; ', $violation->getOutputs());
 

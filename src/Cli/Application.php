@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
-use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Mode;
-use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
-use PhpParser\ParserFactory;
+use JonBaldie\ExplicitnessChecker\SourceChecker;
 
 /**
  * The explicitness-checker command: checks the PHP files under a path for
@@ -104,13 +102,7 @@ class Application
             return 0;
         }
 
-        $checker = new FileChecker(
-            (new ParserFactory())->createForNewestSupportedVersion(),
-            new Analyser(),
-            new FunctionLikeFinder(),
-            $console,
-            $mode,
-        );
+        $checker = new FileChecker(new SourceChecker(), $console, $mode);
         $violations = [];
         foreach ($files as $file) {
             $violations = array_merge($violations, $checker->check($file));
