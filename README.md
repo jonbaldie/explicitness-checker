@@ -82,6 +82,8 @@ composer require jonbaldie/explicitness-checker --dev
   - Implicit instance property access (`$this->property`)
   - Implicit static property access (`ClassName::$property`)
 
+Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.
+
 ### Directory and File Filtering
 
 - `--exclude=directory` or `--exclude directory`: Exclude specific directories from analysis

@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Unknown `-`-prefixed CLI options fail the run with exit code 2 instead of being ignored, so a mistyped `--strict` cannot turn the check off (#23)
+
 ## [1.0.0] - 2026-09-21
 
 First tagged release of the CLI and the PHPStan extension.
@@ -26,4 +32,5 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/jonbaldie/explicitness-checker/releases/tag/v1.0.0

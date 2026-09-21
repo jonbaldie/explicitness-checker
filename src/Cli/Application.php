@@ -35,7 +35,11 @@ class Application
      */
     public function run(array $argv): int
     {
-        $options = (new ArgumentParser())->parse($argv);
+        try {
+            $options = (new ArgumentParser())->parse($argv);
+        } catch (\InvalidArgumentException $unknownOption) {
+            return $this->usageError($unknownOption->getMessage());
+        }
         if ($options === null) {
             return $this->usageError(null);
         }

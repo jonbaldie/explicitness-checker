@@ -66,7 +66,6 @@ return $cases + [
     'non-php-file.verbose' => ['-v', 'README.md'],
 
     // Argument parsing.
-    'unknown-flags-ignored' => ['--unknown', '-x', '-', 'test-fixtures/env-access.php'],
     'second-path-ignored' => ['test-fixtures/env-access.php', 'test-fixtures/bad-examples.php'],
     'flags-after-path' => ['test-fixtures/strict-examples.php', '--strict'],
     'trailing-slash-dir' => ['-v', 'tests/Fixtures/cli/'],
@@ -118,6 +117,16 @@ return $cases + [
     'exclude-pattern-invalid' => ['--exclude-pattern=[', 'test-fixtures'],
     'both-patterns-invalid' => ['--include-pattern=src/(', '--exclude-pattern=[', 'test-fixtures'],
     'invalid-pattern-missing-path' => ['--include-pattern=src/(', 'does-not-exist'],
+
+    // Unknown options stop the run instead of being ignored (#23).
+    'unknown-option' => ['--stict', 'tests/Fixtures/cli/minor-only.php'],
+    'unknown-option-after-path' => ['tests/Fixtures/cli/minor-only.php', '--prop'],
+    'unknown-option-with-value' => ['--exlude-pattern=minor', 'tests/Fixtures/cli/minor-only.php'],
+    'unknown-short-option' => ['-x', 'tests/Fixtures/cli/minor-only.php'],
+    'unknown-option-lone-dash' => ['-', 'tests/Fixtures/cli/minor-only.php'],
+    'unknown-option-missing-path' => ['--stict'],
+    'unknown-option-before-invalid-pattern' => ['--include-pattern=src/(', '--stict', 'test-fixtures'],
+    'known-option-value-with-dash' => ['--exclude-pattern', '-nothing', '--strict', 'tests/Fixtures/cli/minor-only.php'],
 
     // Same-basename files must stay distinct in the File column (#24).
     'same-basename' => ['tests/Fixtures/same-basename'],

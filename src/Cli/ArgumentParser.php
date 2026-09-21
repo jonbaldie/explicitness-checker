@@ -13,8 +13,9 @@ use JonBaldie\ExplicitnessChecker\Mode;
  * "=" or as the next argument; a value option with nothing after it is
  * ignored. Every value option accumulates: "--exclude" on top of the default
  * "vendor", and each pattern option over its earlier occurrences. The first
- * argument that does not start with "-" is the path; later ones and unknown
- * options are ignored.
+ * argument that does not start with "-" is the path; later ones are ignored.
+ * Any other argument starting with "-" is an unknown option and stops the
+ * parse, so a mistyped flag cannot quietly change what is checked.
  */
 class ArgumentParser
 {
@@ -31,6 +32,8 @@ class ArgumentParser
      * @param list<string> $argv CLI arguments, including the script name
      *
      * @return Options|null null when no path was given
+     *
+     * @throws \InvalidArgumentException on an unknown option
      */
     public function parse(array $argv): ?Options
     {
@@ -50,9 +53,13 @@ class ArgumentParser
                 $values[$option[0]][] = $option[1];
                 continue;
             }
-            if ($path === null && !str_starts_with($argument, '-')) {
-                $path = $argument;
+            if (in_array($argument, self::VALUE_OPTIONS, true)) {
+                continue;
             }
+            if (str_starts_with($argument, '-')) {
+                throw new \InvalidArgumentException("Unknown option: {$argument}");
+            }
+            $path ??= $argument;
         }
 
         if ($path === null) {
