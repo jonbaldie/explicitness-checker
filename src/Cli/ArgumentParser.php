@@ -28,7 +28,7 @@ class ArgumentParser
         '--props' => 'props',
     ];
 
-    protected const VALUE_OPTIONS = ['--exclude', '--include-pattern', '--exclude-pattern'];
+    protected const VALUE_OPTIONS = ['--exclude', '--include-pattern', '--exclude-pattern', '--min-explicitness'];
 
     /**
      * @param list<string> $argv CLI arguments, including the script name
@@ -40,7 +40,7 @@ class ArgumentParser
     public function parse(array $argv): ?Options
     {
         $switches = ['verbose' => false, 'strict' => false, 'props' => false];
-        $values = ['--exclude' => ['vendor'], '--include-pattern' => [], '--exclude-pattern' => []];
+        $values = ['--exclude' => ['vendor'], '--include-pattern' => [], '--exclude-pattern' => [], '--min-explicitness' => []];
         $path = null;
 
         $arguments = array_slice($argv, 1);
@@ -73,7 +73,20 @@ class ArgumentParser
             $switches['verbose'],
             new Mode($switches['strict'], $switches['props']),
             new FileFilter($values['--exclude'], $values['--include-pattern'], $values['--exclude-pattern']),
+            $this->minimum($values['--min-explicitness']),
         );
+    }
+
+    /**
+     * The last --min-explicitness given, if any.
+     *
+     * @param list<string> $values
+     */
+    protected function minimum(array $values): ?ExplicitnessMinimum
+    {
+        $value = end($values);
+
+        return $value === false ? null : new ExplicitnessMinimum($value);
     }
 
     /**

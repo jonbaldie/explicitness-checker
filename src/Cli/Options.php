@@ -16,6 +16,7 @@ class Options
         protected bool $verbose,
         protected Mode $mode,
         protected FileFilter $filter,
+        protected ?ExplicitnessMinimum $minimum,
     ) {
     }
 
@@ -40,5 +41,13 @@ class Options
     public function getFilter(): FileFilter
     {
         return $this->filter;
+    }
+
+    /**
+     * The --min-explicitness threshold, or null when it wasn't given.
+     */
+    public function getMinimum(): ?ExplicitnessMinimum
+    {
+        return $this->minimum;
     }
 }

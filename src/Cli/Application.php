@@ -16,7 +16,7 @@ use JonBaldie\ExplicitnessChecker\SourceChecker;
  */
 class Application
 {
-    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n";
+    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
 
     /**
      * @param resource $stdout
@@ -51,8 +51,8 @@ class Application
 
     /**
      * Why the options cannot be used: a path that is neither a file nor a
-     * directory, or a filter value/pattern that is invalid. Null when the
-     * analysis can go ahead.
+     * directory, a filter value/pattern that is invalid, or an invalid
+     * --min-explicitness. Null when the analysis can go ahead.
      */
     protected function problem(Options $options): ?string
     {
@@ -67,7 +67,7 @@ class Application
             return $directoryError;
         }
 
-        return $filter->patternError();
+        return $filter->patternError() ?? $options->getMinimum()?->error();
     }
 
     /**
@@ -111,12 +111,14 @@ class Application
         $checker = new FileChecker(new SourceChecker(), $console, $mode);
         $violations = [];
         $hasParseErrors = false;
+        $checked = 0;
         foreach ($files as $file) {
             $result = $checker->check($file);
             $violations = array_merge($violations, $result->getViolations());
             $hasParseErrors = $hasParseErrors || $result->hasParseError();
+            $checked += $result->getChecked();
         }
 
-        return (new Report($console))->print($violations, $hasParseErrors);
+        return (new Report($console))->print($violations, $hasParseErrors, $checked, $options->getMinimum());
     }
 }

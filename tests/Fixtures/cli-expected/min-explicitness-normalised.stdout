@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++------------------------------------------------+------+---------------------------+-----------------------------+----------------------------+----------+
+| File                                           | Line | Function                  | Implicit Inputs             | Implicit Outputs           | Severity |
++------------------------------------------------+------+---------------------------+-----------------------------+----------------------------+----------+
+| tests/Fixtures/explicitness/seven-of-eight.php | 36   | readsAndWritesEnvironment | read from superglobal $_ENV | wrote to superglobal $_ENV | Critical |
++------------------------------------------------+------+---------------------------+-----------------------------+----------------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 7 of 8 (87.5%, minimum 87.5%)
+

@@ -69,7 +69,7 @@ composer require jonbaldie/explicitness-checker --dev
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] ./path/to/your/project
+./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 ### Flags
@@ -149,6 +149,26 @@ The tool categorizes violations into three severity levels:
 The tool exits with the highest severity level found, making it easy to integrate into CI pipelines with appropriate failure thresholds.
 
 If a PHP file cannot be parsed, the tool reports the parse error, continues checking the other files, and exits with at least code 2. A critical violation in another file still raises the exit code to 3.
+
+### Explicitness Percentage Gate
+
+`--min-explicitness=percent` or `--min-explicitness percent` lets a codebase pass while it still has some implicit function-likes, as long as enough of them are explicit. It's meant for adopting the tool gradually: set the minimum to where the codebase is today and raise it over time.
+
+- A function-like is explicit when it has no findings. The percentage is explicit function-likes ÷ checked function-likes × 100, in the current mode, so `--strict` and `--props` can lower it.
+- When the percentage is at or above the minimum, violations no longer set the exit code, so the run exits 0. A file that fails to parse still makes it exit at least 2: the gate waives violations, not files it couldn't check. Below the minimum, the run exits with the usual severity code. The `Exit code:` line in the summary shows the code the run actually exits with.
+- The comparison is exact: 7 of 8 is 87.5%, which meets `87.5` but not `87.51`. The displayed percentage is rounded down to one decimal place, so 2 of 3 shows as 66.6% and still meets `66.66`.
+- A run that checks no function-likes is 100% explicit, so it meets any minimum. Files that fail to read or parse count towards neither total.
+- The minimum must be a plain decimal number from 0 to 100, such as `80` or `87.5`. Anything else, including `-5`, `101`, `1e2`, `.5` and an empty value, stops the run: `Invalid --min-explicitness: <value>` and the usage line go to stderr and the exit code is 2.
+- If the flag is repeated, the last value wins. Given without a value, it's ignored.
+
+With a minimum set, the summary ends with one more line:
+
+```
+  Exit code: 0
+  Explicit function-likes: 2 of 3 (66.6%, minimum 50%)
+```
+
+On a clean run it follows `No implicit inputs or outputs found.`, without the indent.
 
 ### Example Output
 

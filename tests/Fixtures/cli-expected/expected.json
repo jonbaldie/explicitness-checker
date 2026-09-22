@@ -529,23 +529,23 @@
     },
     "no-arguments": {
         "exitCode": 2,
-        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "flags-only": {
         "exitCode": 2,
-        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "missing-path": {
         "exitCode": 2,
-        "stderr": "Path not found: does-not-exist.php\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Path not found: does-not-exist.php\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "missing-path.verbose": {
         "exitCode": 2,
-        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "empty-path": {
         "exitCode": 2,
-        "stderr": "Path not found: \nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Path not found: \nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "non-php-file": {
         "exitCode": 0,
@@ -581,7 +581,7 @@
     },
     "exclude-missing-value": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "exclude-path-prefix": {
         "exitCode": 0,
@@ -597,15 +597,15 @@
     },
     "exclude-empty": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "exclude-slash-only": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "exclude-separate-empty": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "vendor-dir-itself": {
         "exitCode": 0,
@@ -701,11 +701,11 @@
     },
     "exclude-patterns-first-invalid": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude-pattern: Compilation failed: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude-pattern: Compilation failed: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "include-patterns-first-invalid": {
         "exitCode": 2,
-        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "include-pattern-readme-example": {
         "exitCode": 3,
@@ -725,23 +725,23 @@
     },
     "include-pattern-invalid": {
         "exitCode": 2,
-        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "include-pattern-invalid.verbose": {
         "exitCode": 2,
-        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "exclude-pattern-invalid": {
         "exitCode": 2,
-        "stderr": "Invalid --exclude-pattern: Compilation failed: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --exclude-pattern: Compilation failed: missing terminating ] for character class at offset 1\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "both-patterns-invalid": {
         "exitCode": 2,
-        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 6\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "invalid-pattern-missing-path": {
         "exitCode": 2,
-        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Path not found: does-not-exist\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "same-basename": {
         "exitCode": 2,
@@ -777,31 +777,31 @@
     },
     "unknown-option": {
         "exitCode": 2,
-        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-option-after-path": {
         "exitCode": 2,
-        "stderr": "Unknown option: --prop\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: --prop\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-option-with-value": {
         "exitCode": 2,
-        "stderr": "Unknown option: --exlude-pattern=minor\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: --exlude-pattern=minor\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-short-option": {
         "exitCode": 2,
-        "stderr": "Unknown option: -x\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: -x\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-option-lone-dash": {
         "exitCode": 2,
-        "stderr": "Unknown option: -\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: -\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-option-missing-path": {
         "exitCode": 2,
-        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "unknown-option-before-invalid-pattern": {
         "exitCode": 2,
-        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+        "stderr": "Unknown option: --stict\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
     },
     "known-option-value-with-dash": {
         "exitCode": 1,
@@ -826,5 +826,125 @@
     "case-insensitive-functions.strict": {
         "exitCode": 3,
         "stderr": ""
+    },
+    "min-explicitness-met": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-unmet": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "min-explicitness-clean": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-none-checked": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-strict-boundary": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-strict-unmet": {
+        "exitCode": 1,
+        "stderr": ""
+    },
+    "min-explicitness-decimal-boundary": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-decimal-unmet": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "min-explicitness-separate-value": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-above-displayed": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-long-decimal": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-long-decimal-unmet": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "min-explicitness-normalised": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-zero": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-invalid-word": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: abc\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-negative": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: -5\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-negative-separate": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: -5\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-above-100": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: 100.5\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-101": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: 101\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-exponent": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: 1e2\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-empty": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: \nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-leading-point": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: .5\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-invalid-trailing-point": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: 50.\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-hundred-point-zero": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-invalid-trailing-newline": {
+        "exitCode": 2,
+        "stderr": "Invalid --min-explicitness: 5\n\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n"
+    },
+    "min-explicitness-missing-value": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "min-explicitness-last-wins": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-hundred-unmet": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "min-explicitness-bare-zero": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "min-explicitness-parse-error": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     }
 }
