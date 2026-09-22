@@ -28,6 +28,7 @@ class DetectorSet
         $detectors = [
             new VariableDetector($parameters, $declaredGlobals, $aliases),
             new GlobalsArrayDetector(),
+            new StaticCallDetector(),
         ];
         if ($mode->isStrict()) {
             $detectors[] = new LanguageConstructDetector();

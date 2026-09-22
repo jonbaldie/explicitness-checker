@@ -71,6 +71,44 @@ class SourceCheckerTest extends TestCase
         );
     }
 
+    /**
+     * A static call with no arguments can only get its data from outside the
+     * function's arguments. Calls that pass arguments, calls on the current
+     * class (self::, parent::, static::), calls whose class or method is
+     * named by an argument, and first-class callables (`Str::make(...)`) are
+     * not reported.
+     */
+    public function testReportsArgumentlessStaticCallsAsImplicitInputsInDefaultMode(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            namespace App;
+            function accesses_static_helper() {
+                $data = SomeClass::staticMethod();
+                return \Other\Clock::NOW() . Str::slug($data) . Str::make(...);
+            }
+            class Child extends Base {
+                public function m() { return parent::m() . self::a() . static::b(); }
+            }
+            function dynamic(string $class, string $method) { return $class::make() . SomeClass::$method(); }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['App\accesses_static_helper', 3, [
+                    'read from static method App\SomeClass::staticMethod()',
+                    'read from static method Other\Clock::NOW()',
+                ], []],
+                ['App\Child::m', 8, [], []],
+                ['App\dynamic', 10, [], []],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::STATIC_CALL, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(4, $results[0]->getInputs()[0]->getLine());
+    }
+
     public function testClassifiesExitAndDieByArgument(): void
     {
         $source = <<<'PHP'

@@ -39,6 +39,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
 
+    protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -424,6 +426,13 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [17, 'standardOutput', 'reads_random_mixed_case writes to standard output (echo).'],
             [22, 'file', 'reads_file_mixed_case reads from file (FOPEN).'],
             [23, 'standardOutput', 'reads_file_mixed_case writes to standard output (var_dump).'],
+        ]);
+    }
+
+    public function testArgumentlessStaticCallsInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::STATIC_CALL_FIXTURE, [
+            [4, 'staticCall', 'accesses_static_helper read from static method SomeClass::staticMethod().'],
         ]);
     }
 
