@@ -33,6 +33,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const EXIT_FIXTURE = Process::ROOT . '/tests/Fixtures/exit-forms.php';
 
+    protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -321,6 +323,27 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->analyse([self::FIXTURES . 'repeated-input.php'], [
             ['repeats_inputs read from superglobal $_GET.', 10],
             ['repeats_inputs wrote to global variable $counter.', 13],
+        ]);
+    }
+
+    /**
+     * #45: the PHPStan rule follows global channels through reference aliases,
+     * including rebinds and read/write operators.
+     */
+    public function testReferenceAliasesPreserveGlobalChannels(): void
+    {
+        $this->assertErrorsAtPath(self::REFERENCE_ALIAS_FIXTURE, [
+            [9, 'globalsArray', 'writeThroughAlias wrote to $GLOBALS[\'counter\'].'],
+            [15, 'globalsArray', 'readWriteThroughAlias read from $GLOBALS[\'total\'].'],
+            [15, 'globalsArray', 'readWriteThroughAlias wrote to $GLOBALS[\'total\'].'],
+            [21, 'globalsArray', 'incrementAndDecrementThroughAliases read from $GLOBALS[\'up\'].'],
+            [21, 'globalsArray', 'incrementAndDecrementThroughAliases wrote to $GLOBALS[\'up\'].'],
+            [23, 'globalsArray', 'incrementAndDecrementThroughAliases read from $GLOBALS[\'down\'].'],
+            [23, 'globalsArray', 'incrementAndDecrementThroughAliases wrote to $GLOBALS[\'down\'].'],
+            [29, 'globalsArray', 'unsetThroughAlias wrote to $GLOBALS[\'removed\'].'],
+            [36, 'globalsArray', 'rebindAlias wrote to $GLOBALS[\'second\'].'],
+            [42, 'globalsArray', 'dynamicGlobalKey wrote to $GLOBALS[$key].'],
+            [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
         ]);
     }
 

@@ -18,6 +18,7 @@ class AccessRules
     public function __construct()
     {
         $this->rules = [
+            new ReferenceAssignmentRule(),
             new AssignmentRule(),
             new CompoundAssignmentRule(),
             new IncrementDecrementRule(),

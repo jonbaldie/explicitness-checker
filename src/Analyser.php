@@ -8,6 +8,7 @@ use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
 use JonBaldie\ExplicitnessChecker\Walk\GlobalDeclarations;
+use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 use PhpParser\Node;
 
 /**
@@ -29,10 +30,12 @@ class Analyser
         $declaredGlobals = (new GlobalDeclarations())->collect($stmts);
 
         $findings = new FindingCollector();
+        $aliases = new ReferenceAliases();
         $walker = new BodyWalker(
-            (new DetectorSet())->select($parameters, $declaredGlobals, $mode),
+            (new DetectorSet())->select($parameters, $declaredGlobals, $mode, $aliases),
             new AccessRules(),
             $findings,
+            $aliases,
         );
         foreach ($stmts as $stmt) {
             $walker->walk($stmt, false);
