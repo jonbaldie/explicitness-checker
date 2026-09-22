@@ -432,27 +432,27 @@
         "stderr": ""
     },
     "parse-error.default": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "parse-error.verbose": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "parse-error.strict": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "parse-error.props": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "parse-error.strict-props": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "parse-error.verbose-strict-props": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "fixtures-dir.default": {
@@ -774,5 +774,17 @@
     "known-option-value-with-dash": {
         "exitCode": 1,
         "stderr": ""
+    },
+    "parse-error-with-clean": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error-with-minor": {
+        "exitCode": 2,
+        "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "parse-error-with-critical": {
+        "exitCode": 3,
+        "stderr": "Parse error in ./tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     }
 }

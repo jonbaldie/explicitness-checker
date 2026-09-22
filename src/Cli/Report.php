@@ -6,7 +6,8 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
 
 /**
  * Prints the results table and severity summary, and decides the exit code:
- * 0 with no violations, otherwise the exit code of the highest severity found.
+ * 0 with no violations or analysis failures, otherwise the exit code of the
+ * highest severity found, with parse failures forcing at least 2.
  */
 class Report
 {
@@ -21,15 +22,15 @@ class Report
      *
      * @return int exit code
      */
-    public function print(array $violations): int
+    public function print(array $violations, bool $hasParseErrors = false): int
     {
+        $counts = array_fill_keys(array_keys(Severity::EXIT_CODES), 0);
         if ($violations === []) {
             $this->console->out("No implicit inputs or outputs found.\n");
 
-            return 0;
+            return $this->exitCode($counts, $hasParseErrors);
         }
 
-        $counts = array_fill_keys(array_keys(Severity::EXIT_CODES), 0);
         $rows = [self::HEADERS];
         foreach ($violations as $violation) {
             $severity = $violation->getSeverity();
@@ -43,7 +44,7 @@ class Report
                 ucfirst($severity),
             ];
         }
-        $exitCode = $this->exitCode($counts);
+        $exitCode = $this->exitCode($counts, $hasParseErrors);
 
         $this->console->out("Analyzing...\n\nResults:\n\n");
         $this->printTable($rows);
@@ -59,13 +60,17 @@ class Report
     /**
      * @param array<string, int> $counts violations per severity
      */
-    protected function exitCode(array $counts): int
+    protected function exitCode(array $counts, bool $hasParseErrors = false): int
     {
         $exitCode = 0;
         foreach (Severity::EXIT_CODES as $severity => $code) {
             if ($counts[$severity] > 0) {
                 $exitCode = $code;
             }
+        }
+
+        if ($hasParseErrors) {
+            $exitCode = max($exitCode, Severity::EXIT_CODES[Severity::SERIOUS]);
         }
 
         return $exitCode;

@@ -131,4 +131,9 @@ return $cases + [
     // Same-basename files must stay distinct in the File column (#24).
     'same-basename' => ['tests/Fixtures/same-basename'],
     'same-basename.file' => ['tests/Fixtures/same-basename/src/Calculator.php'],
+
+    // A parse failure must fail the run without stopping readable files.
+    'parse-error-with-clean' => ['--include-pattern=(parse-error|minor-only)', 'tests/Fixtures/cli'],
+    'parse-error-with-minor' => ['--strict', '--include-pattern=(parse-error|minor-only)', 'tests/Fixtures/cli'],
+    'parse-error-with-critical' => ['--include-pattern=(parse-error|env-access)', '.'],
 ];

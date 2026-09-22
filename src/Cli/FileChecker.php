@@ -17,7 +17,8 @@ use PhpParser\Error;
  * verbose messages, and turning results into Violations. Names are resolved
  * against the namespace and `use` imports as PHPStan resolves them, so the
  * CLI and the PHPStan rule report the same names. A file that fails to parse
- * is reported on standard error and skipped.
+ * is reported on standard error and skipped, while its result records the
+ * failure for the caller.
  */
 class FileChecker
 {
@@ -29,16 +30,16 @@ class FileChecker
     }
 
     /**
-     * @return list<Violation>
+     * @return FileCheckResult
      */
-    public function check(string $file): array
+    public function check(string $file): FileCheckResult
     {
         $this->console->verbose("Parsing file: {$file}");
         $code = file_get_contents($file);
         if ($code === false) {
             $this->console->verbose("Failed to read file: {$file}");
 
-            return [];
+            return new FileCheckResult([], false);
         }
 
         try {
@@ -46,7 +47,7 @@ class FileChecker
         } catch (Error $error) {
             $this->console->error("Parse error in {$file}: " . $error->getMessage() . PHP_EOL);
 
-            return [];
+            return new FileCheckResult([], true);
         }
 
         $violations = [];
@@ -57,7 +58,7 @@ class FileChecker
             }
         }
 
-        return $violations;
+        return new FileCheckResult($violations, false);
     }
 
     protected function violation(FunctionResult $result, string $file): ?Violation

@@ -148,6 +148,8 @@ The tool categorizes violations into three severity levels:
 
 The tool exits with the highest severity level found, making it easy to integrate into CI pipelines with appropriate failure thresholds.
 
+If a PHP file cannot be parsed, the tool reports the parse error, continues checking the other files, and exits with at least code 2. A critical violation in another file still raises the exit code to 3.
+
 ### Example Output
 
 ```

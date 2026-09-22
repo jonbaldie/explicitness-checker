@@ -12,7 +12,7 @@ use JonBaldie\ExplicitnessChecker\SourceChecker;
  * implicit inputs and outputs, prints a report, and returns the exit code.
  *
  * Exit codes: 0 clean or no PHP files, 1 minor, 2 serious or bad usage,
- * 3 critical.
+ * parse failure, 3 critical.
  */
 class Application
 {
@@ -104,10 +104,13 @@ class Application
 
         $checker = new FileChecker(new SourceChecker(), $console, $mode);
         $violations = [];
+        $hasParseErrors = false;
         foreach ($files as $file) {
-            $violations = array_merge($violations, $checker->check($file));
+            $result = $checker->check($file);
+            $violations = array_merge($violations, $result->getViolations());
+            $hasParseErrors = $hasParseErrors || $result->hasParseError();
         }
 
-        return (new Report($console))->print($violations);
+        return (new Report($console))->print($violations, $hasParseErrors);
     }
 }
