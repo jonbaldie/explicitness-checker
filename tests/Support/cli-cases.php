@@ -59,6 +59,10 @@ foreach ($targets as $targetName => $target) {
 return $cases + [
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
 
+    // #46: PHP function names are case-insensitive, so catalogue calls written
+    // in any casing must be detected in strict mode.
+    'case-insensitive-functions.strict' => ['--strict', 'tests/Fixtures/case-insensitive-functions.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

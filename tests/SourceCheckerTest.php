@@ -128,6 +128,33 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #46: PHP function names are case-insensitive, so strict mode detects
+     * catalogue calls written in any casing, with the source spelling kept in
+     * the description. fopen's mode classification follows the same spelling.
+     */
+    public function testDetectsCatalogueCallsWhateverTheirCasing(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function writes_uppercase(): void { VAR_DUMP([1, 2]); }
+            function reads_time_mixed_case(): void { $now = Time(); echo $now; }
+            function reads_random_mixed_case(): void { $number = Rand(1, 10); echo $number; }
+            function reads_file_mixed_case(): void { $stream = FOPEN('php://memory', 'r'); var_dump($stream); }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(true, false));
+
+        self::assertSame(
+            [
+                ['writes_uppercase', 2, [], ['writes to standard output (VAR_DUMP)']],
+                ['reads_time_mixed_case', 3, ['reads system time (Time)'], ['writes to standard output (echo)']],
+                ['reads_random_mixed_case', 4, ['reads from random number generator (Rand)'], ['writes to standard output (echo)']],
+                ['reads_file_mixed_case', 5, ['reads from file (FOPEN)'], ['writes to standard output (var_dump)']],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
      * FunctionLikeFinder's and Analyser's resolved-AST contract, pinned from
      * both sides: without NameResolver, the `use function` import is mistaken
      * for the built-in and the static property keeps its source spelling; a

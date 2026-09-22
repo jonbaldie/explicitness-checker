@@ -11,8 +11,8 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
 
 /**
- * Strict mode: calls to known impure functions, matched by their literal name
- * as written (case-sensitive, leading "\" ignored).
+ * Strict mode: calls to known impure functions, matched case-insensitively as
+ * PHP function names are (leading "\" ignored).
  */
 class FunctionCallDetector implements Detector
 {
@@ -89,17 +89,18 @@ class FunctionCallDetector implements Detector
         }
 
         $name = $node->name->toString();
-        if ($name === 'fopen') {
-            $this->detectFopen($node, $findings);
+        $lowerName = strtolower($name);
+        if ($lowerName === 'fopen') {
+            $this->detectFopen($node, $name, $findings);
 
             return;
         }
 
-        if (!isset(self::CATALOGUE[$name])) {
+        if (!isset(self::CATALOGUE[$lowerName])) {
             return;
         }
 
-        [$category, $isOutput, $prefix] = self::CATALOGUE[$name];
+        [$category, $isOutput, $prefix] = self::CATALOGUE[$lowerName];
         $description = $prefix . ' (' . $name . ')';
         if ($isOutput) {
             $findings->output($description, $category, $node);
@@ -110,29 +111,29 @@ class FunctionCallDetector implements Detector
         $findings->input($description, $category, $node);
     }
 
-    protected function detectFopen(Expr\FuncCall $node, FindingCollector $findings): void
+    protected function detectFopen(Expr\FuncCall $node, string $name, FindingCollector $findings): void
     {
         $mode = $node->args[1]->value ?? null;
         if (!$mode instanceof Scalar\String_) {
-            $findings->input('reads from file (fopen)', Category::FILE, $node);
+            $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
 
             return;
         }
 
         $mode = strtolower($mode->value);
         if (str_contains($mode, '+')) {
-            $findings->input('reads from file (fopen)', Category::FILE, $node);
-            $findings->output('writes to file (fopen)', Category::FILE, $node);
+            $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
+            $findings->output('writes to file (' . $name . ')', Category::FILE, $node);
 
             return;
         }
 
         if (in_array(substr($mode, 0, 1), ['w', 'a', 'c', 'x'], true)) {
-            $findings->output('writes to file (fopen)', Category::FILE, $node);
+            $findings->output('writes to file (' . $name . ')', Category::FILE, $node);
 
             return;
         }
 
-        $findings->input('reads from file (fopen)', Category::FILE, $node);
+        $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
     }
 }

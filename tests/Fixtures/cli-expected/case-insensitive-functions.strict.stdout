@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++-----------------------------------------------+------+-------------------------+-------------------------------------------+--------------------------------------+----------+
+| File                                          | Line | Function                | Implicit Inputs                           | Implicit Outputs                     | Severity |
++-----------------------------------------------+------+-------------------------+-------------------------------------------+--------------------------------------+----------+
+| tests/Fixtures/case-insensitive-functions.php | 3    | writes_uppercase        |                                           | writes to standard output (VAR_DUMP) | Minor    |
+| tests/Fixtures/case-insensitive-functions.php | 8    | reads_time_mixed_case   | reads system time (Time)                  | writes to standard output (echo)     | Critical |
+| tests/Fixtures/case-insensitive-functions.php | 14   | reads_random_mixed_case | reads from random number generator (Rand) | writes to standard output (echo)     | Critical |
+| tests/Fixtures/case-insensitive-functions.php | 20   | reads_file_mixed_case   | reads from file (FOPEN)                   | writes to standard output (var_dump) | Critical |
++-----------------------------------------------+------+-------------------------+-------------------------------------------+--------------------------------------+----------+
+
+Summary:
+  Critical violations: 3 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 1 (exit code 1)
+  Exit code: 3
+
