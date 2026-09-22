@@ -822,5 +822,9 @@
     "exit-forms.strict": {
         "exitCode": 1,
         "stderr": ""
+    },
+    "case-insensitive-functions.strict": {
+        "exitCode": 3,
+        "stderr": ""
     }
 }

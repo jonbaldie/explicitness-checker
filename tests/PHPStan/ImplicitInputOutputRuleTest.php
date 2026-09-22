@@ -33,6 +33,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const EXIT_FIXTURE = Process::ROOT . '/tests/Fixtures/exit-forms.php';
 
+    protected const CASE_INSENSITIVE_FIXTURE = Process::ROOT . '/tests/Fixtures/case-insensitive-functions.php';
+
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
     /**
@@ -400,6 +402,26 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [60, 'standardOutput', 'qualified_die_with_status terminates the program (die).'],
             [65, 'standardOutput', 'qualified_die_with_message writes to standard output (die).'],
             [70, 'standardOutput', 'qualified_die_with_dynamic_value terminates the program (die).'],
+        ]);
+    }
+
+    /**
+     * #46: the rule follows PHP's case-insensitive function-name semantics, so
+     * catalogue calls written in any casing are reported, keeping the CLI's
+     * description spelling.
+     */
+    public function testCatalogueCallsInAnyCasingInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::CASE_INSENSITIVE_FIXTURE, [
+            [5, 'standardOutput', 'writes_uppercase writes to standard output (VAR_DUMP).'],
+            [10, 'time', 'reads_time_mixed_case reads system time (Time).'],
+            [11, 'standardOutput', 'reads_time_mixed_case writes to standard output (echo).'],
+            [16, 'random', 'reads_random_mixed_case reads from random number generator (Rand).'],
+            [17, 'standardOutput', 'reads_random_mixed_case writes to standard output (echo).'],
+            [22, 'file', 'reads_file_mixed_case reads from file (FOPEN).'],
+            [23, 'standardOutput', 'reads_file_mixed_case writes to standard output (var_dump).'],
         ]);
     }
 
