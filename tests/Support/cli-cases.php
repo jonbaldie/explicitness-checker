@@ -67,6 +67,10 @@ return $cases + [
     // in any casing must be detected in strict mode.
     'case-insensitive-functions.strict' => ['--strict', 'tests/Fixtures/case-insensitive-functions.php'],
 
+    // A static call with no arguments gets its data from outside the function's
+    // arguments, so it is an implicit input in default mode.
+    'static-call.default' => ['tests/Fixtures/static-call.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

@@ -74,7 +74,7 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Facades and helpers (`DB::`, `Log::`, `Cache::`, `env()`, `config()`, `request()`, `now()`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. A clean result covers PHP's own implicit I/O only: superglobals, `global`, `$GLOBALS`, and with `--strict` built-ins such as `getenv`, `time` and `file_get_contents`.
+- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, and with `--strict` built-ins such as `getenv`, `time` and `file_get_contents`.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -147,6 +147,7 @@ The tool categorizes violations into three severity levels:
 - **Serious** (Exit code 2): Global state access and property violations
   - Global variables (`global`, `$GLOBALS`)
   - Superglobals (`$_GET`, `$_POST`, `$_SESSION`, etc.)
+  - Static method calls with no arguments (`ClassName::method()`)
   - Property access (`$this->property`, `ClassName::$property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
   - File operations (`file_get_contents`, `fwrite`, etc.)
@@ -259,6 +260,7 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Global variable (`global $x`) | `explicitness.globalVariable` | default |
 | Superglobal (`$_GET`, `$_ENV`, etc.) | `explicitness.superglobal` | default |
 | `$GLOBALS` array | `explicitness.globalsArray` | default |
+| Static method call with no arguments (`ClassName::method()`, not `self::`, `parent::` or `static::`) | `explicitness.staticCall` | default |
 | Standard output (`echo`, `print`, `var_dump`, ...) | `explicitness.standardOutput` | `strict` |
 | File I/O (`file_get_contents`, `fwrite`, ...) | `explicitness.file` | `strict` |
 | File system checks (`file_exists`, `is_dir`, ...) | `explicitness.fileSystem` | `strict` |

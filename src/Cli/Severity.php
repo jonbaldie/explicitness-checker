@@ -14,7 +14,7 @@ class Severity
 {
     /** Exit code 1: echo, print, etc. */
     public const MINOR = 'minor';
-    /** Exit code 2: globals, superglobals, properties. */
+    /** Exit code 2: globals, superglobals, properties, static calls. */
     public const SERIOUS = 'serious';
     /** Exit code 3: file I/O, time, random, etc. */
     public const CRITICAL = 'critical';
@@ -34,6 +34,7 @@ class Severity
         Category::GLOBALS_ARRAY => self::SERIOUS,
         Category::OBJECT_PROPERTY => self::SERIOUS,
         Category::STATIC_PROPERTY => self::SERIOUS,
+        Category::STATIC_CALL => self::SERIOUS,
         Category::FILE => self::CRITICAL,
         Category::FILE_SYSTEM => self::CRITICAL,
         Category::ENVIRONMENT => self::CRITICAL,

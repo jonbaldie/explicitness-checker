@@ -25,6 +25,7 @@ class Category
     public const SESSION = 'session';
     public const OBJECT_PROPERTY = 'objectProperty';
     public const STATIC_PROPERTY = 'staticProperty';
+    public const STATIC_CALL = 'staticCall';
 
     public const ALL = [
         self::GLOBAL_VARIABLE,
@@ -41,5 +42,6 @@ class Category
         self::SESSION,
         self::OBJECT_PROPERTY,
         self::STATIC_PROPERTY,
+        self::STATIC_CALL,
     ];
 }
