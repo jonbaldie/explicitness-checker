@@ -8,7 +8,8 @@ declare(strict_types=1);
  *
  * Usage:
  *   explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir]
- *     [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project
+ *     [--include-pattern=pattern] [--exclude-pattern=pattern]
+ *     [--min-explicitness=percent] /path/to/project
  *
  * The command lives in JonBaldie\ExplicitnessChecker\Cli\Application; this
  * script only finds the autoloader and hands over the arguments.

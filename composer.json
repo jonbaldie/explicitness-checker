@@ -56,6 +56,7 @@
     "phpstan": "phpstan analyse",
     "phpmd": "phpmd bin/explicitness-checker,src text phpmd.xml --suffixes php,",
     "standards": "php tools/check-standards.php",
+    "explicitness": "bin/explicitness-checker src",
     "infection": [
       "sh tools/install-infection.sh",
       "rm -f build/infection.json",

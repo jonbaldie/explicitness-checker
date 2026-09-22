@@ -15,6 +15,7 @@ class FileCheckResult
     public function __construct(
         protected array $violations,
         protected bool $parseError,
+        protected int $checked,
     ) {
     }
 
@@ -29,5 +30,14 @@ class FileCheckResult
     public function hasParseError(): bool
     {
         return $this->parseError;
+    }
+
+    /**
+     * How many function-likes the file contained; 0 when it could not be
+     * read or parsed.
+     */
+    public function getChecked(): int
+    {
+        return $this->checked;
     }
 }

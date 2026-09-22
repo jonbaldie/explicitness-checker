@@ -8,6 +8,9 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
  * Prints the results table and severity summary, and decides the exit code:
  * 0 with no violations or analysis failures, otherwise the exit code of the
  * highest severity found, with parse failures forcing at least 2.
+ * With a --min-explicitness threshold it also prints the percentage of checked
+ * function-likes that are explicit, and when that meets the threshold the
+ * violations no longer set the exit code; parse failures still do.
  */
 class Report
 {
@@ -19,14 +22,18 @@ class Report
 
     /**
      * @param list<Violation> $violations
+     * @param int             $checked    how many function-likes were checked
      *
      * @return int exit code
      */
-    public function print(array $violations, bool $hasParseErrors = false): int
+    public function print(array $violations, bool $hasParseErrors, int $checked, ?ExplicitnessMinimum $minimum): int
     {
         $counts = array_fill_keys(array_keys(Severity::EXIT_CODES), 0);
         if ($violations === []) {
             $this->console->out("No implicit inputs or outputs found.\n");
+            if ($minimum !== null) {
+                $this->console->out($this->explicitness($checked, $checked, $minimum) . "\n");
+            }
 
             return $this->exitCode($counts, $hasParseErrors);
         }
@@ -44,7 +51,11 @@ class Report
                 ucfirst($severity),
             ];
         }
+        $explicit = $checked - count($violations);
         $exitCode = $this->exitCode($counts, $hasParseErrors);
+        if ($minimum !== null && $minimum->isMetBy($explicit, $checked)) {
+            $exitCode = $this->exitCode(array_fill_keys(array_keys(Severity::EXIT_CODES), 0), $hasParseErrors);
+        }
 
         $this->console->out("Analyzing...\n\nResults:\n\n");
         $this->printTable($rows);
@@ -52,9 +63,31 @@ class Report
         foreach (array_reverse(Severity::EXIT_CODES, true) as $severity => $code) {
             $this->console->out('  ' . ucfirst($severity) . " violations: {$counts[$severity]} (exit code {$code})\n");
         }
-        $this->console->out("  Exit code: {$exitCode}\n\n");
+        $this->console->out("  Exit code: {$exitCode}\n");
+        if ($minimum !== null) {
+            $this->console->out('  ' . $this->explicitness($explicit, $checked, $minimum) . "\n");
+        }
+        $this->console->out("\n");
 
         return $exitCode;
+    }
+
+    /**
+     * E.g. "Explicit function-likes: 2 of 3 (66.6%, minimum 50%)". The
+     * percentage is rounded down to one decimal place; checking nothing is 100%.
+     */
+    protected function explicitness(int $explicit, int $checked, ExplicitnessMinimum $minimum): string
+    {
+        $tenths = $checked === 0 ? 1000 : intdiv(1000 * $explicit, $checked);
+
+        return sprintf(
+            'Explicit function-likes: %d of %d (%d.%d%%, minimum %s%%)',
+            $explicit,
+            $checked,
+            intdiv($tenths, 10),
+            $tenths % 10,
+            $minimum,
+        );
     }
 
     /**

@@ -4,7 +4,7 @@ A PHP command-line tool (`bin/explicitness-checker`) that uses `nikic/php-parser
 
 ## Verification
 
-CI in `.github/workflows/` defines the required checks, which enforce `CODING_STANDARDS.md`: PHPStan at level max (`composer phpstan`), PHPMD (`composer phpmd`), protected over private and no mocks in tests (`composer standards`), PHPUnit (`composer test`), and Infection with MSI >= 60, covered MSI >= 80 and no skipped mutants (`composer infection`, needs pcov or xdebug). CLI output is pinned by the golden cases in `tests/Support/cli-cases.php`. Run the same commands locally before opening a PR.
+CI in `.github/workflows/` defines the required checks, which enforce `CODING_STANDARDS.md`: PHPStan at level max (`composer phpstan`), PHPMD (`composer phpmd`), protected over private and no mocks in tests (`composer standards`), the checker on its own `src` in default mode (`composer explicitness`), PHPUnit (`composer test`), and Infection with MSI >= 60, covered MSI >= 80 and no skipped mutants (`composer infection`, needs pcov or xdebug). CLI output is pinned by the golden cases in `tests/Support/cli-cases.php`. Run the same commands locally before opening a PR.
 
 ## Exploratory testing
 

@@ -50,6 +50,9 @@ jobs:
       - name: Check protected over private, and no mocks in tests
         run: composer standards
 
+      - name: Check src for implicit inputs and outputs (default mode)
+        run: composer explicitness
+
   mutation:
     name: Mutation Testing
     runs-on: ubuntu-latest
