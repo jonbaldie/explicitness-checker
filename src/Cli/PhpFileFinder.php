@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use RecursiveArrayIterator;
 use RecursiveDirectoryIterator;
+use RecursiveIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use UnexpectedValueException;
 
 /**
  * Finds the PHP files to check under a path, applying the FileFilter.
@@ -61,7 +64,7 @@ class PhpFileFinder
         }
 
         $found = [];
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS));
+        $files = new SafeRecursiveIteratorIterator($this->createDirectoryIterator($path), $this->console);
         foreach ($files as $file) {
             if ($file instanceof SplFileInfo && $file->isFile() && $this->accepts($file)) {
                 $found[] = $file->getPathname();
@@ -70,6 +73,20 @@ class PhpFileFinder
         sort($found, SORT_STRING);
 
         return $found;
+    }
+
+    /**
+     * @return RecursiveIterator<mixed, mixed>
+     */
+    protected function createDirectoryIterator(string $path): RecursiveIterator
+    {
+        try {
+            return new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
+        } catch (UnexpectedValueException) {
+            $this->console->error("Cannot read directory: {$path}" . PHP_EOL);
+
+            return new RecursiveArrayIterator([]);
+        }
     }
 
     protected function accepts(SplFileInfo $file): bool
