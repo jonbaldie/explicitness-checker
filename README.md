@@ -138,6 +138,8 @@ Any other argument starting with `-` is an unknown option. It stops the run befo
 ./vendor/bin/explicitness-checker --exclude-pattern=".*Test\.php$" --exclude-pattern="/generated/" ./project
 ```
 
+**Functional core, imperative shell.** To exempt console commands, controllers or other shells while still checking the core logic they call, in either the CLI or PHPStan, see [docs/functional-core-imperative-shell.md](docs/functional-core-imperative-shell.md).
+
 ### Severity Levels and Exit Codes
 
 The tool categorizes violations into three severity levels:
