@@ -89,6 +89,26 @@ class FunctionLikeScopeTest extends TestCase
     }
 
     /**
+     * #47: anonymous classes nested in different named classes need distinct
+     * names for both methods and property hooks.
+     */
+    public function testNestedAnonymousClassesKeepTheirNamedEnclosingClass(): void
+    {
+        [$exitCode, $rows] = $this->runFile(Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php');
+
+        self::assertSame(
+            [
+                ['10', 'App\\ServiceA::class@anonymous::send', 'read from superglobal $_GET', ''],
+                ['16', 'App\\ServiceA::class@anonymous::$value::get', 'read from superglobal $_GET', ''],
+                ['27', 'App\\ServiceB::class@anonymous::send', 'read from superglobal $_GET', ''],
+                ['33', 'App\\ServiceB::class@anonymous::$value::get', 'read from superglobal $_GET', ''],
+            ],
+            $rows,
+        );
+        self::assertSame(2, $exitCode);
+    }
+
+    /**
      * Runs the CLI on a fixture and returns its exit code and table rows as
      * [line, function, implicit inputs, implicit outputs].
      *
@@ -99,6 +119,16 @@ class FunctionLikeScopeTest extends TestCase
     protected function runCli(string $fixture, array $flags = []): array
     {
         $path = Process::ROOT . '/test-fixtures/' . $fixture;
+        return $this->runFile($path, $flags);
+    }
+
+    /**
+     * @param list<string> $flags
+     *
+     * @return array{int, list<list<string>>}
+     */
+    protected function runFile(string $path, array $flags = []): array
+    {
         [$exitCode, $output, $errors] = Process::cli(array_merge($flags, [$path]));
         self::assertSame('', $errors);
 

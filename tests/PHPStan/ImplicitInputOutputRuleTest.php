@@ -37,6 +37,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
+    protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -457,6 +459,20 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [26, 'objectProperty', 'App\\Sub\\Temperature::$label::get read from object property $this->label.'],
             [34, 'superglobal', '{closure} read from superglobal $_POST.'],
             [36, 'superglobal', 'class@anonymous::$reading::get read from superglobal $_SERVER.'],
+        ]);
+    }
+
+    /**
+     * #47: nested anonymous classes retain their named enclosing class for
+     * methods and property hooks.
+     */
+    public function testNestedAnonymousClassesUseTheirNamedEnclosingClass(): void
+    {
+        $this->assertErrorsAtPath(self::NESTED_ANONYMOUS_FIXTURE, [
+            [12, 'superglobal', 'App\\ServiceA::class@anonymous::send read from superglobal $_GET.'],
+            [16, 'superglobal', 'App\\ServiceA::class@anonymous::$value::get read from superglobal $_GET.'],
+            [29, 'superglobal', 'App\\ServiceB::class@anonymous::send read from superglobal $_GET.'],
+            [33, 'superglobal', 'App\\ServiceB::class@anonymous::$value::get read from superglobal $_GET.'],
         ]);
     }
 

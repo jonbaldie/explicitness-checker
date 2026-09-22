@@ -823,6 +823,10 @@
         "exitCode": 1,
         "stderr": ""
     },
+    "nested-anonymous-classes": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "case-insensitive-functions.strict": {
         "exitCode": 3,
         "stderr": ""
