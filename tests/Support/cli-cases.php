@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

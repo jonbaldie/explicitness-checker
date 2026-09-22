@@ -31,6 +31,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const FOPEN_FIXTURE = Process::ROOT . '/tests/Fixtures/fopen-modes.php';
 
+    protected const EXIT_FIXTURE = Process::ROOT . '/tests/Fixtures/exit-forms.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -346,13 +348,35 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     /**
      * `\exit()` and `\die()` parse as function calls, not language constructs.
      */
-    public function testFullyQualifiedExitAndDieAreStandardOutputInStrictMode(): void
+    public function testFullyQualifiedExitAndDieUseTheirArgumentSemanticsInStrictMode(): void
     {
         $this->strict = true;
 
         $this->assertErrors('fully-qualified-exit.php', [
-            [11, 'standardOutput', 'quits_as_a_function writes to standard output (exit).'],
+            [11, 'standardOutput', 'quits_as_a_function terminates the program (exit).'],
             [16, 'standardOutput', 'dies_as_a_function writes to standard output (die).'],
+        ]);
+    }
+
+    public function testExitAndDieArgumentSemanticsInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::EXIT_FIXTURE, [
+            [5, 'standardOutput', 'exit_with_status terminates the program (exit).'],
+            [10, 'standardOutput', 'exit_without_status terminates the program (exit).'],
+            [15, 'standardOutput', 'exit_with_message writes to standard output (exit).'],
+            [20, 'standardOutput', 'exit_with_dynamic_value terminates the program (exit).'],
+            [25, 'standardOutput', 'die_with_status terminates the program (die).'],
+            [30, 'standardOutput', 'die_without_status terminates the program (die).'],
+            [35, 'standardOutput', 'die_with_message writes to standard output (die).'],
+            [40, 'standardOutput', 'die_with_dynamic_value terminates the program (die).'],
+            [45, 'standardOutput', 'qualified_exit_with_status terminates the program (exit).'],
+            [50, 'standardOutput', 'qualified_exit_with_message writes to standard output (exit).'],
+            [55, 'standardOutput', 'qualified_exit_with_dynamic_value terminates the program (exit).'],
+            [60, 'standardOutput', 'qualified_die_with_status terminates the program (die).'],
+            [65, 'standardOutput', 'qualified_die_with_message writes to standard output (die).'],
+            [70, 'standardOutput', 'qualified_die_with_dynamic_value terminates the program (die).'],
         ]);
     }
 

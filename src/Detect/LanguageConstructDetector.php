@@ -11,14 +11,13 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
 /**
- * Strict mode: `echo`, `print` and `exit`/`die` write to standard output.
+ * Strict mode: `echo` and `print` write to standard output.
  */
 class LanguageConstructDetector implements Detector
 {
     protected const CONSTRUCTS = [
         Stmt\Echo_::class => 'echo',
         Expr\Print_::class => 'print',
-        Expr\Exit_::class => 'exit',
     ];
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void

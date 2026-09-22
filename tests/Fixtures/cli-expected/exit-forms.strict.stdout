@@ -1,0 +1,29 @@
+Analyzing...
+
+Results:
+
++-------------------------------+------+-----------------------------------+-----------------+----------------------------------+----------+
+| File                          | Line | Function                          | Implicit Inputs | Implicit Outputs                 | Severity |
++-------------------------------+------+-----------------------------------+-----------------+----------------------------------+----------+
+| tests/Fixtures/exit-forms.php | 3    | exit_with_status                  |                 | terminates the program (exit)    | Minor    |
+| tests/Fixtures/exit-forms.php | 8    | exit_without_status               |                 | terminates the program (exit)    | Minor    |
+| tests/Fixtures/exit-forms.php | 13   | exit_with_message                 |                 | writes to standard output (exit) | Minor    |
+| tests/Fixtures/exit-forms.php | 18   | exit_with_dynamic_value           |                 | terminates the program (exit)    | Minor    |
+| tests/Fixtures/exit-forms.php | 23   | die_with_status                   |                 | terminates the program (die)     | Minor    |
+| tests/Fixtures/exit-forms.php | 28   | die_without_status                |                 | terminates the program (die)     | Minor    |
+| tests/Fixtures/exit-forms.php | 33   | die_with_message                  |                 | writes to standard output (die)  | Minor    |
+| tests/Fixtures/exit-forms.php | 38   | die_with_dynamic_value            |                 | terminates the program (die)     | Minor    |
+| tests/Fixtures/exit-forms.php | 43   | qualified_exit_with_status        |                 | terminates the program (exit)    | Minor    |
+| tests/Fixtures/exit-forms.php | 48   | qualified_exit_with_message       |                 | writes to standard output (exit) | Minor    |
+| tests/Fixtures/exit-forms.php | 53   | qualified_exit_with_dynamic_value |                 | terminates the program (exit)    | Minor    |
+| tests/Fixtures/exit-forms.php | 58   | qualified_die_with_status         |                 | terminates the program (die)     | Minor    |
+| tests/Fixtures/exit-forms.php | 63   | qualified_die_with_message        |                 | writes to standard output (die)  | Minor    |
+| tests/Fixtures/exit-forms.php | 68   | qualified_die_with_dynamic_value  |                 | terminates the program (die)     | Minor    |
++-------------------------------+------+-----------------------------------+-----------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 14 (exit code 1)
+  Exit code: 1
+

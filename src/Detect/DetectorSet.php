@@ -25,6 +25,7 @@ class DetectorSet
         ];
         if ($mode->isStrict()) {
             $detectors[] = new LanguageConstructDetector();
+            $detectors[] = new ExitDetector();
             $detectors[] = new FunctionCallDetector();
         }
         if ($mode->isProps()) {
