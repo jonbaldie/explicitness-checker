@@ -15,6 +15,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ReadWriteContextTest extends TestCase
 {
+    protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
+
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -80,14 +82,49 @@ class ReadWriteContextTest extends TestCase
     }
 
     /**
+     * #45: writes through a local reference to a globals-array entry remain
+     * writes to that entry.
+     */
+    public function testReferenceAliasToGlobalsArrayEntryIsAWrite(): void
+    {
+        self::assertSame(
+            [
+                'writeThroughAlias' => ['', "wrote to \$GLOBALS['counter']"],
+                'readWriteThroughAlias' => [
+                    "read from \$GLOBALS['total']",
+                    "wrote to \$GLOBALS['total']",
+                ],
+                'incrementAndDecrementThroughAliases' => [
+                    "read from \$GLOBALS['up']; read from \$GLOBALS['down']",
+                    "wrote to \$GLOBALS['up']; wrote to \$GLOBALS['down']",
+                ],
+                'unsetThroughAlias' => ['', "wrote to \$GLOBALS['removed']"],
+                'rebindAlias' => ['', "wrote to \$GLOBALS['second']"],
+                'dynamicGlobalKey' => ['', 'wrote to $GLOBALS[$key]'],
+                'nonGlobalsReference' => ['read from superglobal $_SESSION', ''],
+            ],
+            $this->reportedRowsAtPath(self::REFERENCE_ALIAS_FIXTURE, ['--strict', '--props']),
+        );
+    }
+
+    /**
      * Runs the CLI with --props on the fixture and returns its result rows.
      *
      * @return array<string, array{string, string}> function name => [inputs, outputs]
      */
     protected function reportedRows(string $fixture): array
     {
-        $path = Process::ROOT . '/test-fixtures/read-write-context/' . $fixture;
-        [, $output, $errors] = Process::cli(['--props', $path]);
+        return $this->reportedRowsAtPath(Process::ROOT . '/test-fixtures/read-write-context/' . $fixture);
+    }
+
+    /**
+     * @param list<string> $flags
+     *
+     * @return array<string, array{string, string}> function name => [inputs, outputs]
+     */
+    protected function reportedRowsAtPath(string $path, array $flags = ['--props']): array
+    {
+        [, $output, $errors] = Process::cli(array_merge($flags, [$path]));
         self::assertSame('', $errors);
 
         $rows = [];

@@ -29,18 +29,31 @@ class GlobalsArrayDetector implements Detector
             && $node->var->name === 'GLOBALS';
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    /**
+     * Returns the subject used in a finding for a `$GLOBALS[...]` fetch.
+     */
+    public static function subjectOf(Node $node): ?string
     {
         if (!self::isGlobalsFetch($node)) {
+            return null;
+        }
+
+        $key = self::keyToString($node->dim);
+
+        return $key === null ? '$GLOBALS' : '$GLOBALS[' . $key . ']';
+    }
+
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    {
+        $subject = self::subjectOf($node);
+        if ($subject === null) {
             return;
         }
 
-        $key = $this->keyToString($node->dim);
-        $subject = $key === null ? '$GLOBALS' : '$GLOBALS[' . $key . ']';
         $findings->access($isWrite, $subject, Category::GLOBALS_ARRAY, $node);
     }
 
-    protected function keyToString(?Expr $dim): ?string
+    protected static function keyToString(?Expr $dim): ?string
     {
         if ($dim instanceof Scalar\String_) {
             return "'" . $dim->value . "'";

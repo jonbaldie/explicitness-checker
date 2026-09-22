@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Mode;
+use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 
 /**
  * Chooses the detectors for one analysis from the enabled modes.
@@ -17,10 +18,15 @@ class DetectorSet
      *
      * @return list<Detector>
      */
-    public function select(array $parameters, array $declaredGlobals, Mode $mode): array
+    public function select(
+        array $parameters,
+        array $declaredGlobals,
+        Mode $mode,
+        ReferenceAliases $aliases,
+    ): array
     {
         $detectors = [
-            new VariableDetector($parameters, $declaredGlobals),
+            new VariableDetector($parameters, $declaredGlobals, $aliases),
             new GlobalsArrayDetector(),
         ];
         if ($mode->isStrict()) {

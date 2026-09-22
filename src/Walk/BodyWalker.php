@@ -22,11 +22,14 @@ class BodyWalker
         protected array $detectors,
         protected AccessRules $rules,
         protected FindingCollector $findings,
+        protected ReferenceAliases $aliases,
     ) {
     }
 
     public function walk(Node $node, bool $isWrite): void
     {
+        $this->aliases->enter($node);
+
         foreach ($this->detectors as $detector) {
             $detector->detect($node, $isWrite, $this->findings);
         }
@@ -34,5 +37,7 @@ class BodyWalker
         foreach ($this->rules->childrenOf($node, $isWrite) as [$child, $childIsWrite]) {
             $this->walk($child, $childIsWrite);
         }
+
+        $this->aliases->leave($node);
     }
 }
