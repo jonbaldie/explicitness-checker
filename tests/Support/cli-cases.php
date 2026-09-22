@@ -77,6 +77,8 @@ return $cases + [
     'exclude-path-prefix.verbose' => ['-v', '--exclude=tests/Fixtures/cli/nested', 'tests/Fixtures/cli/nested'],
     'exclude-other-dir.verbose' => ['-v', '--exclude=nothing-here', 'tests/Fixtures/cli'],
     'exclude-empty' => ['--exclude=', 'test-fixtures'],
+    'exclude-slash-only' => ['--exclude=/', 'test-fixtures'],
+    'exclude-separate-empty' => ['--exclude', '', 'test-fixtures'],
     'vendor-dir-itself' => ['tests/Fixtures/cli/vendor'],
 
     // Include and exclude patterns (#4).

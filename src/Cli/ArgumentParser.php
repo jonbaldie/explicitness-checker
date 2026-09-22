@@ -11,9 +11,11 @@ use JonBaldie\ExplicitnessChecker\Mode;
  *
  * Switches can appear anywhere. Value options take their value either after
  * "=" or as the next argument; a value option with nothing after it is
- * ignored. Every value option accumulates: "--exclude" on top of the default
- * "vendor", and each pattern option over its earlier occurrences. The first
- * argument that does not start with "-" is the path; later ones are ignored.
+ * ignored, except for "--exclude", whose missing value is retained as empty
+ * so it can be reported as invalid usage. Every value option accumulates:
+ * "--exclude" on top of the default "vendor", and each pattern option over
+ * its earlier occurrences. The first argument that does not start with "-" is
+ * the path; later ones are ignored.
  * Any other argument starting with "-" is an unknown option and stops the
  * parse, so a mistyped flag cannot quietly change what is checked.
  */
@@ -91,6 +93,9 @@ class ArgumentParser
             }
             if ($argument === $name && $remaining !== []) {
                 return [$name, array_shift($remaining)];
+            }
+            if ($argument === $name && $name === '--exclude') {
+                return [$name, ''];
             }
         }
 

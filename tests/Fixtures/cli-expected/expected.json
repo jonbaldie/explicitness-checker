@@ -556,8 +556,8 @@
         "stderr": ""
     },
     "exclude-missing-value": {
-        "exitCode": 3,
-        "stderr": ""
+        "exitCode": 2,
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
     },
     "exclude-path-prefix": {
         "exitCode": 0,
@@ -572,8 +572,16 @@
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
     },
     "exclude-empty": {
-        "exitCode": 3,
-        "stderr": ""
+        "exitCode": 2,
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "exclude-slash-only": {
+        "exitCode": 2,
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
+    },
+    "exclude-separate-empty": {
+        "exitCode": 2,
+        "stderr": "Invalid --exclude: directory name is empty\nUsage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] /path/to/project\n"
     },
     "vendor-dir-itself": {
         "exitCode": 0,

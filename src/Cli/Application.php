@@ -51,7 +51,7 @@ class Application
 
     /**
      * Why the options cannot be used: a path that is neither a file nor a
-     * directory, or a filter pattern that does not compile. Null when the
+     * directory, or a filter value/pattern that is invalid. Null when the
      * analysis can go ahead.
      */
     protected function problem(Options $options): ?string
@@ -61,7 +61,13 @@ class Application
             return "Path not found: {$path}";
         }
 
-        return $options->getFilter()->patternError();
+        $filter = $options->getFilter();
+        $directoryError = $filter->directoryError();
+        if ($directoryError !== null) {
+            return $directoryError;
+        }
+
+        return $filter->patternError();
     }
 
     /**
