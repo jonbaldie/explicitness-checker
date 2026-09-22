@@ -27,6 +27,7 @@ $targets = [
     'bad' => 'test-fixtures/bad-examples.php',
     'good' => 'test-fixtures/good-examples.php',
     'strict-examples' => 'test-fixtures/strict-examples.php',
+    'fopen-modes' => 'tests/Fixtures/fopen-modes.php',
     'bodyless' => 'test-fixtures/bodyless-methods.php',
     'closure-global-bleed' => 'test-fixtures/closure-global-bleed.php',
     'env-access' => 'test-fixtures/env-access.php',

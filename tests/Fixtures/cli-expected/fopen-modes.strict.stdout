@@ -1,0 +1,22 @@
+Analyzing...
+
+Results:
+
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+| File                           | Line | Function         | Implicit Inputs         | Implicit Outputs       | Severity |
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+| tests/Fixtures/fopen-modes.php | 3    | fopen_read       | reads from file (fopen) |                        | Critical |
+| tests/Fixtures/fopen-modes.php | 8    | fopen_write      |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 13   | fopen_append     |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 18   | fopen_create     |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 23   | fopen_exclusive  |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 28   | fopen_read_write | reads from file (fopen) | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 33   | fopen_dynamic    | reads from file (fopen) |                        | Critical |
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+
+Summary:
+  Critical violations: 7 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

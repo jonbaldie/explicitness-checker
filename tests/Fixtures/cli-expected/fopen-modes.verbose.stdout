@@ -1,0 +1,20 @@
+[verbose] Starting analysis for path: tests/Fixtures/fopen-modes.php
+[verbose] Path is file and ends with .php: tests/Fixtures/fopen-modes.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/fopen-modes.php
+[verbose] Analyzing function/method: fopen_read (line 3)
+[verbose]   No implicit inputs/outputs detected for fopen_read
+[verbose] Analyzing function/method: fopen_write (line 8)
+[verbose]   No implicit inputs/outputs detected for fopen_write
+[verbose] Analyzing function/method: fopen_append (line 13)
+[verbose]   No implicit inputs/outputs detected for fopen_append
+[verbose] Analyzing function/method: fopen_create (line 18)
+[verbose]   No implicit inputs/outputs detected for fopen_create
+[verbose] Analyzing function/method: fopen_exclusive (line 23)
+[verbose]   No implicit inputs/outputs detected for fopen_exclusive
+[verbose] Analyzing function/method: fopen_read_write (line 28)
+[verbose]   No implicit inputs/outputs detected for fopen_read_write
+[verbose] Analyzing function/method: fopen_dynamic (line 33)
+[verbose]   Parameters for fopen_dynamic: mode
+[verbose]   No implicit inputs/outputs detected for fopen_dynamic
+No implicit inputs or outputs found.

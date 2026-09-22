@@ -29,6 +29,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 {
     protected const FIXTURES = Process::ROOT . '/test-fixtures/';
 
+    protected const FOPEN_FIXTURE = Process::ROOT . '/tests/Fixtures/fopen-modes.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -172,6 +174,22 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->strict = true;
 
         $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_STRICT_MODE);
+    }
+
+    public function testFopenModesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::FOPEN_FIXTURE, [
+            [5, 'file', 'fopen_read reads from file (fopen).'],
+            [10, 'file', 'fopen_write writes to file (fopen).'],
+            [15, 'file', 'fopen_append writes to file (fopen).'],
+            [20, 'file', 'fopen_create writes to file (fopen).'],
+            [25, 'file', 'fopen_exclusive writes to file (fopen).'],
+            [30, 'file', 'fopen_read_write reads from file (fopen).'],
+            [30, 'file', 'fopen_read_write writes to file (fopen).'],
+            [35, 'file', 'fopen_dynamic reads from file (fopen).'],
+        ]);
     }
 
     /**
@@ -407,8 +425,19 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
      */
     protected function assertErrors(string $fixture, array $expected): void
     {
+        $this->assertErrorsAtPath(self::FIXTURES . $fixture, $expected);
+    }
+
+    /**
+     * Compares errors as `<line> <identifier> <message>`, sorted, since
+     * RuleTestCase::analyse() doesn't check identifiers.
+     *
+     * @param list<array{int, string, string}> $expected [line, category, message]
+     */
+    protected function assertErrorsAtPath(string $path, array $expected): void
+    {
         $actual = [];
-        foreach ($this->gatherAnalyserErrors([self::FIXTURES . $fixture]) as $error) {
+        foreach ($this->gatherAnalyserErrors([$path]) as $error) {
             $actual[] = sprintf('%d %s %s', (int) $error->getLine(), (string) $error->getIdentifier(), $error->getMessage());
         }
         sort($actual);
