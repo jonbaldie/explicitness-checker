@@ -88,9 +88,29 @@ class FunctionLikeCollector extends NodeVisitorAbstract
             return FunctionLikeNames::qualify($this->namespace, $node->name->toString());
         }
         if ($node instanceof Stmt\ClassMethod) {
-            return FunctionLikeNames::method(end($this->classes) ?: null, $node->name->toString());
+            return FunctionLikeNames::method($this->className(), $node->name->toString());
         }
 
-        return $this->properties->hookName($node, end($this->classes) ?: null) ?? FunctionLikeNames::CLOSURE;
+        return $this->properties->hookName($node, $this->className()) ?? FunctionLikeNames::CLOSURE;
+    }
+
+    /**
+     * The innermost class context, or the nearest named class for an
+     * anonymous class nested inside one.
+     */
+    protected function className(): ?string
+    {
+        $className = end($this->classes);
+        if ($className !== false && $className !== null) {
+            return $className;
+        }
+
+        foreach (array_reverse($this->classes) as $enclosingClassName) {
+            if ($enclosingClassName !== null) {
+                return FunctionLikeNames::nestedAnonymousClass($enclosingClassName);
+            }
+        }
+
+        return null;
     }
 }

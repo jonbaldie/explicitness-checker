@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++---------------------------------------------+------+--------------------------------------------+-----------------------------+------------------+----------+
+| File                                        | Line | Function                                   | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------+------+--------------------------------------------+-----------------------------+------------------+----------+
+| tests/Fixtures/nested-anonymous-classes.php | 10   | App\ServiceA::class@anonymous::send        | read from superglobal $_GET |                  | Serious  |
+| tests/Fixtures/nested-anonymous-classes.php | 16   | App\ServiceA::class@anonymous::$value::get | read from superglobal $_GET |                  | Serious  |
+| tests/Fixtures/nested-anonymous-classes.php | 27   | App\ServiceB::class@anonymous::send        | read from superglobal $_GET |                  | Serious  |
+| tests/Fixtures/nested-anonymous-classes.php | 33   | App\ServiceB::class@anonymous::$value::get | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------+------+--------------------------------------------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

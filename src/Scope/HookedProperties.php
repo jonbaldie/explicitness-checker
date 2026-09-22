@@ -36,7 +36,7 @@ class HookedProperties
      * The name to report a property hook under, or null if the node is not a
      * property hook.
      *
-     * @param string|null $className fully qualified class name, null for an anonymous class
+     * @param string|null $className class context, null for a top-level anonymous class
      */
     public function hookName(Node $node, ?string $className): ?string
     {

@@ -9,8 +9,8 @@
 [verbose]   No implicit inputs/outputs detected for {closure}
 [verbose] Analyzing function/method: HasAnonymousClass::makesAnonymousClass (line 27)
 [verbose]   No implicit inputs/outputs detected for HasAnonymousClass::makesAnonymousClass
-[verbose] Analyzing function/method: class@anonymous::run (line 30)
-[verbose]   No implicit inputs/outputs detected for class@anonymous::run
+[verbose] Analyzing function/method: HasAnonymousClass::class@anonymous::run (line 30)
+[verbose]   No implicit inputs/outputs detected for HasAnonymousClass::class@anonymous::run
 [verbose] Analyzing function/method: HasAnonymousClass::readsGlobalAfterwards (line 36)
 [verbose]   Declared globals in HasAnonymousClass::readsGlobalAfterwards: counter
 [verbose]   Implicit inputs for HasAnonymousClass::readsGlobalAfterwards: read from global variable $counter
