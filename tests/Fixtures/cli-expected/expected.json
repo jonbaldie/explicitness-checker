@@ -71,6 +71,30 @@
         "exitCode": 3,
         "stderr": ""
     },
+    "fopen-modes.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "fopen-modes.verbose": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "fopen-modes.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fopen-modes.props": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "fopen-modes.strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "fopen-modes.verbose-strict-props": {
+        "exitCode": 3,
+        "stderr": ""
+    },
     "bodyless.default": {
         "exitCode": 0,
         "stderr": ""

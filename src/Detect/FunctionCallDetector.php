@@ -8,6 +8,7 @@ use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Scalar;
 
 /**
  * Strict mode: calls to known impure functions, matched by their literal name
@@ -49,7 +50,6 @@ class FunctionCallDetector implements Detector
         'file_put_contents' => self::FILE_WRITE,
         'file_get_contents' => self::FILE_READ,
         'fread' => self::FILE_READ,
-        'fopen' => self::FILE_READ,
         'getenv' => [Category::ENVIRONMENT, self::INPUT, 'reads from environment variables'],
         'putenv' => [Category::ENVIRONMENT, self::OUTPUT, 'writes to environment variables'],
         'time' => self::TIME,
@@ -93,6 +93,12 @@ class FunctionCallDetector implements Detector
         }
 
         $name = $node->name->toString();
+        if ($name === 'fopen') {
+            $this->detectFopen($node, $findings);
+
+            return;
+        }
+
         if (!isset(self::CATALOGUE[$name])) {
             return;
         }
@@ -106,5 +112,31 @@ class FunctionCallDetector implements Detector
         }
 
         $findings->input($description, $category, $node);
+    }
+
+    protected function detectFopen(Expr\FuncCall $node, FindingCollector $findings): void
+    {
+        $mode = $node->args[1]->value ?? null;
+        if (!$mode instanceof Scalar\String_) {
+            $findings->input('reads from file (fopen)', Category::FILE, $node);
+
+            return;
+        }
+
+        $mode = strtolower($mode->value);
+        if (str_contains($mode, '+')) {
+            $findings->input('reads from file (fopen)', Category::FILE, $node);
+            $findings->output('writes to file (fopen)', Category::FILE, $node);
+
+            return;
+        }
+
+        if (in_array(substr($mode, 0, 1), ['w', 'a', 'c', 'x'], true)) {
+            $findings->output('writes to file (fopen)', Category::FILE, $node);
+
+            return;
+        }
+
+        $findings->input('reads from file (fopen)', Category::FILE, $node);
     }
 }

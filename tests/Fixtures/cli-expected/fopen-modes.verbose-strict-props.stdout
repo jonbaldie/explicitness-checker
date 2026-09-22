@@ -1,0 +1,44 @@
+[verbose] Starting analysis for path: tests/Fixtures/fopen-modes.php
+[verbose] Strict mode enabled.
+[verbose] Props mode enabled.
+[verbose] Path is file and ends with .php: tests/Fixtures/fopen-modes.php
+[verbose] Found 1 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/fopen-modes.php
+[verbose] Analyzing function/method: fopen_read (line 3)
+[verbose]   Implicit inputs for fopen_read: reads from file (fopen)
+[verbose] Analyzing function/method: fopen_write (line 8)
+[verbose]   Implicit outputs for fopen_write: writes to file (fopen)
+[verbose] Analyzing function/method: fopen_append (line 13)
+[verbose]   Implicit outputs for fopen_append: writes to file (fopen)
+[verbose] Analyzing function/method: fopen_create (line 18)
+[verbose]   Implicit outputs for fopen_create: writes to file (fopen)
+[verbose] Analyzing function/method: fopen_exclusive (line 23)
+[verbose]   Implicit outputs for fopen_exclusive: writes to file (fopen)
+[verbose] Analyzing function/method: fopen_read_write (line 28)
+[verbose]   Implicit inputs for fopen_read_write: reads from file (fopen)
+[verbose]   Implicit outputs for fopen_read_write: writes to file (fopen)
+[verbose] Analyzing function/method: fopen_dynamic (line 33)
+[verbose]   Parameters for fopen_dynamic: mode
+[verbose]   Implicit inputs for fopen_dynamic: reads from file (fopen)
+Analyzing...
+
+Results:
+
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+| File                           | Line | Function         | Implicit Inputs         | Implicit Outputs       | Severity |
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+| tests/Fixtures/fopen-modes.php | 3    | fopen_read       | reads from file (fopen) |                        | Critical |
+| tests/Fixtures/fopen-modes.php | 8    | fopen_write      |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 13   | fopen_append     |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 18   | fopen_create     |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 23   | fopen_exclusive  |                         | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 28   | fopen_read_write | reads from file (fopen) | writes to file (fopen) | Critical |
+| tests/Fixtures/fopen-modes.php | 33   | fopen_dynamic    | reads from file (fopen) |                        | Critical |
++--------------------------------+------+------------------+-------------------------+------------------------+----------+
+
+Summary:
+  Critical violations: 7 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
