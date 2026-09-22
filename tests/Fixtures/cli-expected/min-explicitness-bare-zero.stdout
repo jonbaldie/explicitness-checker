@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++----------------------------------------------+------+-----------+------------------------------+------------------+----------+
+| File                                         | Line | Function  | Implicit Inputs              | Implicit Outputs | Severity |
++----------------------------------------------+------+-----------+------------------------------+------------------+----------+
+| tests/Fixtures/explicitness/two-of-three.php | 16   | readsPost | read from superglobal $_POST |                  | Serious  |
++----------------------------------------------+------+-----------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 2 of 3 (66.6%, minimum 0%)
+

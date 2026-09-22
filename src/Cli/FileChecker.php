@@ -39,7 +39,7 @@ class FileChecker
         if ($code === false) {
             $this->console->verbose("Failed to read file: {$file}");
 
-            return new FileCheckResult([], false);
+            return new FileCheckResult([], false, 0);
         }
 
         try {
@@ -47,7 +47,7 @@ class FileChecker
         } catch (Error $error) {
             $this->console->error("Parse error in {$file}: " . $error->getMessage() . PHP_EOL);
 
-            return new FileCheckResult([], true);
+            return new FileCheckResult([], true, 0);
         }
 
         $violations = [];
@@ -58,7 +58,7 @@ class FileChecker
             }
         }
 
-        return new FileCheckResult($violations, false);
+        return new FileCheckResult($violations, false, count($results));
     }
 
     protected function violation(FunctionResult $result, string $file): ?Violation

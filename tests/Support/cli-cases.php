@@ -145,4 +145,43 @@ return $cases + [
     'parse-error-with-clean' => ['--include-pattern=(parse-error|minor-only)', 'tests/Fixtures/cli'],
     'parse-error-with-minor' => ['--strict', '--include-pattern=(parse-error|minor-only)', 'tests/Fixtures/cli'],
     'parse-error-with-critical' => ['--include-pattern=(parse-error|env-access)', '.'],
+    // Explicitness percentage gate (#64). two-of-three.php checks 3
+    // function-likes, 2 of them explicit.
+    'min-explicitness-met' => ['--min-explicitness=50', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-unmet' => ['--min-explicitness=70', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-clean' => ['--min-explicitness=100', 'tests/Fixtures/cli/minor-only.php'],
+    'min-explicitness-none-checked' => ['--min-explicitness=80', 'test-fixtures/bodyless-methods.php'],
+    // Under --strict, minor-only.php has 1 explicit function-like of 2.
+    'min-explicitness-strict-boundary' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/cli/minor-only.php'],
+    'min-explicitness-strict-unmet' => ['--strict', '--min-explicitness=51', 'tests/Fixtures/cli/minor-only.php'],
+    'min-explicitness-decimal-boundary' => ['--min-explicitness=87.5', 'tests/Fixtures/explicitness/seven-of-eight.php'],
+    'min-explicitness-decimal-unmet' => ['--min-explicitness=87.51', 'tests/Fixtures/explicitness/seven-of-eight.php'],
+    'min-explicitness-separate-value' => ['--min-explicitness', '87.5', 'tests/Fixtures/explicitness/seven-of-eight.php'],
+    // 2 of 3 is 66.666...%: the gate compares exactly, not the rounded-down
+    // 66.6% it prints, and not through floats.
+    'min-explicitness-above-displayed' => ['--min-explicitness=66.66', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-long-decimal' => ['--min-explicitness=66.66666666666666666666', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-long-decimal-unmet' => ['--min-explicitness=66.66666666666666666667', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-normalised' => ['--min-explicitness=087.50', 'tests/Fixtures/explicitness/seven-of-eight.php'],
+    'min-explicitness-zero' => ['--min-explicitness=00.000', 'tests/Fixtures/explicitness/seven-of-eight.php'],
+    'min-explicitness-hundred-point-zero' => ['--min-explicitness=100.0', 'tests/Fixtures/cli/minor-only.php'],
+    'min-explicitness-hundred-unmet' => ['--min-explicitness=100', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-bare-zero' => ['--min-explicitness=0', 'tests/Fixtures/explicitness/two-of-three.php'],
+    'min-explicitness-last-wins' => ['--min-explicitness=99', '--min-explicitness=50', 'tests/Fixtures/explicitness/two-of-three.php'],
+    // tests/Fixtures/cli has the same 2 of 3 plus a file that fails to parse:
+    // it counts in neither total, and a met gate still exits 2 for it.
+    'min-explicitness-parse-error' => ['--min-explicitness=50', 'tests/Fixtures/cli'],
+    // With no value the flag is ignored, as the other value flags are.
+    'min-explicitness-missing-value' => ['test-fixtures/env-access.php', '--min-explicitness'],
+    // A minimum that isn't a plain decimal number from 0 to 100 is bad usage.
+    'min-explicitness-invalid-word' => ['--min-explicitness=abc', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-negative' => ['--min-explicitness=-5', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-negative-separate' => ['--min-explicitness', '-5', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-above-100' => ['--min-explicitness=100.5', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-101' => ['--min-explicitness=101', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-exponent' => ['--min-explicitness=1e2', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-empty' => ['--min-explicitness=', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-leading-point' => ['--min-explicitness=.5', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-trailing-point' => ['--min-explicitness=50.', 'test-fixtures/env-access.php'],
+    'min-explicitness-invalid-trailing-newline' => ["--min-explicitness=5\n", 'test-fixtures/env-access.php'],
 ];
