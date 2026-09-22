@@ -818,5 +818,9 @@
     "parse-error-with-critical": {
         "exitCode": 3,
         "stderr": "Parse error in ./tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "exit-forms.strict": {
+        "exitCode": 1,
+        "stderr": ""
     }
 }

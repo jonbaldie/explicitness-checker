@@ -71,6 +71,56 @@ class SourceCheckerTest extends TestCase
         );
     }
 
+    public function testClassifiesExitAndDieByArgument(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function exit_status(): void { exit(1); }
+            function exit_without_status(): void { exit; }
+            function exit_message(): void { exit('bye'); }
+            function exit_dynamic($value): void { exit($value); }
+            function die_status(): void { die(1); }
+            function die_without_status(): void { die; }
+            function die_message(): void { die('bye'); }
+            function die_dynamic($value): void { die($value); }
+            function qualified_exit_status(): void { \exit(1); }
+            function qualified_exit_message(): void { \exit('bye'); }
+            function qualified_exit_dynamic($value): void { \exit($value); }
+            function qualified_die_status(): void { \die(1); }
+            function qualified_die_message(): void { \die('bye'); }
+            function qualified_die_dynamic($value): void { \die($value); }
+            PHP;
+
+        $results = (new SourceChecker())->check($source, new Mode(true, false));
+
+        self::assertSame(
+            [
+                ['exit_status', 'terminates the program (exit)', Category::STANDARD_OUTPUT],
+                ['exit_without_status', 'terminates the program (exit)', Category::STANDARD_OUTPUT],
+                ['exit_message', 'writes to standard output (exit)', Category::STANDARD_OUTPUT],
+                ['exit_dynamic', 'terminates the program (exit)', Category::STANDARD_OUTPUT],
+                ['die_status', 'terminates the program (die)', Category::STANDARD_OUTPUT],
+                ['die_without_status', 'terminates the program (die)', Category::STANDARD_OUTPUT],
+                ['die_message', 'writes to standard output (die)', Category::STANDARD_OUTPUT],
+                ['die_dynamic', 'terminates the program (die)', Category::STANDARD_OUTPUT],
+                ['qualified_exit_status', 'terminates the program (exit)', Category::STANDARD_OUTPUT],
+                ['qualified_exit_message', 'writes to standard output (exit)', Category::STANDARD_OUTPUT],
+                ['qualified_exit_dynamic', 'terminates the program (exit)', Category::STANDARD_OUTPUT],
+                ['qualified_die_status', 'terminates the program (die)', Category::STANDARD_OUTPUT],
+                ['qualified_die_message', 'writes to standard output (die)', Category::STANDARD_OUTPUT],
+                ['qualified_die_dynamic', 'terminates the program (die)', Category::STANDARD_OUTPUT],
+            ],
+            array_map(
+                static fn ($result): array => [
+                    $result->getName(),
+                    $result->getOutputs()[0]->getDescription(),
+                    $result->getOutputs()[0]->getCategory(),
+                ],
+                $results,
+            ),
+        );
+    }
+
     public function testThrowsOnSourceThatDoesNotParse(): void
     {
         $this->expectException(Error::class);

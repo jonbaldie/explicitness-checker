@@ -101,6 +101,37 @@ class CliOutputTest extends TestCase
         );
     }
 
+    public function testExitAndDieDescriptionsUseTheirArgumentSemantics(): void
+    {
+        $rows = [];
+        foreach (explode("\n", $this->runApplication(['--strict', 'tests/Fixtures/exit-forms.php'])) as $line) {
+            $cells = array_map('trim', explode('|', $line));
+            if (count($cells) === 8 && (str_contains($cells[3], 'exit') || str_contains($cells[3], 'die'))) {
+                $rows[$cells[3]] = [$cells[5], $cells[6]];
+            }
+        }
+
+        self::assertSame(
+            [
+                'exit_with_status' => ['terminates the program (exit)', 'Minor'],
+                'exit_without_status' => ['terminates the program (exit)', 'Minor'],
+                'exit_with_message' => ['writes to standard output (exit)', 'Minor'],
+                'exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
+                'die_with_status' => ['terminates the program (die)', 'Minor'],
+                'die_without_status' => ['terminates the program (die)', 'Minor'],
+                'die_with_message' => ['writes to standard output (die)', 'Minor'],
+                'die_with_dynamic_value' => ['terminates the program (die)', 'Minor'],
+                'qualified_exit_with_status' => ['terminates the program (exit)', 'Minor'],
+                'qualified_exit_with_message' => ['writes to standard output (exit)', 'Minor'],
+                'qualified_exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
+                'qualified_die_with_status' => ['terminates the program (die)', 'Minor'],
+                'qualified_die_with_message' => ['writes to standard output (die)', 'Minor'],
+                'qualified_die_with_dynamic_value' => ['terminates the program (die)', 'Minor'],
+            ],
+            $rows,
+        );
+    }
+
     /**
      * Regression for #26: every --exclude-pattern given is applied, not just
      * the last one, so a file matching an earlier pattern is still skipped.
