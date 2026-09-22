@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++--------------------------------+------+-------------+-----------------------------+----------------------------+----------+
+| File                           | Line | Function    | Implicit Inputs             | Implicit Outputs           | Severity |
++--------------------------------+------+-------------+-----------------------------+----------------------------+----------+
+| ./test-fixtures/env-access.php | 7    | readApiKey  | read from superglobal $_ENV |                            | Critical |
+| ./test-fixtures/env-access.php | 12   | writeAppEnv |                             | wrote to superglobal $_ENV | Critical |
++--------------------------------+------+-------------+-----------------------------+----------------------------+----------+
+
+Summary:
+  Critical violations: 2 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
