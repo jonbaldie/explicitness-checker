@@ -66,6 +66,26 @@ Install via Composer:
 composer require jonbaldie/explicitness-checker --dev
 ```
 
+### Laravel
+
+Run the checker on `app`:
+
+```bash
+./vendor/bin/explicitness-checker app
+```
+
+- **Blind spot.** Facades and helpers (`DB::`, `Log::`, `Cache::`, `env()`, `config()`, `request()`, `now()`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. A clean result covers PHP's own implicit I/O only: superglobals, `global`, `$GLOBALS`, and with `--strict` built-ins such as `getenv`, `time` and `file_get_contents`.
+- **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
+- **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
+
+  ```neon
+  includes:
+      - vendor/larastan/larastan/extension.neon
+      - vendor/jonbaldie/explicitness-checker/extension.neon
+  ```
+
+  With `phpstan/extension-installer`, delete both lines instead. The installer loads both extensions, and a file included twice makes PHPStan abort with "This file is included multiple times".
+
 ## How do I run the tool?
 
 ```bash
