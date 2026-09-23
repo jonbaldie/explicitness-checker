@@ -102,7 +102,7 @@ class ReadWriteContextTest extends TestCase
                 'rebindAlias' => ['', "wrote to \$GLOBALS['second']"],
                 'dynamicGlobalKey' => ['', 'wrote to $GLOBALS[$key]'],
                 'parameterReference' => ['', 'wrote to argument $value'],
-                'nonGlobalsReference' => ['read from superglobal $_SESSION', ''],
+                'nonGlobalsReference' => ['read from superglobal $_SESSION', 'wrote to superglobal $_SESSION'],
             ],
             $this->reportedRowsAtPath(self::REFERENCE_ALIAS_FIXTURE, ['--strict', '--props']),
         );

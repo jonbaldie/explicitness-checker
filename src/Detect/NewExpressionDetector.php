@@ -26,7 +26,7 @@ class NewExpressionDetector implements Detector
         $arguments = new CallArguments($node);
         $finding = match (strtolower($class)) {
             'datetime', 'datetimeimmutable' => $arguments->readsClock() ? ['reads system time', Category::TIME] : null,
-            'random\randomizer' => $arguments->isEmpty() ? ['reads from random number generator', Category::RANDOM] : null,
+            'random\randomizer' => $arguments->omits(0, 'engine') ? ['reads from random number generator', Category::RANDOM] : null,
             default => null,
         };
         if ($finding !== null) {

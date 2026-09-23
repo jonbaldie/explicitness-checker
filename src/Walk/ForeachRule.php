@@ -9,7 +9,9 @@ use PhpParser\Node\Stmt;
 
 /**
  * `foreach ($xs as $k => $v)`: the iterated expression is read, the key and
- * value targets are written, then the body is walked.
+ * value targets are written, then the body is walked. Iterating by reference
+ * (`as &$v`, `as [&$v]`) also writes the iterated expression, as a
+ * by-reference built-in does.
  */
 class ForeachRule implements ChildAccessRule
 {
@@ -20,6 +22,9 @@ class ForeachRule implements ChildAccessRule
         }
 
         $children = [[$node->expr, false]];
+        if ($node->byRef || ReferenceDestructuring::bindsReference($node->valueVar)) {
+            $children[] = [$node->expr, true];
+        }
         if ($node->keyVar !== null) {
             $children[] = [$node->keyVar, true];
         }

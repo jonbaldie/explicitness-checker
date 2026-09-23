@@ -368,6 +368,51 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #72: iterating by reference and binding a reference, including through
+     * a destructured `[&$x]`, hand out a writable reference, so, like a by-reference built-in, they write to the
+     * variable whichever detector owns it. By-value iteration, a by-value
+     * parameter and a local stay explicit.
+     */
+    public function testReportsByReferenceForeachAndReferenceAssignmentAsWrites(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function bump(array &$prices): void { foreach ($prices as &$p) {} }
+            function bump_nested(array &$cart): void { foreach ($cart['lines'] as $k => &$line) {} }
+            function bump_items($cart): void { foreach ($cart->items as &$item) {} }
+            function bump_copy(array $prices): void { foreach ($prices as &$p) {} }
+            function read_all(array &$prices): void { foreach ($prices as $p) {} }
+            function bump_global(): void { global $list; foreach ($list as &$v) {} }
+            function bump_static(): void { static $seen = []; foreach ($seen as &$v) {} }
+            function alias(array &$cart): void { $r = &$cart; $r[] = 1; }
+            function alias_item($cart): void { $r = &$cart->items; }
+            function alias_local(): void { $x = []; $r = &$x; }
+            function bump_pairs(array &$pairs): void { foreach ($pairs as [$k, [&$v]]) {} }
+            function bind_first(array &$pairs): void { [&$first] = $pairs; }
+            function copy_first(array &$pairs): void { [$first] = $pairs; }
+            PHP;
+
+        self::assertSame(
+            [
+                ['bump', 2, [], ['wrote to argument $prices']],
+                ['bump_nested', 3, [], ['wrote to argument $cart']],
+                ['bump_items', 4, [], ['wrote to argument $cart']],
+                ['bump_copy', 5, [], []],
+                ['read_all', 6, [], []],
+                ['bump_global', 7, ['read from global variable $list'], ['wrote to global variable $list']],
+                ['bump_static', 8, ['read from static variable $seen'], ['wrote to static variable $seen']],
+                ['alias', 9, [], ['wrote to argument $cart']],
+                ['alias_item', 10, [], ['wrote to argument $cart']],
+                ['alias_local', 11, [], []],
+                ['bump_pairs', 12, [], ['wrote to argument $pairs']],
+                ['bind_first', 13, [], ['wrote to argument $pairs']],
+                ['copy_first', 14, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
      * #72: named arguments are matched to the built-in's parameters by name,
      * so argument order doesn't hide a mutation.
      */

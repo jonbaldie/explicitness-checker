@@ -369,6 +369,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [42, 'globalsArray', 'dynamicGlobalKey wrote to $GLOBALS[$key].'],
             [54, 'argumentMutation', 'parameterReference wrote to argument $value.'],
             [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
+            [59, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
         ]);
     }
 

@@ -168,8 +168,8 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
-     * Only a clock read counts: no argument, 'now' in any case, or '', which
-     * PHP also treats as now. The class is matched by its resolved name, in
+     * Only a clock read counts: no argument, null, 'now' in any case, or '',
+     * which PHP also treats as now. The class is matched by its resolved name, in
      * any case.
      */
     public function testReportsDateTimeConstructionFromTheClock(): void
@@ -190,6 +190,9 @@ class StrictCatalogueTest extends TestCase
             "date_create('2020-01-01')" => [[], []],
             'date_create_immutable($a)' => [[], []],
             'new DateTime(timezone: $a)' => $now('DateTime'),
+            'new DateTime(null)' => $now('DateTime'),
+            'new DateTimeImmutable(datetime: null, timezone: $a)' => $now('DateTimeImmutable'),
+            'date_create_immutable(NULL)' => $now('date_create_immutable'),
             "date_create(datetime: '2020-01-01')" => [[], []],
         ]);
     }
@@ -249,7 +252,8 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
-     * A Randomizer built with an explicit engine is seeded by its caller.
+     * A Randomizer built with an explicit engine is seeded by its caller; one
+     * given null uses the default engine.
      */
     public function testReportsRandomness(): void
     {
@@ -263,6 +267,8 @@ class StrictCatalogueTest extends TestCase
             'new \\Random\\Randomizer()' => $random('Random\\Randomizer'),
             'new \\random\\randomizer' => $random('random\\randomizer'),
             'new \\Random\\Randomizer($a)' => [[], []],
+            'new \\Random\\Randomizer(null)' => $random('Random\\Randomizer'),
+            'new \\Random\\Randomizer(engine: null)' => $random('Random\\Randomizer'),
         ]);
     }
 

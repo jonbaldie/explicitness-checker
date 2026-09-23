@@ -41,13 +41,14 @@ class CallArguments
 
     /**
      * A date is built from the clock when its datetime argument is absent,
-     * 'now' in any case, or '', which PHP also reads as now.
+     * null, 'now' in any case, or '', which PHP also reads as now.
      */
     public function readsClock(): bool
     {
         $datetime = $this->value(0, 'datetime');
 
         return $datetime === null
+            || $this->isConstant($datetime, 'null')
             || ($datetime instanceof Scalar\String_ && in_array(strtolower($datetime->value), ['now', ''], true));
     }
 
