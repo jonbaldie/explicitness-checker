@@ -272,9 +272,37 @@ class SourceCheckerTest extends TestCase
         self::assertSame(
             [
                 ['write_dynamic_property', 2, ['read from global variable $name'], ['wrote to argument $o']],
-                ['write_dynamic_static_property', 3, ['read from global variable $n'], []],
+                ['write_dynamic_static_property', 3, ['read from global variable $n'], ['wrote to static property Foo::$...']],
                 ['unset_dynamic_property', 4, ['read from global variable $name'], ['wrote to argument $o']],
                 ['read_dynamic_property', 5, ['read from global variable $name'], []],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #73: static property accesses with dynamic names (`Svc::${$n}`) are
+     * reported as shared state in default mode, with `$ ...` as placeholder.
+     */
+    public function testReportsStaticPropertiesWithDynamicNames(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class Svc {
+                public function w(string $n): void { Svc::${$n} = 1; }
+                public function r(string $n): mixed { return Svc::${$n}; }
+                public function dynamicClassAndProp(string $c, string $n): void { $c::${$n} = 1; }
+                public function selfStatic(string $n): void { self::${$n} = 1; static::${$n} = 1; }
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['Svc::w', 3, [], ['wrote to static property Svc::$...']],
+                ['Svc::r', 4, ['read from static property Svc::$...'], []],
+                ['Svc::dynamicClassAndProp', 5, [], ['wrote to static property ...::$...']],
+                ['Svc::selfStatic', 6, [], ['wrote to static property self::$...', 'wrote to static property static::$...']],
             ],
             $this->summaries($results),
         );
