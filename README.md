@@ -74,7 +74,7 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, and with `--strict` built-ins such as `getenv`, `time` and `file_get_contents`.
+- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time` and `file_get_contents`.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -98,9 +98,7 @@ Run the checker on `app`:
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - File I/O operations (file_get_contents, fwrite, etc.)
   - Standard output operations (echo, print, printf, etc.)
-- `--props`: Enable implicit property access detection for object-oriented code:
-  - Implicit instance property access (`$this->property`)
-  - Implicit static property access (`ClassName::$property`)
+- `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 
 Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.
 
@@ -146,11 +144,14 @@ The tool categorizes violations into three severity levels:
 
 - **Minor** (Exit code 1): Simple output operations
   - `echo`, `print`, `var_dump`, `print_r`
-- **Serious** (Exit code 2): Global state access and property violations
+- **Serious** (Exit code 2): Shared state access
   - Global variables (`global`, `$GLOBALS`)
   - Superglobals (`$_GET`, `$_POST`, `$_SESSION`, etc.)
   - Static method calls with no arguments (`ClassName::method()`)
-  - Property access (`$this->property`, `ClassName::$property`) when `--props` is enabled
+  - Static properties (`ClassName::$property`)
+  - Writes through arguments (`$cart[] = $item` with `array &$cart`, `$product->price = 1`)
+  - `static` variables and by-reference closure captures (`use (&$x)`)
+  - Instance properties (`$this->property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
   - File operations (`file_get_contents`, `fwrite`, etc.)
   - Environment access (`getenv`, `$_ENV`)
@@ -263,6 +264,10 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Superglobal (`$_GET`, `$_ENV`, etc.) | `explicitness.superglobal` | default |
 | `$GLOBALS` array | `explicitness.globalsArray` | default |
 | Static method call with no arguments (`ClassName::method()`, not `self::`, `parent::` or `static::`) | `explicitness.staticCall` | default |
+| Static property (`ClassName::$property`) | `explicitness.staticProperty` | default |
+| Write through a by-reference parameter or an object argument's property | `explicitness.argumentMutation` | default |
+| `static` variable (`static $x`) | `explicitness.staticVariable` | default |
+| By-reference closure capture (`use (&$x)`) | `explicitness.capturedReference` | default |
 | Standard output (`echo`, `print`, `var_dump`, ...) | `explicitness.standardOutput` | `strict` |
 | File I/O (`file_get_contents`, `fwrite`, ...) | `explicitness.file` | `strict` |
 | File system checks (`file_exists`, `is_dir`, ...) | `explicitness.fileSystem` | `strict` |
@@ -273,7 +278,6 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Error log (`error_log`, `trigger_error`, ...) | `explicitness.errorLog` | `strict` |
 | Session (`session_start`, `session_id`, ...) | `explicitness.session` | `strict` |
 | Object property (`$this->property`) | `explicitness.objectProperty` | `props` |
-| Static property (`ClassName::$property`) | `explicitness.staticProperty` | `props` |
 
 ### Ignoring or baselining a category
 
@@ -293,7 +297,7 @@ To grandfather in existing violations instead, run `vendor/bin/phpstan analyse -
 
 - `explicitness.globalVariable` and `explicitness.globalsArray` overlap with that extension's default `access.global` and `modify.global` identifiers (`global $x` and `$GLOBALS[...]` access and modification).
 - `explicitness.superglobal` overlaps with its default `access.superglobal.nested` and `modify.superglobal.nested` identifiers, since this extension only ever checks function bodies, which that extension always treats as a nested scope.
-- `explicitness.staticProperty` (with `explicitness.props: true`) overlaps with its opinionated `property.static` identifier, if you've enabled that extension's opinionated rule set.
+- `explicitness.staticProperty` overlaps with its opinionated `property.static` identifier, if you've enabled that extension's opinionated rule set.
 - With `explicitness.strict: true`, `explicitness.time`, `explicitness.random`, `explicitness.environment`, `explicitness.file`, `explicitness.fileSystem`, `explicitness.httpHeaders`, `explicitness.errorLog` and `explicitness.session` overlap with its opinionated `function.impure` identifier, which reports calls to a fixed list of impure built-in functions. The lists only partly match: `function.impure` also covers functions this extension doesn't (`strtotime`, `unlink`, `exec`, ...), and doesn't cover `srand`, `mt_srand`, `setrawcookie`, `http_response_code`, `trigger_error`, `user_error` or `session_write_close`. `explicitness.standardOutput` doesn't overlap.
 
 Pick one extension as the source of truth for each pair and ignore the other's identifier for it, e.g. to keep `jonbaldie/phpstan-extension-accessing-globals` as the source of truth for global and superglobal access:

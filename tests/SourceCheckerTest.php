@@ -271,12 +271,172 @@ class SourceCheckerTest extends TestCase
 
         self::assertSame(
             [
-                ['write_dynamic_property', 2, ['read from global variable $name'], []],
+                ['write_dynamic_property', 2, ['read from global variable $name'], ['wrote to argument $o']],
                 ['write_dynamic_static_property', 3, ['read from global variable $n'], []],
-                ['unset_dynamic_property', 4, ['read from global variable $name'], []],
+                ['unset_dynamic_property', 4, ['read from global variable $name'], ['wrote to argument $o']],
                 ['read_dynamic_property', 5, ['read from global variable $name'], []],
             ],
             $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: a write through a by-reference parameter changes the caller's
+     * data. Reading it, and writing a by-value copy, stay explicit.
+     */
+    public function testReportsWritesThroughByReferenceParametersAsArgumentMutation(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function add_item(array &$cart, string $name): void { $cart[] = $name; }
+            function empty_cart(array &$cart): void { $cart = []; }
+            function count_cart(array &$cart): int { return count($cart); }
+            function set_first(array $items): array { $items[0] = 1; return $items; }
+            $append = function (array &$list) { $list[] = 1; };
+            $clear = fn (array &$list) => $list = [];
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['add_item', 2, [], ['wrote to argument $cart']],
+                ['empty_cart', 3, [], ['wrote to argument $cart']],
+                ['count_cart', 4, [], []],
+                ['set_first', 5, [], []],
+                ['{closure}', 6, [], ['wrote to argument $list']],
+                ['{closure}', 7, [], ['wrote to argument $list']],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::ARGUMENT_MUTATION, $results[0]->getOutputs()[0]->getCategory());
+        self::assertSame(2, $results[0]->getOutputs()[0]->getLine());
+    }
+
+    /**
+     * #72: an object argument is a handle the caller shares, so writing or
+     * unsetting a property reached from it changes the caller's data, however
+     * deep the property. Reading it stays explicit.
+     */
+    public function testReportsPropertyWritesThroughObjectArgumentsAsArgumentMutation(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function set_price($item, $price): void { $item->price = $price; }
+            function drop_name($user): void { unset($user->first_name); }
+            function rename_customer($order): void { $order->customer->name = 'x'; $order->customer->email = 'y'; }
+            function add_to($cart): void { $cart->items[] = 1; }
+            function reprice(array $items): void { $items[0]->price = 1; }
+            function first_name($user): string { return $user->first_name; }
+            function bump($counter): void { $counter->count++; $counter->total += 1; }
+            function local(): void { $o = new stdClass(); $o->x = 1; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['set_price', 2, [], ['wrote to argument $item']],
+                ['drop_name', 3, [], ['wrote to argument $user']],
+                ['rename_customer', 4, [], ['wrote to argument $order']],
+                ['add_to', 5, [], ['wrote to argument $cart']],
+                ['reprice', 6, [], ['wrote to argument $items']],
+                ['first_name', 7, [], []],
+                ['bump', 8, [], ['wrote to argument $counter']],
+                ['local', 9, [], []],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: a static variable survives between calls, so reading or writing it
+     * makes the result depend on earlier calls. The declaration itself is
+     * neither, but its initial value is read.
+     */
+    public function testReportsStaticVariablesAsReadAndWritten(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function next_id(): int { static $id = 0; return ++$id; }
+            function declares_only(): void { static $x = 0; }
+            function reads_only(): int { static $x = 0; return $x; }
+            function pair(): void { static $a, $b = 1; $a = $b; }
+            function cache($key) { static $cache; return $cache[$key] ??= $key; }
+            function initialised(): void { global $seed; static $x = $seed; }
+            function outer(): void { $f = function () { static $n = 0; $n++; }; $n = 1; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['next_id', 2, ['read from static variable $id'], ['wrote to static variable $id']],
+                ['declares_only', 3, [], []],
+                ['reads_only', 4, ['read from static variable $x'], []],
+                ['pair', 5, ['read from static variable $b'], ['wrote to static variable $a']],
+                ['cache', 6, ['read from static variable $cache'], ['wrote to static variable $cache']],
+                ['initialised', 7, ['read from global variable $seed'], []],
+                ['outer', 8, [], []],
+                ['{closure}', 8, ['read from static variable $n'], ['wrote to static variable $n']],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::STATIC_VARIABLE, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::STATIC_VARIABLE, $results[0]->getOutputs()[0]->getCategory());
+    }
+
+    /**
+     * #72: a closure that captures by reference shares the variable with its
+     * enclosing scope. A by-value capture, including an arrow function's, is a
+     * snapshot taken when the closure is created, so it stays explicit.
+     */
+    public function testReportsByReferenceClosureCapturesAsReadAndWritten(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            $counter = function () use (&$n) { return ++$n; };
+            $reader = function () use (&$n) { return $n; };
+            $snapshot = function () use ($n) { return $n + 1; };
+            $arrow = fn () => $n + 1;
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['{closure}', 2, ['read from captured reference $n'], ['wrote to captured reference $n']],
+                ['{closure}', 3, ['read from captured reference $n'], []],
+                ['{closure}', 4, [], []],
+                ['{closure}', 5, [], []],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::CAPTURED_REFERENCE, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::CAPTURED_REFERENCE, $results[0]->getOutputs()[0]->getCategory());
+    }
+
+    /**
+     * #72: a static property is process-wide mutable state, like a global, so
+     * default mode reports it. `--props` still adds `$this->x` access.
+     */
+    public function testReportsStaticPropertiesInDefaultModeAndThisPropertiesUnderProps(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class Counter {
+                public static int $n = 0;
+                public int $x = 0;
+                public function bump(): int { $this->x = 1; return ++Counter::$n; }
+            }
+            PHP;
+
+        self::assertSame(
+            [['Counter::bump', 5, ['read from static property Counter::$n'], ['wrote to static property Counter::$n']]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+        self::assertSame(
+            [['Counter::bump', 5, ['read from static property Counter::$n'], [
+                'wrote to object property $this->x',
+                'wrote to static property Counter::$n',
+            ]]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, true))),
         );
     }
 

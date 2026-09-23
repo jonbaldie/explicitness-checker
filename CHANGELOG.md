@@ -10,8 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Static method calls with no arguments (`SomeClass::method()`) are reported as implicit inputs in default mode, with the PHPStan identifier `explicitness.staticCall`. Calls on `self::`, `parent::` and `static::` are not reported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
+- Writes through arguments, `static` variables and by-reference closure captures are reported in default mode as serious (#72). A write through an argument is a write to a by-reference parameter (`$cart[] = $item` with `array &$cart`) or to a property of an object argument (`$product->price = 1`), under `explicitness.argumentMutation`. `static $x` is read and written under `explicitness.staticVariable`, and `use (&$x)` under `explicitness.capturedReference`. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
+
+### Changed
+
+- Static properties (`Foo::$bar`, `self::$bar`) are reported in default mode instead of only under `--props`, since they are shared state like globals (#72). `--props` and the PHPStan `props` parameter now cover only `$this->x`. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
 
 ### Fixed
+
+- A dynamic property name (`$o->{$name}`, `Foo::${$name}`) is reported as read, not written, when the property it names is written (#72)
 
 - Unreadable files emit a controlled diagnostic to standard error without raw PHP warnings, and are skipped while continuing analysis (#48)
 - Unknown `-`-prefixed CLI options fail the run with exit code 2 instead of being ignored, so a mistyped `--strict` cannot turn the check off (#23)

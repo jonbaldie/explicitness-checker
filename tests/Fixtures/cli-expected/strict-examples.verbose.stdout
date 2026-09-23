@@ -10,10 +10,12 @@
 [verbose] Analyzing function/method: UserSession::incrementLoginCount (line 40)
 [verbose]   No implicit inputs/outputs detected for UserSession::incrementLoginCount
 [verbose] Analyzing function/method: AppAnalytics::recordPageView (line 59)
-[verbose]   No implicit inputs/outputs detected for AppAnalytics::recordPageView
+[verbose]   Implicit inputs for AppAnalytics::recordPageView: read from static property self::$pageViews
+[verbose]   Implicit outputs for AppAnalytics::recordPageView: wrote to static property self::$pageViews
 [verbose] Analyzing function/method: AppAnalytics::logEvent (line 68)
 [verbose]   Parameters for AppAnalytics::logEvent: eventName
-[verbose]   No implicit inputs/outputs detected for AppAnalytics::logEvent
+[verbose]   Implicit inputs for AppAnalytics::logEvent: read from static property self::$pageViews
+[verbose]   Implicit outputs for AppAnalytics::logEvent: wrote to static property self::$events
 [verbose] Analyzing function/method: debug_user_data (line 84)
 [verbose]   Parameters for debug_user_data: user
 [verbose]   No implicit inputs/outputs detected for debug_user_data
@@ -61,4 +63,20 @@
 [verbose]   No implicit inputs/outputs detected for get_session_info
 [verbose] Analyzing function/method: logout_user (line 273)
 [verbose]   No implicit inputs/outputs detected for logout_user
-No implicit inputs or outputs found.
+Analyzing...
+
+Results:
+
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+| File                              | Line | Function                     | Implicit Inputs                            | Implicit Outputs                          | Severity |
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+| test-fixtures/strict-examples.php | 59   | AppAnalytics::recordPageView | read from static property self::$pageViews | wrote to static property self::$pageViews | Serious  |
+| test-fixtures/strict-examples.php | 68   | AppAnalytics::logEvent       | read from static property self::$pageViews | wrote to static property self::$events    | Serious  |
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

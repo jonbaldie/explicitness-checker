@@ -1,1 +1,17 @@
-No implicit inputs or outputs found.
+Analyzing...
+
+Results:
+
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+| File                              | Line | Function                     | Implicit Inputs                            | Implicit Outputs                          | Severity |
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+| test-fixtures/strict-examples.php | 59   | AppAnalytics::recordPageView | read from static property self::$pageViews | wrote to static property self::$pageViews | Serious  |
+| test-fixtures/strict-examples.php | 68   | AppAnalytics::logEvent       | read from static property self::$pageViews | wrote to static property self::$events    | Serious  |
++-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

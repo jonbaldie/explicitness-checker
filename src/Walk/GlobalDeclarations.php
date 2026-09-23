@@ -37,8 +37,9 @@ class GlobalDeclarations
             if (ScopeBoundary::opensScope($node)) {
                 continue;
             }
-            if ($node instanceof Stmt\Global_) {
-                foreach ($this->declaredNames($node) as $name) {
+            $declared = $this->declaredNames($node);
+            if ($declared !== null) {
+                foreach ($declared as $name) {
                     if (!in_array($name, $names, true)) {
                         $names[] = $name;
                     }
@@ -56,12 +57,16 @@ class GlobalDeclarations
     }
 
     /**
-     * @return list<string>
+     * @return list<string>|null null unless the node is a declaration
      */
-    protected function declaredNames(Stmt\Global_ $global): array
+    protected function declaredNames(Node $node): ?array
     {
+        if (!$node instanceof Stmt\Global_) {
+            return null;
+        }
+
         $names = [];
-        foreach ($global->vars as $var) {
+        foreach ($node->vars as $var) {
             $name = VariableName::of($var);
             if ($name !== null) {
                 $names[] = $name;

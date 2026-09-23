@@ -1,1 +1,17 @@
-No implicit inputs or outputs found.
+Analyzing...
+
+Results:
+
++----------------------------------------------+------+--------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
+| File                                         | Line | Function                 | Implicit Inputs                                                                                                                                     | Implicit Outputs                                                                                                                                                                         | Severity |
++----------------------------------------------+------+--------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
+| test-fixtures/namespaced-static-property.php | 26   | App\Sub\Consumer::reads  | read from static property App\Sub\Registry::$items; read from static property Other\Thing::$shared; read from static property Other\Config::$values |                                                                                                                                                                                          | Serious  |
+| test-fixtures/namespaced-static-property.php | 31   | App\Sub\Consumer::writes | read from static property self::$calls                                                                                                              | wrote to static property App\Sub\Registry::$count; wrote to static property App\Sub\Nested\Store::$cache; wrote to static property self::$calls; wrote to static property static::$calls | Serious  |
++----------------------------------------------+------+--------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

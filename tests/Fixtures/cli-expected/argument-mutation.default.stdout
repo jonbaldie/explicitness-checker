@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++--------------------------------------+------+-----------+-----------------+----------------------------+----------+
+| File                                 | Line | Function  | Implicit Inputs | Implicit Outputs           | Severity |
++--------------------------------------+------+-----------+-----------------+----------------------------+----------+
+| tests/Fixtures/argument-mutation.php | 3    | add_item  |                 | wrote to argument $cart    | Serious  |
+| tests/Fixtures/argument-mutation.php | 7    | set_price |                 | wrote to argument $product | Serious  |
++--------------------------------------+------+-----------+-----------------+----------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

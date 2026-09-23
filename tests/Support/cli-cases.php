@@ -71,6 +71,13 @@ return $cases + [
     // arguments, so it is an implicit input in default mode.
     'static-call.default' => ['tests/Fixtures/static-call.php'],
 
+    // #72: writes through arguments, static variables and by-reference
+    // captures are shared state, so they are serious in default mode. Static
+    // properties are too: see namespaced-static-property.default.
+    'argument-mutation.default' => ['tests/Fixtures/argument-mutation.php'],
+    'static-variable.default' => ['tests/Fixtures/static-variable.php'],
+    'captured-reference.default' => ['tests/Fixtures/captured-reference.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

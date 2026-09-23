@@ -48,11 +48,11 @@
         "stderr": ""
     },
     "strict-examples.default": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "strict-examples.verbose": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "strict-examples.strict": {
@@ -264,15 +264,15 @@
         "stderr": ""
     },
     "namespaced-static-property.default": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "namespaced-static-property.verbose": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "namespaced-static-property.strict": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "namespaced-static-property.props": {
@@ -954,5 +954,17 @@
     "min-explicitness-parse-error": {
         "exitCode": 2,
         "stderr": "Parse error in tests/Fixtures/cli/parse-error.php: Syntax error, unexpected '{', expecting T_VARIABLE on line 4\n"
+    },
+    "argument-mutation.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "static-variable.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "captured-reference.default": {
+        "exitCode": 2,
+        "stderr": ""
     }
 }

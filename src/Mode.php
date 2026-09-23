@@ -13,7 +13,7 @@ class Mode
     /**
      * @param bool $strict also report output functions, file, time, random,
      *                     environment, header, error-log and session access
-     * @param bool $props  also report `$this->prop` and `Class::$prop` access
+     * @param bool $props  also report `$this->prop` access
      */
     public function __construct(
         protected bool $strict,
