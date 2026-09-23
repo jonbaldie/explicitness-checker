@@ -255,6 +255,32 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #72: a dynamic property name is read, not written, even when the
+     * property it names is the target of a write.
+     */
+    public function testDynamicPropertyNamesAreRead(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function write_dynamic_property($o): void { global $name; $o->{$name} = 1; }
+            function write_dynamic_static_property(): void { global $n; Foo::${$n} = 1; }
+            function unset_dynamic_property($o): void { global $name; unset($o->{$name}); }
+            function read_dynamic_property($o) { global $name; return $o->{$name}; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['write_dynamic_property', 2, ['read from global variable $name'], []],
+                ['write_dynamic_static_property', 3, ['read from global variable $n'], []],
+                ['unset_dynamic_property', 4, ['read from global variable $name'], []],
+                ['read_dynamic_property', 5, ['read from global variable $name'], []],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
      * @param list<\JonBaldie\ExplicitnessChecker\FunctionResult> $results
      *
      * @return list<array{string, int, list<string>, list<string>}>

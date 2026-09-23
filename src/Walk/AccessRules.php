@@ -24,6 +24,7 @@ class AccessRules
             new IncrementDecrementRule(),
             new LeafRule(),
             new ArrayIndexRule(),
+            new PropertyFetchRule(),
             new ForeachRule(),
             new CatchRule(),
             new UnsetRule(),
