@@ -149,7 +149,7 @@ The tool categorizes violations into three severity levels:
   - Superglobals (`$_GET`, `$_POST`, `$_SESSION`, etc.)
   - Static method calls with no arguments (`ClassName::method()`)
   - Static properties (`ClassName::$property`)
-  - Writes through arguments (`$cart[] = $item` with `array &$cart`, `$product->price = 1`)
+  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
   - Instance properties (`$this->property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
@@ -160,6 +160,8 @@ The tool categorizes violations into three severity levels:
   - HTTP headers (`header`, `setcookie`)
   - Session functions (`session_start`, `session_id`)
   - Error logging (`error_log`, `trigger_error`)
+
+**By-reference built-ins.** A built-in that takes an argument by reference, such as `sort`, `array_push` or `preg_match`'s `$matches`, writes to it. Passing it a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture is reported as a write. The checker asks the PHP that runs it which parameters are by reference, so the result depends on the extensions loaded there: a call to a function from an extension that isn't loaded isn't reported, and two machines with different extensions can report different results for the same code. User-defined functions, and calls that unpack their arguments (`sort(...$lists)`), are never treated as by-reference.
 
 **Behaviour change:** `$_ENV` access used to be Serious, like the other superglobals. It is now Critical, the same as `getenv`, so a run whose worst finding is `$_ENV` access now exits with 3 instead of 2.
 

@@ -313,6 +313,127 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #72: a built-in that takes an argument by reference writes to it, so
+     * passing it a by-reference parameter or a global mutates shared state.
+     * Sorting a by-value parameter sorts a local copy.
+     */
+    public function testReportsByReferenceBuiltinsAsWrites(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function sort_items(array &$items): void { sort($items); }
+            function sort_copy(array $items): array { sort($items); return $items; }
+            function sort_list(): void { global $list; sort($list); }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['sort_items', 2, [], ['wrote to argument $items']],
+                ['sort_copy', 3, [], []],
+                ['sort_list', 4, ['read from global variable $list'], ['wrote to global variable $list']],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: the by-reference write is reported by whichever detector owns the
+     * variable, so the rule is the same whatever the variable kind, and a
+     * property reached from an argument is a write to that argument.
+     */
+    public function testReportsByReferenceBuiltinsOnEveryVariableKind(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function push(array &$stack): void { array_push($stack, 1); }
+            function capture(string $s, &$matches): void { preg_match('/a/', $s, $matches); }
+            function sort_nested($cart): void { sort($cart->items); }
+            function sort_get(): void { sort($_GET); }
+            function sort_static(): void { static $seen = []; sort($seen); }
+            $sorter = function () use (&$list) { sort($list); };
+            PHP;
+
+        self::assertSame(
+            [
+                ['push', 2, [], ['wrote to argument $stack']],
+                ['capture', 3, [], ['wrote to argument $matches']],
+                ['sort_nested', 4, [], ['wrote to argument $cart']],
+                ['sort_get', 5, ['read from superglobal $_GET'], ['wrote to superglobal $_GET']],
+                ['sort_static', 6, ['read from static variable $seen'], ['wrote to static variable $seen']],
+                ['{closure}', 7, ['read from captured reference $list'], ['wrote to captured reference $list']],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: named arguments are matched to the built-in's parameters by name,
+     * so argument order doesn't hide a mutation.
+     */
+    public function testMatchesByReferenceBuiltinsByNamedArgument(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function match_named(&$matches, &$subject, $pattern): void {
+                preg_match(matches: $matches, subject: $subject, pattern: $pattern);
+            }
+            PHP;
+
+        self::assertSame(
+            [['match_named', 2, [], ['wrote to argument $matches']]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: a by-reference variadic parameter takes every argument from its
+     * position on by reference, and a parameter that prefers a reference
+     * (`array_multisort`) counts as by reference.
+     */
+    public function testTreatsVariadicAndPreferReferenceParametersAsByReference(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function scan(string $s, &$first, &$second): void { sscanf($s, '%d %d', $first, $second); }
+            function multisort(array &$data): void { array_multisort($data); }
+            PHP;
+
+        self::assertSame(
+            [
+                ['scan', 2, [], ['wrote to argument $first', 'wrote to argument $second']],
+                ['multisort', 3, [], ['wrote to argument $data']],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: a by-reference position is marked only when it's known: not for
+     * unpacked arguments, functions the running PHP doesn't define, or
+     * user-defined functions, even when one is loaded in the checker's process.
+     */
+    public function testLeavesUnknownByReferencePositionsUnmarked(): void
+    {
+        require_once __DIR__ . '/Support/by-reference-function.php';
+        $source = <<<'PHP'
+            <?php
+            function unpacked(array &$lists): void { sort(...$lists); }
+            function undefined(&$value): void { no_such_function($value); }
+            function user_defined(&$value): void { \JonBaldie\ExplicitnessChecker\Tests\Support\take_by_reference($value); }
+            PHP;
+
+        self::assertSame(
+            [
+                ['unpacked', 2, [], []],
+                ['undefined', 3, [], []],
+                ['user_defined', 4, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
      * #72: an object argument is a handle the caller shares, so writing or
      * unsetting a property reached from it changes the caller's data, however
      * deep the property. Reading it stays explicit.

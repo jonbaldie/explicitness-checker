@@ -52,7 +52,8 @@ class ArgumentParser
             }
             $option = $this->valueOption($argument, $arguments);
             if ($option !== null) {
-                $values[$option[0]][] = $option[1];
+                [$name, $value, $arguments] = $option;
+                $values[$name][] = $value;
                 continue;
             }
             if (in_array($argument, self::VALUE_OPTIONS, true)) {
@@ -95,20 +96,22 @@ class ArgumentParser
      *
      * @param list<string> $remaining
      *
-     * @return array{string, string}|null the option name and its value, or null if
-     *                                    this is not a value option with a value
+     * @return array{string, string, list<string>}|null the option name, its value
+     *                                                  and the arguments left after
+     *                                                  it, or null if this is not
+     *                                                  a value option with a value
      */
-    protected function valueOption(string $argument, array &$remaining): ?array
+    protected function valueOption(string $argument, array $remaining): ?array
     {
         foreach (self::VALUE_OPTIONS as $name) {
             if (str_starts_with($argument, $name . '=')) {
-                return [$name, substr($argument, strlen($name) + 1)];
+                return [$name, substr($argument, strlen($name) + 1), $remaining];
             }
             if ($argument === $name && $remaining !== []) {
-                return [$name, array_shift($remaining)];
+                return [$name, $remaining[0], array_slice($remaining, 1)];
             }
             if ($argument === $name && $name === '--exclude') {
-                return [$name, ''];
+                return [$name, '', $remaining];
             }
         }
 

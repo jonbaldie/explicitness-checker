@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Static method calls with no arguments (`SomeClass::method()`) are reported as implicit inputs in default mode, with the PHPStan identifier `explicitness.staticCall`. Calls on `self::`, `parent::` and `static::` are not reported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
 - Writes through arguments, `static` variables and by-reference closure captures are reported in default mode as serious (#72). A write through an argument is a write to a by-reference parameter (`$cart[] = $item` with `array &$cart`) or to a property of an object argument (`$product->price = 1`), under `explicitness.argumentMutation`. `static $x` is read and written under `explicitness.staticVariable`, and `use (&$x)` under `explicitness.capturedReference`. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
+- Built-ins that take an argument by reference (`sort($items)`, `preg_match($p, $s, $matches)`) are reported as writing to it, under whichever category owns the variable: a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture (#72). By-reference positions come from reflection, so results depend on the PHP extensions loaded where the checker runs. `global $list; sort($list);` used to be reported only as a read of `$list`
 
 ### Changed
 
