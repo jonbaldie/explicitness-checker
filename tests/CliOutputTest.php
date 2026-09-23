@@ -204,4 +204,55 @@ class CliOutputTest extends TestCase
 
         return $files;
     }
+
+    /**
+     * Regression for #48: an unreadable file must emit a controlled diagnostic
+     * on standard error without a raw PHP warning, skip the file, and continue
+     * analysing readable siblings.
+     */
+    public function testUnreadableFileIsSkippedWithStderrDiagnostic(): void
+    {
+        $dir = sys_get_temp_dir() . '/ec_unreadable_test_' . uniqid();
+        mkdir($dir);
+        $unreadable = $dir . '/unreadable.php';
+        $readable = $dir . '/readable.php';
+        touch($unreadable);
+        chmod($unreadable, 0000);
+        file_put_contents($readable, "<?php\nfunction clean(): int { return 42; }\n");
+
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        self::assertIsResource($out);
+        self::assertIsResource($err);
+
+        try {
+            $exitCode = (new Application($out, $err))->run(['bin/explicitness-checker', $dir]);
+            rewind($out);
+            rewind($err);
+            $stdout = (string) stream_get_contents($out);
+            $stderr = (string) stream_get_contents($err);
+
+            self::assertSame(0, $exitCode);
+            self::assertSame("Cannot read file: {$unreadable}\n", $stderr);
+            self::assertStringContainsString('No implicit inputs or outputs found.', $stdout);
+
+            $directOut = fopen('php://memory', 'w+');
+            $directErr = fopen('php://memory', 'w+');
+            self::assertIsResource($directOut);
+            self::assertIsResource($directErr);
+
+            $directExitCode = (new Application($directOut, $directErr))->run(['bin/explicitness-checker', $unreadable]);
+            rewind($directOut);
+            rewind($directErr);
+            self::assertSame(0, $directExitCode);
+            self::assertSame("Cannot read file: {$unreadable}\n", (string) stream_get_contents($directErr));
+            self::assertSame("No implicit inputs or outputs found.\n", (string) stream_get_contents($directOut));
+        } finally {
+            chmod($unreadable, 0644);
+            unlink($unreadable);
+            unlink($readable);
+            rmdir($dir);
+        }
+    }
 }
+
