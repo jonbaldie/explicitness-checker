@@ -68,6 +68,30 @@ class CliScriptTest extends TestCase
     }
 
     /**
+     * Regression test for #48: an unreadable file must emit a controlled diagnostic
+     * on standard error without leaking raw PHP warnings or stack traces.
+     */
+    public function testUnreadableFileEmitsControlledStderrInSubprocess(): void
+    {
+        $dir = sys_get_temp_dir() . '/ec_cli_unreadable_' . uniqid();
+        mkdir($dir);
+        $unreadable = $dir . '/unreadable.php';
+        touch($unreadable);
+        chmod($unreadable, 0000);
+
+        try {
+            [$exitCode, $stdout, $stderr] = Process::cli([$unreadable]);
+            self::assertSame(0, $exitCode);
+            self::assertSame("Cannot read file: {$unreadable}\n", $stderr);
+            self::assertSame("No implicit inputs or outputs found.\n", $stdout);
+        } finally {
+            chmod($unreadable, 0644);
+            unlink($unreadable);
+            rmdir($dir);
+        }
+    }
+
+    /**
      * Runs bin/explicitness-checker as a subprocess on every golden CLI case.
      *
      * @dataProvider \JonBaldie\ExplicitnessChecker\Tests\CliOutputTest::cliCases
