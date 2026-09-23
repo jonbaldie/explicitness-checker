@@ -11,7 +11,8 @@ use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 use PhpParser\Node;
 
 /**
- * Reads and writes of variables declared `global`, and of superglobals.
+ * Reads and writes of variables declared `global` or `static`, of variables a
+ * closure captures by reference, and of superglobals.
  * `$this` and parameters are never implicit.
  */
 class VariableDetector implements Detector
@@ -34,16 +35,31 @@ class VariableDetector implements Detector
     /** @var array<string, true> */
     protected array $declaredGlobals;
 
+    /** @var array<string, true> */
+    protected array $staticVariables;
+
+    /** @var array<string, true> */
+    protected array $capturedReferences;
+
     protected ReferenceAliases $aliases;
 
     /**
      * @param list<string> $parameters
      * @param list<string> $declaredGlobals
+     * @param list<string> $staticVariables
+     * @param list<string> $capturedReferences
      */
-    public function __construct(array $parameters, array $declaredGlobals, ReferenceAliases $aliases)
-    {
+    public function __construct(
+        array $parameters,
+        array $declaredGlobals,
+        array $staticVariables,
+        array $capturedReferences,
+        ReferenceAliases $aliases,
+    ) {
         $this->parameters = array_fill_keys($parameters, true);
         $this->declaredGlobals = array_fill_keys($declaredGlobals, true);
+        $this->staticVariables = array_fill_keys($staticVariables, true);
+        $this->capturedReferences = array_fill_keys($capturedReferences, true);
         $this->aliases = $aliases;
     }
 
@@ -66,6 +82,18 @@ class VariableDetector implements Detector
 
         if (isset($this->declaredGlobals[$name])) {
             $findings->access($isWrite, 'global variable $' . $name, Category::GLOBAL_VARIABLE, $node);
+
+            return;
+        }
+
+        if (isset($this->staticVariables[$name])) {
+            $findings->access($isWrite, 'static variable $' . $name, Category::STATIC_VARIABLE, $node);
+
+            return;
+        }
+
+        if (isset($this->capturedReferences[$name])) {
+            $findings->access($isWrite, 'captured reference $' . $name, Category::CAPTURED_REFERENCE, $node);
 
             return;
         }

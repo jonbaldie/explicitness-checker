@@ -32,11 +32,22 @@ class ExtensionConfigTest extends TestCase
         self::assertSame(0, $exitCode, $output);
     }
 
+    /**
+     * Static properties are default-mode findings (#72), so the base config
+     * reports them without `props: true`; strict and `$this` findings stay off.
+     */
     public function testStrictAndPropsAreOffByDefault(): void
     {
         [$exitCode, $output] = $this->analyse('extension.neon', 'test-fixtures/strict-examples.php');
 
-        self::assertSame(0, $exitCode, $output);
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString(
+            'strict-examples.php:61:AppAnalytics::recordPageView wrote to static property self::$pageViews. '
+            . '[identifier=explicitness.staticProperty]',
+            $output,
+        );
+        self::assertSame(4, substr_count($output, '[identifier=explicitness.'), $output);
+        self::assertSame(4, substr_count($output, '[identifier=explicitness.staticProperty]'), $output);
     }
 
     public function testStrictParameterTurnsOnStrictMode(): void
@@ -49,7 +60,7 @@ class ExtensionConfigTest extends TestCase
             . '[identifier=explicitness.environment]',
             $output,
         );
-        self::assertSame(29, substr_count($output, '[identifier=explicitness.'), $output);
+        self::assertSame(33, substr_count($output, '[identifier=explicitness.'), $output);
     }
 
     public function testPropsParameterTurnsOnPropsMode(): void

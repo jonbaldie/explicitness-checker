@@ -10,7 +10,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Props mode: reads and writes of `ClassName::$name` (the class is shown as
+ * Default mode: reads and writes of `ClassName::$name` (the class is shown as
  * "..." when it is an expression).
  */
 class StaticPropertyDetector implements Detector

@@ -4,6 +4,7 @@
 #
 # Set `explicitness.strict: true` and/or `explicitness.props: true` under
 # `parameters` to also report what the CLI reports under --strict and --props.
+# `props` covers `$this->property` only; static properties are always reported.
 parameters:
 	explicitness:
 		strict: false

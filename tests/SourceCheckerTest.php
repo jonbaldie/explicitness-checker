@@ -255,6 +255,358 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #72: a dynamic property name is read, not written, even when the
+     * property it names is the target of a write.
+     */
+    public function testDynamicPropertyNamesAreRead(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function write_dynamic_property($o): void { global $name; $o->{$name} = 1; }
+            function write_dynamic_static_property(): void { global $n; Foo::${$n} = 1; }
+            function unset_dynamic_property($o): void { global $name; unset($o->{$name}); }
+            function read_dynamic_property($o) { global $name; return $o->{$name}; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['write_dynamic_property', 2, ['read from global variable $name'], ['wrote to argument $o']],
+                ['write_dynamic_static_property', 3, ['read from global variable $n'], []],
+                ['unset_dynamic_property', 4, ['read from global variable $name'], ['wrote to argument $o']],
+                ['read_dynamic_property', 5, ['read from global variable $name'], []],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: a write through a by-reference parameter changes the caller's
+     * data. Reading it, and writing a by-value copy, stay explicit.
+     */
+    public function testReportsWritesThroughByReferenceParametersAsArgumentMutation(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function add_item(array &$cart, string $name): void { $cart[] = $name; }
+            function empty_cart(array &$cart): void { $cart = []; }
+            function count_cart(array &$cart): int { return count($cart); }
+            function set_first(array $items): array { $items[0] = 1; return $items; }
+            $append = function (array &$list) { $list[] = 1; };
+            $clear = fn (array &$list) => $list = [];
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['add_item', 2, [], ['wrote to argument $cart']],
+                ['empty_cart', 3, [], ['wrote to argument $cart']],
+                ['count_cart', 4, [], []],
+                ['set_first', 5, [], []],
+                ['{closure}', 6, [], ['wrote to argument $list']],
+                ['{closure}', 7, [], ['wrote to argument $list']],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::ARGUMENT_MUTATION, $results[0]->getOutputs()[0]->getCategory());
+        self::assertSame(2, $results[0]->getOutputs()[0]->getLine());
+    }
+
+    /**
+     * #72: a built-in that takes an argument by reference writes to it, so
+     * passing it a by-reference parameter or a global mutates shared state.
+     * Sorting a by-value parameter sorts a local copy.
+     */
+    public function testReportsByReferenceBuiltinsAsWrites(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function sort_items(array &$items): void { sort($items); }
+            function sort_copy(array $items): array { sort($items); return $items; }
+            function sort_list(): void { global $list; sort($list); }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['sort_items', 2, [], ['wrote to argument $items']],
+                ['sort_copy', 3, [], []],
+                ['sort_list', 4, ['read from global variable $list'], ['wrote to global variable $list']],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: the by-reference write is reported by whichever detector owns the
+     * variable, so the rule is the same whatever the variable kind, and a
+     * property reached from an argument is a write to that argument.
+     */
+    public function testReportsByReferenceBuiltinsOnEveryVariableKind(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function push(array &$stack): void { array_push($stack, 1); }
+            function capture(string $s, &$matches): void { preg_match('/a/', $s, $matches); }
+            function sort_nested($cart): void { sort($cart->items); }
+            function sort_get(): void { sort($_GET); }
+            function sort_static(): void { static $seen = []; sort($seen); }
+            $sorter = function () use (&$list) { sort($list); };
+            PHP;
+
+        self::assertSame(
+            [
+                ['push', 2, [], ['wrote to argument $stack']],
+                ['capture', 3, [], ['wrote to argument $matches']],
+                ['sort_nested', 4, [], ['wrote to argument $cart']],
+                ['sort_get', 5, ['read from superglobal $_GET'], ['wrote to superglobal $_GET']],
+                ['sort_static', 6, ['read from static variable $seen'], ['wrote to static variable $seen']],
+                ['{closure}', 7, ['read from captured reference $list'], ['wrote to captured reference $list']],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: iterating by reference and binding a reference, including through
+     * a destructured `[&$x]`, hand out a writable reference, so, like a by-reference built-in, they write to the
+     * variable whichever detector owns it. By-value iteration, a by-value
+     * parameter and a local stay explicit.
+     */
+    public function testReportsByReferenceForeachAndReferenceAssignmentAsWrites(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function bump(array &$prices): void { foreach ($prices as &$p) {} }
+            function bump_nested(array &$cart): void { foreach ($cart['lines'] as $k => &$line) {} }
+            function bump_items($cart): void { foreach ($cart->items as &$item) {} }
+            function bump_copy(array $prices): void { foreach ($prices as &$p) {} }
+            function read_all(array &$prices): void { foreach ($prices as $p) {} }
+            function bump_global(): void { global $list; foreach ($list as &$v) {} }
+            function bump_static(): void { static $seen = []; foreach ($seen as &$v) {} }
+            function alias(array &$cart): void { $r = &$cart; $r[] = 1; }
+            function alias_item($cart): void { $r = &$cart->items; }
+            function alias_local(): void { $x = []; $r = &$x; }
+            function bump_pairs(array &$pairs): void { foreach ($pairs as [$k, [&$v]]) {} }
+            function bind_first(array &$pairs): void { [&$first] = $pairs; }
+            function copy_first(array &$pairs): void { [$first] = $pairs; }
+            PHP;
+
+        self::assertSame(
+            [
+                ['bump', 2, [], ['wrote to argument $prices']],
+                ['bump_nested', 3, [], ['wrote to argument $cart']],
+                ['bump_items', 4, [], ['wrote to argument $cart']],
+                ['bump_copy', 5, [], []],
+                ['read_all', 6, [], []],
+                ['bump_global', 7, ['read from global variable $list'], ['wrote to global variable $list']],
+                ['bump_static', 8, ['read from static variable $seen'], ['wrote to static variable $seen']],
+                ['alias', 9, [], ['wrote to argument $cart']],
+                ['alias_item', 10, [], ['wrote to argument $cart']],
+                ['alias_local', 11, [], []],
+                ['bump_pairs', 12, [], ['wrote to argument $pairs']],
+                ['bind_first', 13, [], ['wrote to argument $pairs']],
+                ['copy_first', 14, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: named arguments are matched to the built-in's parameters by name,
+     * so argument order doesn't hide a mutation.
+     */
+    public function testMatchesByReferenceBuiltinsByNamedArgument(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function match_named(&$matches, &$subject, $pattern): void {
+                preg_match(matches: $matches, subject: $subject, pattern: $pattern);
+            }
+            PHP;
+
+        self::assertSame(
+            [['match_named', 2, [], ['wrote to argument $matches']]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: a by-reference variadic parameter takes every argument from its
+     * position on by reference, and a parameter that prefers a reference
+     * (`array_multisort`) counts as by reference.
+     */
+    public function testTreatsVariadicAndPreferReferenceParametersAsByReference(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function scan(string $s, &$first, &$second): void { sscanf($s, '%d %d', $first, $second); }
+            function multisort(array &$data): void { array_multisort($data); }
+            PHP;
+
+        self::assertSame(
+            [
+                ['scan', 2, [], ['wrote to argument $first', 'wrote to argument $second']],
+                ['multisort', 3, [], ['wrote to argument $data']],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: a by-reference position is marked only when it's known: not for
+     * unpacked arguments, functions the running PHP doesn't define, or
+     * user-defined functions, even when one is loaded in the checker's process.
+     */
+    public function testLeavesUnknownByReferencePositionsUnmarked(): void
+    {
+        require_once __DIR__ . '/Support/by-reference-function.php';
+        $source = <<<'PHP'
+            <?php
+            function unpacked(array &$lists): void { sort(...$lists); }
+            function undefined(&$value): void { no_such_function($value); }
+            function user_defined(&$value): void { \JonBaldie\ExplicitnessChecker\Tests\Support\take_by_reference($value); }
+            PHP;
+
+        self::assertSame(
+            [
+                ['unpacked', 2, [], []],
+                ['undefined', 3, [], []],
+                ['user_defined', 4, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
+     * #72: an object argument is a handle the caller shares, so writing or
+     * unsetting a property reached from it changes the caller's data, however
+     * deep the property. Reading it stays explicit.
+     */
+    public function testReportsPropertyWritesThroughObjectArgumentsAsArgumentMutation(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function set_price($item, $price): void { $item->price = $price; }
+            function drop_name($user): void { unset($user->first_name); }
+            function rename_customer($order): void { $order->customer->name = 'x'; $order->customer->email = 'y'; }
+            function add_to($cart): void { $cart->items[] = 1; }
+            function reprice(array $items): void { $items[0]->price = 1; }
+            function first_name($user): string { return $user->first_name; }
+            function bump($counter): void { $counter->count++; $counter->total += 1; }
+            function local(): void { $o = new stdClass(); $o->x = 1; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['set_price', 2, [], ['wrote to argument $item']],
+                ['drop_name', 3, [], ['wrote to argument $user']],
+                ['rename_customer', 4, [], ['wrote to argument $order']],
+                ['add_to', 5, [], ['wrote to argument $cart']],
+                ['reprice', 6, [], ['wrote to argument $items']],
+                ['first_name', 7, [], []],
+                ['bump', 8, [], ['wrote to argument $counter']],
+                ['local', 9, [], []],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #72: a static variable survives between calls, so reading or writing it
+     * makes the result depend on earlier calls. The declaration itself is
+     * neither, but its initial value is read.
+     */
+    public function testReportsStaticVariablesAsReadAndWritten(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function next_id(): int { static $id = 0; return ++$id; }
+            function declares_only(): void { static $x = 0; }
+            function reads_only(): int { static $x = 0; return $x; }
+            function pair(): void { static $a, $b = 1; $a = $b; }
+            function cache($key) { static $cache; return $cache[$key] ??= $key; }
+            function initialised(): void { global $seed; static $x = $seed; }
+            function outer(): void { $f = function () { static $n = 0; $n++; }; $n = 1; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['next_id', 2, ['read from static variable $id'], ['wrote to static variable $id']],
+                ['declares_only', 3, [], []],
+                ['reads_only', 4, ['read from static variable $x'], []],
+                ['pair', 5, ['read from static variable $b'], ['wrote to static variable $a']],
+                ['cache', 6, ['read from static variable $cache'], ['wrote to static variable $cache']],
+                ['initialised', 7, ['read from global variable $seed'], []],
+                ['outer', 8, [], []],
+                ['{closure}', 8, ['read from static variable $n'], ['wrote to static variable $n']],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::STATIC_VARIABLE, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::STATIC_VARIABLE, $results[0]->getOutputs()[0]->getCategory());
+    }
+
+    /**
+     * #72: a closure that captures by reference shares the variable with its
+     * enclosing scope. A by-value capture, including an arrow function's, is a
+     * snapshot taken when the closure is created, so it stays explicit.
+     */
+    public function testReportsByReferenceClosureCapturesAsReadAndWritten(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            $counter = function () use (&$n) { return ++$n; };
+            $reader = function () use (&$n) { return $n; };
+            $snapshot = function () use ($n) { return $n + 1; };
+            $arrow = fn () => $n + 1;
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['{closure}', 2, ['read from captured reference $n'], ['wrote to captured reference $n']],
+                ['{closure}', 3, ['read from captured reference $n'], []],
+                ['{closure}', 4, [], []],
+                ['{closure}', 5, [], []],
+            ],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::CAPTURED_REFERENCE, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::CAPTURED_REFERENCE, $results[0]->getOutputs()[0]->getCategory());
+    }
+
+    /**
+     * #72: a static property is process-wide mutable state, like a global, so
+     * default mode reports it. `--props` still adds `$this->x` access.
+     */
+    public function testReportsStaticPropertiesInDefaultModeAndThisPropertiesUnderProps(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class Counter {
+                public static int $n = 0;
+                public int $x = 0;
+                public function bump(): int { $this->x = 1; return ++Counter::$n; }
+            }
+            PHP;
+
+        self::assertSame(
+            [['Counter::bump', 5, ['read from static property Counter::$n'], ['wrote to static property Counter::$n']]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+        self::assertSame(
+            [['Counter::bump', 5, ['read from static property Counter::$n'], [
+                'wrote to object property $this->x',
+                'wrote to static property Counter::$n',
+            ]]],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, true))),
+        );
+    }
+
+    /**
      * @param list<\JonBaldie\ExplicitnessChecker\FunctionResult> $results
      *
      * @return list<array{string, int, list<string>, list<string>}>

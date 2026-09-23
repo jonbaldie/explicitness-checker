@@ -108,17 +108,24 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     ];
 
     /**
-     * What props mode reports on strict-examples.php.
+     * What default mode reports on strict-examples.php: static properties are
+     * shared state, so they no longer wait for props mode (#72).
+     */
+    protected const STRICT_EXAMPLES_IN_DEFAULT_MODE = [
+        [61, 'staticProperty', 'AppAnalytics::recordPageView read from static property self::$pageViews.'],
+        [61, 'staticProperty', 'AppAnalytics::recordPageView wrote to static property self::$pageViews.'],
+        [70, 'staticProperty', 'AppAnalytics::logEvent read from static property self::$pageViews.'],
+        [71, 'staticProperty', 'AppAnalytics::logEvent wrote to static property self::$events.'],
+    ];
+
+    /**
+     * What props mode adds on strict-examples.php.
      */
     protected const STRICT_EXAMPLES_IN_PROPS_MODE = [
         [24, 'objectProperty', 'UserSession::__construct wrote to object property $this->username.'],
         [33, 'objectProperty', 'UserSession::greet read from object property $this->username.'],
         [42, 'objectProperty', 'UserSession::incrementLoginCount read from object property $this->loginCount.'],
         [42, 'objectProperty', 'UserSession::incrementLoginCount wrote to object property $this->loginCount.'],
-        [61, 'staticProperty', 'AppAnalytics::recordPageView read from static property self::$pageViews.'],
-        [61, 'staticProperty', 'AppAnalytics::recordPageView wrote to static property self::$pageViews.'],
-        [70, 'staticProperty', 'AppAnalytics::logEvent read from static property self::$pageViews.'],
-        [71, 'staticProperty', 'AppAnalytics::logEvent wrote to static property self::$events.'],
     ];
 
     protected bool $strict = false;
@@ -156,9 +163,9 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->analyse([self::FIXTURES . 'good-examples.php'], []);
     }
 
-    public function testStrictExamplesReportNothingInDefaultMode(): void
+    public function testStrictExamplesReportOnlyStaticPropertiesInDefaultMode(): void
     {
-        $this->analyse([self::FIXTURES . 'strict-examples.php'], []);
+        $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_DEFAULT_MODE);
     }
 
     public function testBadExamplesInStrictMode(): void
@@ -177,13 +184,17 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     /**
      * Strict mode reports output, file-system, environment, time, random,
-     * header, error-log and session functions, but not properties.
+     * header, error-log and session functions on top of the default findings,
+     * but not object properties.
      */
     public function testStrictExamplesInStrictMode(): void
     {
         $this->strict = true;
 
-        $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_STRICT_MODE);
+        $this->assertErrors(
+            'strict-examples.php',
+            array_merge(self::STRICT_EXAMPLES_IN_DEFAULT_MODE, self::STRICT_EXAMPLES_IN_STRICT_MODE),
+        );
     }
 
     public function testFopenModesInStrictMode(): void
@@ -223,7 +234,10 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     {
         $this->props = true;
 
-        $this->assertErrors('strict-examples.php', self::STRICT_EXAMPLES_IN_PROPS_MODE);
+        $this->assertErrors(
+            'strict-examples.php',
+            array_merge(self::STRICT_EXAMPLES_IN_DEFAULT_MODE, self::STRICT_EXAMPLES_IN_PROPS_MODE),
+        );
     }
 
     public function testBadExamplesInStrictAndPropsMode(): void
@@ -249,7 +263,11 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
         $this->assertErrors(
             'strict-examples.php',
-            array_merge(self::STRICT_EXAMPLES_IN_STRICT_MODE, self::STRICT_EXAMPLES_IN_PROPS_MODE),
+            array_merge(
+                self::STRICT_EXAMPLES_IN_DEFAULT_MODE,
+                self::STRICT_EXAMPLES_IN_STRICT_MODE,
+                self::STRICT_EXAMPLES_IN_PROPS_MODE,
+            ),
         );
     }
 
@@ -349,7 +367,9 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [29, 'globalsArray', 'unsetThroughAlias wrote to $GLOBALS[\'removed\'].'],
             [36, 'globalsArray', 'rebindAlias wrote to $GLOBALS[\'second\'].'],
             [42, 'globalsArray', 'dynamicGlobalKey wrote to $GLOBALS[$key].'],
+            [54, 'argumentMutation', 'parameterReference wrote to argument $value.'],
             [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
+            [59, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
         ]);
     }
 

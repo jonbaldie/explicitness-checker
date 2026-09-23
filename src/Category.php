@@ -26,6 +26,15 @@ class Category
     public const OBJECT_PROPERTY = 'objectProperty';
     public const STATIC_PROPERTY = 'staticProperty';
     public const STATIC_CALL = 'staticCall';
+    public const ARGUMENT_MUTATION = 'argumentMutation';
+    public const STATIC_VARIABLE = 'staticVariable';
+    public const CAPTURED_REFERENCE = 'capturedReference';
+    public const NETWORK = 'network';
+    public const DATABASE = 'database';
+    public const PROCESS = 'process';
+    public const MAIL = 'mail';
+    public const INCLUDE = 'include';
+    public const RUNTIME_CONFIG = 'runtimeConfig';
 
     public const ALL = [
         self::GLOBAL_VARIABLE,
@@ -43,5 +52,14 @@ class Category
         self::OBJECT_PROPERTY,
         self::STATIC_PROPERTY,
         self::STATIC_CALL,
+        self::ARGUMENT_MUTATION,
+        self::STATIC_VARIABLE,
+        self::CAPTURED_REFERENCE,
+        self::NETWORK,
+        self::DATABASE,
+        self::PROCESS,
+        self::MAIL,
+        self::INCLUDE,
+        self::RUNTIME_CONFIG,
     ];
 }

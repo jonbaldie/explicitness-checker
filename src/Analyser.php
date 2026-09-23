@@ -9,6 +9,7 @@ use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
 use JonBaldie\ExplicitnessChecker\Walk\GlobalDeclarations;
 use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Walk\StaticDeclarations;
 use PhpParser\Node;
 
 /**
@@ -28,11 +29,20 @@ class Analyser
         $stmts = $node->getStmts() ?? [];
         $parameters = $this->parameterNames($node);
         $declaredGlobals = (new GlobalDeclarations())->collect($stmts);
+        $staticVariables = (new StaticDeclarations())->collect($stmts);
 
         $findings = new FindingCollector();
         $aliases = new ReferenceAliases();
         $walker = new BodyWalker(
-            (new DetectorSet())->select($parameters, $declaredGlobals, $mode, $aliases),
+            (new DetectorSet())->select(
+                $parameters,
+                $this->byReferenceParameterNames($node),
+                $declaredGlobals,
+                $staticVariables,
+                $this->capturedReferenceNames($node),
+                $mode,
+                $aliases,
+            ),
             new AccessRules(),
             $findings,
             $aliases,
@@ -53,6 +63,44 @@ class Analyser
         foreach ($node->getParams() as $param) {
             $name = VariableName::of($param->var);
             if ($name !== null) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function byReferenceParameterNames(Node\FunctionLike $node): array
+    {
+        $names = [];
+        foreach ($node->getParams() as $param) {
+            $name = VariableName::of($param->var);
+            if ($param->byRef && $name !== null) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * The names a closure captures by reference with `use (&$x)`.
+     *
+     * @return list<string>
+     */
+    protected function capturedReferenceNames(Node\FunctionLike $node): array
+    {
+        if (!$node instanceof Node\Expr\Closure) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($node->uses as $use) {
+            $name = VariableName::of($use->var);
+            if ($use->byRef && $name !== null) {
                 $names[] = $name;
             }
         }

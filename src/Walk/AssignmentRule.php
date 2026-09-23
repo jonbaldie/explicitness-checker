@@ -8,7 +8,8 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * `$a = $b`: the target is written, then the value is read.
+ * `$a = $b`: the target is written, then the value is read. Destructuring
+ * by reference (`[&$x] = $b`) also writes the value.
  */
 class AssignmentRule implements ChildAccessRule
 {
@@ -18,6 +19,11 @@ class AssignmentRule implements ChildAccessRule
             return null;
         }
 
-        return [[$node->var, true], [$node->expr, false]];
+        $children = [[$node->var, true], [$node->expr, false]];
+        if (ReferenceDestructuring::bindsReference($node->var)) {
+            $children[] = [$node->expr, true];
+        }
+
+        return $children;
     }
 }

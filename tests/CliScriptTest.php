@@ -24,7 +24,7 @@ class CliScriptTest extends TestCase
         yield 'bad, strict and props' => [['--strict', '--props'], 'bad-examples.php', 3];
         yield 'good, default' => [[], 'good-examples.php', 0];
         yield 'good, strict and props' => [['--strict', '--props'], 'good-examples.php', 0];
-        yield 'strict, default' => [[], 'strict-examples.php', 0];
+        yield 'strict, default' => [[], 'strict-examples.php', 2];
         yield 'strict, strict and props' => [['--strict', '--props'], 'strict-examples.php', 3];
     }
 

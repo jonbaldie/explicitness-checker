@@ -71,6 +71,22 @@ return $cases + [
     // arguments, so it is an implicit input in default mode.
     'static-call.default' => ['tests/Fixtures/static-call.php'],
 
+    // #72: writes through arguments, static variables and by-reference
+    // captures are shared state, so they are serious in default mode. Static
+    // properties are too: see namespaced-static-property.default.
+    'argument-mutation.default' => ['tests/Fixtures/argument-mutation.php'],
+    'static-variable.default' => ['tests/Fixtures/static-variable.php'],
+    'captured-reference.default' => ['tests/Fixtures/captured-reference.php'],
+
+    // #72: network, database, process, mail, include and runtime-config
+    // findings are critical in strict mode.
+    'network.strict' => ['--strict', 'tests/Fixtures/network.php'],
+    'database.strict' => ['--strict', 'tests/Fixtures/database.php'],
+    'process.strict' => ['--strict', 'tests/Fixtures/process.php'],
+    'mail.strict' => ['--strict', 'tests/Fixtures/mail.php'],
+    'include.strict' => ['--strict', 'tests/Fixtures/include.php'],
+    'runtime-config.strict' => ['--strict', 'tests/Fixtures/runtime-config.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

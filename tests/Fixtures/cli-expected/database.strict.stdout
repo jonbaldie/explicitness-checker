@@ -1,0 +1,16 @@
+Analyzing...
+
+Results:
+
++-----------------------------+------+-------------+------------------------------------+-----------------------------------+----------+
+| File                        | Line | Function    | Implicit Inputs                    | Implicit Outputs                  | Severity |
++-----------------------------+------+-------------+------------------------------------+-----------------------------------+----------+
+| tests/Fixtures/database.php | 3    | count_users | reads from database (mysqli_query) | writes to database (mysqli_query) | Critical |
++-----------------------------+------+-------------+------------------------------------+-----------------------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

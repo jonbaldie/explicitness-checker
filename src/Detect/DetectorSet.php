@@ -14,30 +14,38 @@ class DetectorSet
 {
     /**
      * @param list<string> $parameters
+     * @param list<string> $byReferenceParameters
      * @param list<string> $declaredGlobals
+     * @param list<string> $staticVariables
+     * @param list<string> $capturedReferences
      *
      * @return list<Detector>
      */
     public function select(
         array $parameters,
+        array $byReferenceParameters,
         array $declaredGlobals,
+        array $staticVariables,
+        array $capturedReferences,
         Mode $mode,
         ReferenceAliases $aliases,
     ): array
     {
         $detectors = [
-            new VariableDetector($parameters, $declaredGlobals, $aliases),
+            new VariableDetector($parameters, $declaredGlobals, $staticVariables, $capturedReferences, $aliases),
             new GlobalsArrayDetector(),
             new StaticCallDetector(),
+            new ArgumentMutationDetector($parameters, $byReferenceParameters),
+            new StaticPropertyDetector(),
         ];
         if ($mode->isStrict()) {
             $detectors[] = new LanguageConstructDetector();
             $detectors[] = new ExitDetector();
             $detectors[] = new FunctionCallDetector();
+            $detectors[] = new NewExpressionDetector();
         }
         if ($mode->isProps()) {
             $detectors[] = new ObjectPropertyDetector();
-            $detectors[] = new StaticPropertyDetector();
         }
 
         return $detectors;
