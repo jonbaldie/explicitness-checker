@@ -2,13 +2,13 @@ Analyzing...
 
 Results:
 
-+---------------------------------------+------+----------------------------------------------------+---------------------------------------------------------------------+----------------------------------+----------+
-| File                                  | Line | Function                                           | Implicit Inputs                                                     | Implicit Outputs                 | Severity |
-+---------------------------------------+------+----------------------------------------------------+---------------------------------------------------------------------+----------------------------------+----------+
-| test-fixtures/nested-declarations.php | 9    | declaresGlobalsAtSeveralDepths                     | read from global variable $first; read from global variable $second |                                  | Serious  |
-| test-fixtures/nested-declarations.php | 36   | HasAnonymousClass::readsGlobalAfterwards           | read from global variable $counter                                  |                                  | Serious  |
-| test-fixtures/nested-declarations.php | 48   | DynamicProperties::readsDynamicAndNestedProperties | read from static property ...::$shared                              | writes to standard output (echo) | Serious  |
-+---------------------------------------+------+----------------------------------------------------+---------------------------------------------------------------------+----------------------------------+----------+
++---------------------------------------+------+----------------------------------------------------+--------------------------------------------------------------------------------+----------------------------------+----------+
+| File                                  | Line | Function                                           | Implicit Inputs                                                                | Implicit Outputs                 | Severity |
++---------------------------------------+------+----------------------------------------------------+--------------------------------------------------------------------------------+----------------------------------+----------+
+| test-fixtures/nested-declarations.php | 9    | declaresGlobalsAtSeveralDepths                     | read from global variable $first; read from global variable $second            |                                  | Serious  |
+| test-fixtures/nested-declarations.php | 36   | HasAnonymousClass::readsGlobalAfterwards           | read from global variable $counter                                             |                                  | Serious  |
+| test-fixtures/nested-declarations.php | 48   | DynamicProperties::readsDynamicAndNestedProperties | read from static property static::$...; read from static property ...::$shared | writes to standard output (echo) | Serious  |
++---------------------------------------+------+----------------------------------------------------+--------------------------------------------------------------------------------+----------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)
