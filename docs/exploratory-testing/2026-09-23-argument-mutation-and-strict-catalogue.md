@@ -130,7 +130,7 @@ Loop for both findings: `/tmp/ec-explore-72/replay/loop.sh`, red before the fix 
 
 | | Where | Impact | Status |
 |---|---|---|---|
-| B | Static properties, on `main` too | `Svc::${$n} = 1` and `return Svc::${$n};` aren't reported in any mode, while `Svc::$a = 1` and `$c::$a = 1` are (`15`) | Ready to file; not filed |
+| B | Static properties, on `main` too | `Svc::${$n} = 1` and `return Svc::${$n};` aren't reported in any mode, while `Svc::$a = 1` and `$c::$a = 1` are (`15`) | Filed as [#73](https://github.com/jonbaldie/explicitness-checker/issues/73) |
 
 **B, replay:**
 1. `printf '<?php\nclass Svc { public static $a;\n  public function w(string $n): void { Svc::${$n} = 1; } }\n' > b.php`
