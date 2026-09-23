@@ -966,5 +966,29 @@
     "captured-reference.default": {
         "exitCode": 2,
         "stderr": ""
+    },
+    "network.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "database.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "process.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "mail.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "include.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "runtime-config.strict": {
+        "exitCode": 3,
+        "stderr": ""
     }
 }

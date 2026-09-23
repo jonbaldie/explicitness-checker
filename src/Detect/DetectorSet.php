@@ -42,6 +42,7 @@ class DetectorSet
             $detectors[] = new LanguageConstructDetector();
             $detectors[] = new ExitDetector();
             $detectors[] = new FunctionCallDetector();
+            $detectors[] = new NewExpressionDetector();
         }
         if ($mode->isProps()) {
             $detectors[] = new ObjectPropertyDetector();

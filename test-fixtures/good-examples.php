@@ -43,15 +43,15 @@ function squareAll(array $items): array
  * Explicit state transition: updates a "session" associative array and returns
  * the new session instead of mutating any global session store.
  *
- * Explicit input: array $session, string $user
+ * Explicit input: array $session, string $user, DateTimeImmutable $now
  * Explicit output: array $newSession
  */
-function loginUser(array $session, string $user): array
+function loginUser(array $session, string $user, DateTimeImmutable $now): array
 {
     // Do not mutate $session in place: produce a new array to be explicit.
     $newSession = $session;
     $newSession['user'] = $user;
-    $newSession['last_login'] = (new DateTimeImmutable)->format(DateTime::ATOM);
+    $newSession['last_login'] = $now->format(DateTime::ATOM);
 
     return $newSession;
 }

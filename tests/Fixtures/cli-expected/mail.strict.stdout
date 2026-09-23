@@ -1,0 +1,16 @@
+Analyzing...
+
+Results:
+
++-------------------------+------+--------------+-----------------+--------------------+----------+
+| File                    | Line | Function     | Implicit Inputs | Implicit Outputs   | Severity |
++-------------------------+------+--------------+-----------------+--------------------+----------+
+| tests/Fixtures/mail.php | 3    | send_welcome |                 | sends email (mail) | Critical |
++-------------------------+------+--------------+-----------------+--------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

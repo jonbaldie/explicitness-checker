@@ -64,7 +64,7 @@
 [verbose]   Parameters for squareAll: items
 [verbose]   No implicit inputs/outputs detected for squareAll
 [verbose] Analyzing function/method: loginUser (line 49)
-[verbose]   Parameters for loginUser: session, user
+[verbose]   Parameters for loginUser: session, user, now
 [verbose]   No implicit inputs/outputs detected for loginUser
 [verbose] Analyzing function/method: processWithConfig (line 66)
 [verbose]   Parameters for processWithConfig: config, input
