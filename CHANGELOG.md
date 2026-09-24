@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-24
+
 ### Added
 
 - Static method calls with no arguments (`SomeClass::method()`) are reported as implicit inputs in default mode, with the PHPStan identifier `explicitness.staticCall`. Calls on `self::`, `parent::` and `static::` are not reported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2
@@ -47,5 +49,6 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonbaldie/explicitness-checker/releases/tag/v1.0.0
