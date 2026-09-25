@@ -21,7 +21,7 @@
 [verbose]   Implicit outputs for config_and_store_change: wrote to $GLOBALS['store']
 [verbose] Analyzing function/method: variable_variable_global_read (line 100)
 [verbose]   Parameters for variable_variable_global_read: name
-[verbose]   No implicit inputs/outputs detected for variable_variable_global_read
+[verbose]   Implicit inputs for variable_variable_global_read: read from global variable $...
 [verbose] Analyzing function/method: inc_global_counter (line 112)
 [verbose]   Declared globals in inc_global_counter: some_global_number
 [verbose]   Implicit inputs for inc_global_counter: read from global variable $some_global_number
@@ -172,7 +172,7 @@
 [verbose]   Parameters for globalsArrayKeys: key
 [verbose]   Implicit inputs for globalsArrayKeys: read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS
 [verbose] Analyzing function/method: variableVariable (line 40)
-[verbose]   No implicit inputs/outputs detected for variableVariable
+[verbose]   Implicit inputs for variableVariable: read from superglobal $_GET
 [verbose] Parsing file: test-fixtures/read-write-context/unset.php
 [verbose] Analyzing function/method: logout (line 5)
 [verbose]   Implicit outputs for logout: wrote to superglobal $_SESSION
@@ -301,6 +301,7 @@ Results:
 | test-fixtures/bad-examples.php                            | 58   | reads_superglobals                                 | read from superglobal $_GET; read from superglobal $_POST                                                                                           |                                                                                                                                                                                          | Serious  |
 | test-fixtures/bad-examples.php                            | 70   | writes_superglobals                                | read from superglobal $_SESSION                                                                                                                     | wrote to superglobal $_SESSION; wrote to superglobal $_COOKIE                                                                                                                            | Serious  |
 | test-fixtures/bad-examples.php                            | 84   | config_and_store_change                            | read from global variable $config                                                                                                                   | wrote to $GLOBALS['store']                                                                                                                                                               | Serious  |
+| test-fixtures/bad-examples.php                            | 100  | variable_variable_global_read                      | read from global variable $...                                                                                                                      |                                                                                                                                                                                          | Serious  |
 | test-fixtures/bad-examples.php                            | 112  | inc_global_counter                                 | read from global variable $some_global_number                                                                                                       | wrote to global variable $some_global_number                                                                                                                                             | Serious  |
 | test-fixtures/bad-examples.php                            | 122  | {closure}                                          | read from $GLOBALS['app_name']                                                                                                                      | wrote to $GLOBALS['app_name']                                                                                                                                                            | Serious  |
 | test-fixtures/closure-global-bleed.php                    | 12   | {closure}                                          | read from global variable $x                                                                                                                        |                                                                                                                                                                                          | Serious  |
@@ -329,6 +330,7 @@ Results:
 | test-fixtures/read-write-context/operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals                     | read from global variable $up; read from global variable $down                                                                                      | wrote to global variable $up; wrote to global variable $down                                                                                                                             | Serious  |
 | test-fixtures/read-write-context/operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies                      | read from superglobal $_POST; read from superglobal $_COOKIE                                                                                        |                                                                                                                                                                                          | Serious  |
 | test-fixtures/read-write-context/operators-and-bodies.php | 31   | globalsArrayKeys                                   | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS                                                                                 |                                                                                                                                                                                          | Serious  |
+| test-fixtures/read-write-context/operators-and-bodies.php | 40   | variableVariable                                   | read from superglobal $_GET                                                                                                                         |                                                                                                                                                                                          | Serious  |
 | test-fixtures/read-write-context/unset.php                | 5    | logout                                             |                                                                                                                                                     | wrote to superglobal $_SESSION                                                                                                                                                           | Serious  |
 | test-fixtures/read-write-context/unset.php                | 10   | forgetGlobal                                       |                                                                                                                                                     | wrote to global variable $cache                                                                                                                                                          | Serious  |
 | test-fixtures/read-write-context/unset.php                | 16   | forgetGlobalsEntry                                 |                                                                                                                                                     | wrote to $GLOBALS['registry']                                                                                                                                                            | Serious  |
@@ -353,7 +355,7 @@ Results:
 
 Summary:
   Critical violations: 2 (exit code 3)
-  Serious violations: 51 (exit code 2)
+  Serious violations: 53 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 3
 

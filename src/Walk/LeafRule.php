@@ -12,7 +12,6 @@ use PhpParser\Node\Stmt;
 
 /**
  * Nodes whose children the walk never visits:
- * - variables (a variable-variable's name expression is not walked),
  * - `$GLOBALS[...]` fetches (reported as a whole, the dimension is not walked),
  * - `global` statements (a declaration is neither a read nor a write),
  * - nested scopes (closures, arrow functions, nested functions, anonymous and
@@ -22,12 +21,11 @@ class LeafRule implements ChildAccessRule
 {
     public function children(Node $node, bool $isWrite): ?array
     {
-        if (
-            $node instanceof Expr\Variable
-            || ScopeBoundary::opensScope($node)
-            || $node instanceof Stmt\Global_
-            || GlobalsArrayDetector::isGlobalsFetch($node)
-        ) {
+        if ($node instanceof Expr\Variable) {
+            return is_string($node->name) ? [] : [[$node->name, false]];
+        }
+
+        if (ScopeBoundary::opensScope($node) || $node instanceof Stmt\Global_ || GlobalsArrayDetector::isGlobalsFetch($node)) {
             return [];
         }
 

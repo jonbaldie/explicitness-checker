@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++-----------------------------------+------+------------------------------------------+-----------------------------------------------------------------+-------------------------------+----------+
+| File                              | Line | Function                                 | Implicit Inputs                                                 | Implicit Outputs              | Severity |
++-----------------------------------+------+------------------------------------------+-----------------------------------------------------------------+-------------------------------+----------+
+| tests/Fixtures/dynamic-global.php | 3    | writes_to_dynamic_global                 |                                                                 | wrote to global variable $... | Serious  |
+| tests/Fixtures/dynamic-global.php | 9    | reads_from_dynamic_global                | read from global variable $...                                  |                               | Serious  |
+| tests/Fixtures/dynamic-global.php | 15   | writes_to_dynamic_global_with_expression |                                                                 | wrote to global variable $... | Serious  |
+| tests/Fixtures/dynamic-global.php | 21   | reads_name_expression_from_global        | read from global variable $...; read from global variable $name |                               | Serious  |
++-----------------------------------+------+------------------------------------------+-----------------------------------------------------------------+-------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

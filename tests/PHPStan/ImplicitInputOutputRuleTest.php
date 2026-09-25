@@ -41,6 +41,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
 
+    protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -56,6 +58,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         [78, 'superglobal', 'writes_superglobals wrote to superglobal $_COOKIE.'],
         [89, 'globalVariable', 'config_and_store_change read from global variable $config.'],
         [93, 'globalsArray', 'config_and_store_change wrote to $GLOBALS[\'store\'].'],
+        [106, 'globalVariable', 'variable_variable_global_read read from global variable $....'],
         [116, 'globalVariable', 'inc_global_counter read from global variable $some_global_number.'],
         [116, 'globalVariable', 'inc_global_counter wrote to global variable $some_global_number.'],
         [124, 'globalsArray', '{closure} read from $GLOBALS[\'app_name\'].'],
@@ -151,6 +154,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             ['writes_superglobals wrote to superglobal $_COOKIE.', 78],
             ['config_and_store_change read from global variable $config.', 89],
             ['config_and_store_change wrote to $GLOBALS[\'store\'].', 93],
+            ['variable_variable_global_read read from global variable $....', 106],
             ['inc_global_counter read from global variable $some_global_number.', 116],
             ['inc_global_counter wrote to global variable $some_global_number.', 116],
             ['{closure} read from $GLOBALS[\'app_name\'].', 124],
@@ -370,6 +374,21 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [54, 'argumentMutation', 'parameterReference wrote to argument $value.'],
             [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
             [59, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
+        ]);
+    }
+
+    /**
+     * #81: the PHPStan extension reports dynamic global reads and writes from
+     * the same analyser results as the CLI.
+     */
+    public function testDynamicGlobalDeclarationsReportVariableVariableAccesses(): void
+    {
+        $this->assertErrorsAtPath(self::DYNAMIC_GLOBAL_FIXTURE, [
+            [6, 'globalVariable', 'writes_to_dynamic_global wrote to global variable $....'],
+            [12, 'globalVariable', 'reads_from_dynamic_global read from global variable $....'],
+            [18, 'globalVariable', 'writes_to_dynamic_global_with_expression wrote to global variable $....'],
+            [25, 'globalVariable', 'reads_name_expression_from_global read from global variable $....'],
+            [25, 'globalVariable', 'reads_name_expression_from_global read from global variable $name.'],
         ]);
     }
 

@@ -22,7 +22,12 @@ class ExtensionConfigTest extends TestCase
             . '[identifier=explicitness.globalVariable]',
             $output,
         );
-        self::assertSame(15, substr_count($output, '[identifier=explicitness.'), $output);
+        self::assertStringContainsString(
+            'bad-examples.php:106:variable_variable_global_read read from global variable $.... '
+            . '[identifier=explicitness.globalVariable]',
+            $output,
+        );
+        self::assertSame(16, substr_count($output, '[identifier=explicitness.'), $output);
     }
 
     public function testExtensionReportsNothingOnGoodExamples(): void

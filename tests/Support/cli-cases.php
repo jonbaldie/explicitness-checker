@@ -71,6 +71,9 @@ return $cases + [
     // arguments, so it is an implicit input in default mode.
     'static-call.default' => ['tests/Fixtures/static-call.php'],
 
+    // #81: dynamic global accesses are pinned in default mode.
+    'dynamic-global.default' => ['tests/Fixtures/dynamic-global.php'],
+
     // #72: writes through arguments, static variables and by-reference
     // captures are shared state, so they are serious in default mode. Static
     // properties are too: see namespaced-static-property.default.
