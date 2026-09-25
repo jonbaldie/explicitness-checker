@@ -971,6 +971,10 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "property-chain.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "network.strict": {
         "exitCode": 3,
         "stderr": ""

@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++-----------------------------------+------+----------------------+---------------------------------------+---------------------------------------+----------+
+| File                              | Line | Function             | Implicit Inputs                       | Implicit Outputs                      | Severity |
++-----------------------------------+------+----------------------+---------------------------------------+---------------------------------------+----------+
+| tests/Fixtures/property-chain.php | 17   | Node::unlink         | read from object property $this->next | wrote to object property $this->next  | Serious  |
+| tests/Fixtures/property-chain.php | 22   | Node::append         | read from object property $this->next | wrote to object property $this->next  | Serious  |
+| tests/Fixtures/property-chain.php | 27   | Node::resetHead      | read from static property self::$head | wrote to static property self::$head  | Serious  |
+| tests/Fixtures/property-chain.php | 32   | Node::direct         |                                       | wrote to object property $this->count | Serious  |
+| tests/Fixtures/property-chain.php | 37   | Node::readChain      | read from object property $this->next |                                       | Serious  |
+| tests/Fixtures/property-chain.php | 43   | write_through_global | read from global variable $config     | wrote to global variable $config      | Serious  |
++-----------------------------------+------+----------------------+---------------------------------------+---------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -17,6 +17,8 @@ class ReadWriteContextTest extends TestCase
 {
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
+    protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
+
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -105,6 +107,25 @@ class ReadWriteContextTest extends TestCase
                 'nonGlobalsReference' => ['read from superglobal $_SESSION', 'wrote to superglobal $_SESSION'],
             ],
             $this->reportedRowsAtPath(self::REFERENCE_ALIAS_FIXTURE, ['--strict', '--props']),
+        );
+    }
+
+    /**
+     * #82: writing through a property chain reads the chain's base before
+     * writing through it; a direct write and a read-only chain are unchanged.
+     */
+    public function testWriteThroughPropertyChainReadsItsBase(): void
+    {
+        self::assertSame(
+            [
+                'Node::unlink' => ['read from object property $this->next', 'wrote to object property $this->next'],
+                'Node::append' => ['read from object property $this->next', 'wrote to object property $this->next'],
+                'Node::resetHead' => ['read from static property self::$head', 'wrote to static property self::$head'],
+                'Node::direct' => ['', 'wrote to object property $this->count'],
+                'Node::readChain' => ['read from object property $this->next', ''],
+                'write_through_global' => ['read from global variable $config', 'wrote to global variable $config'],
+            ],
+            $this->reportedRowsAtPath(self::PROPERTY_CHAIN_FIXTURE),
         );
     }
 

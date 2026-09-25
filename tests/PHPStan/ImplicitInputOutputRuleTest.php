@@ -37,6 +37,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
+    protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
+
     protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
 
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
@@ -389,6 +391,28 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [18, 'globalVariable', 'writes_to_dynamic_global_with_expression wrote to global variable $....'],
             [25, 'globalVariable', 'reads_name_expression_from_global read from global variable $....'],
             [25, 'globalVariable', 'reads_name_expression_from_global read from global variable $name.'],
+        ]);
+    }
+
+    /**
+     * #82: the PHPStan rule reports a write through a property chain as a
+     * read and a write of the chain's base, like the CLI.
+     */
+    public function testWriteThroughPropertyChainReadsItsBase(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::PROPERTY_CHAIN_FIXTURE, [
+            [19, 'objectProperty', 'Node::unlink read from object property $this->next.'],
+            [19, 'objectProperty', 'Node::unlink wrote to object property $this->next.'],
+            [24, 'objectProperty', 'Node::append read from object property $this->next.'],
+            [24, 'objectProperty', 'Node::append wrote to object property $this->next.'],
+            [29, 'staticProperty', 'Node::resetHead read from static property self::$head.'],
+            [29, 'staticProperty', 'Node::resetHead wrote to static property self::$head.'],
+            [34, 'objectProperty', 'Node::direct wrote to object property $this->count.'],
+            [39, 'objectProperty', 'Node::readChain read from object property $this->next.'],
+            [46, 'globalVariable', 'write_through_global read from global variable $config.'],
+            [46, 'globalVariable', 'write_through_global wrote to global variable $config.'],
         ]);
     }
 

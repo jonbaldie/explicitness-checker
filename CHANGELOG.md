@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Writing through a property chain (`$this->next->next = null`, `$this->next->items[] = 1`, `self::$head->count = 0`, `global $config; $config->debug = true;`) reports the chain's base as read as well as written, since PHP fetches it before assigning through it (#82). This can add input rows to existing results
+
 ## [1.1.0] - 2026-09-24
 
 ### Added
