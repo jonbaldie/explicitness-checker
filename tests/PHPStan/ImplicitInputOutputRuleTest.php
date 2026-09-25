@@ -45,6 +45,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
 
+    protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -490,6 +492,28 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [22, 'file', 'reads_file_mixed_case reads from file (FOPEN).'],
             [23, 'standardOutput', 'reads_file_mixed_case writes to standard output (var_dump).'],
         ]);
+    }
+
+    /**
+     * #83: `ini_alter` and the `restore_*_handler` inverses are runtime-config
+     * writes like `ini_set` and the `set_*_handler` functions, in strict mode
+     * only.
+     */
+    public function testRuntimeConfigAliasesAndInversesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::RUNTIME_CONFIG_FIXTURE, [
+            [4, 'runtimeConfig', 'use_utc writes runtime configuration (date_default_timezone_set).'],
+            [8, 'runtimeConfig', 'alter_ini writes runtime configuration (ini_alter).'],
+            [12, 'runtimeConfig', 'restore_handlers writes runtime configuration (restore_error_handler).'],
+            [13, 'runtimeConfig', 'restore_handlers writes runtime configuration (RESTORE_EXCEPTION_HANDLER).'],
+        ]);
+    }
+
+    public function testRuntimeConfigIsNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::RUNTIME_CONFIG_FIXTURE, []);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void
