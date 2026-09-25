@@ -2,14 +2,16 @@ Analyzing...
 
 Results:
 
-+-----------------------------------+------+----------+-----------------+----------------------------------------------------------+----------+
-| File                              | Line | Function | Implicit Inputs | Implicit Outputs                                         | Severity |
-+-----------------------------------+------+----------+-----------------+----------------------------------------------------------+----------+
-| tests/Fixtures/runtime-config.php | 3    | use_utc  |                 | writes runtime configuration (date_default_timezone_set) | Critical |
-+-----------------------------------+------+----------+-----------------+----------------------------------------------------------+----------+
++-----------------------------------+------+------------------+-----------------+----------------------------------------------------------------------------------------------------------------+----------+
+| File                              | Line | Function         | Implicit Inputs | Implicit Outputs                                                                                               | Severity |
++-----------------------------------+------+------------------+-----------------+----------------------------------------------------------------------------------------------------------------+----------+
+| tests/Fixtures/runtime-config.php | 3    | use_utc          |                 | writes runtime configuration (date_default_timezone_set)                                                       | Critical |
+| tests/Fixtures/runtime-config.php | 7    | alter_ini        |                 | writes runtime configuration (ini_alter)                                                                       | Critical |
+| tests/Fixtures/runtime-config.php | 11   | restore_handlers |                 | writes runtime configuration (restore_error_handler); writes runtime configuration (RESTORE_EXCEPTION_HANDLER) | Critical |
++-----------------------------------+------+------------------+-----------------+----------------------------------------------------------------------------------------------------------------+----------+
 
 Summary:
-  Critical violations: 1 (exit code 3)
+  Critical violations: 3 (exit code 3)
   Serious violations: 0 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 3
