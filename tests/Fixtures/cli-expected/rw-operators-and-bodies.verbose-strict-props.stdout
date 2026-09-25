@@ -21,7 +21,7 @@
 [verbose]   Implicit inputs for globalsArrayKeys: read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS
 [verbose]   Implicit outputs for globalsArrayKeys: writes to standard output (echo)
 [verbose] Analyzing function/method: variableVariable (line 40)
-[verbose]   No implicit inputs/outputs detected for variableVariable
+[verbose]   Implicit inputs for variableVariable: read from superglobal $_GET
 Analyzing...
 
 Results:
@@ -33,11 +33,12 @@ Results:
 | test-fixtures/read-write-context/operators-and-bodies.php | 12   | incrementsAndDecrementsGlobals | read from global variable $up; read from global variable $down      | wrote to global variable $up; wrote to global variable $down | Serious  |
 | test-fixtures/read-write-context/operators-and-bodies.php | 19   | readsInsideLoopAndCatchBodies  | read from superglobal $_POST; read from superglobal $_COOKIE        | writes to standard output (echo)                             | Serious  |
 | test-fixtures/read-write-context/operators-and-bodies.php | 31   | globalsArrayKeys               | read from $GLOBALS[0]; read from $GLOBALS[$key]; read from $GLOBALS | writes to standard output (echo)                             | Serious  |
+| test-fixtures/read-write-context/operators-and-bodies.php | 40   | variableVariable               | read from superglobal $_GET                                         |                                                              | Serious  |
 +-----------------------------------------------------------+------+--------------------------------+---------------------------------------------------------------------+--------------------------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)
-  Serious violations: 4 (exit code 2)
+  Serious violations: 5 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 2
 

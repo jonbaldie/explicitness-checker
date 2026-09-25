@@ -16,6 +16,7 @@ class DetectorSet
      * @param list<string> $parameters
      * @param list<string> $byReferenceParameters
      * @param list<string> $declaredGlobals
+     * @param bool $hasDynamicGlobal
      * @param list<string> $staticVariables
      * @param list<string> $capturedReferences
      *
@@ -25,6 +26,7 @@ class DetectorSet
         array $parameters,
         array $byReferenceParameters,
         array $declaredGlobals,
+        bool $hasDynamicGlobal,
         array $staticVariables,
         array $capturedReferences,
         Mode $mode,
@@ -32,7 +34,7 @@ class DetectorSet
     ): array
     {
         $detectors = [
-            new VariableDetector($parameters, $declaredGlobals, $staticVariables, $capturedReferences, $aliases),
+            new VariableDetector($parameters, $declaredGlobals, $hasDynamicGlobal, $staticVariables, $capturedReferences, $aliases),
             new GlobalsArrayDetector(),
             new StaticCallDetector(),
             new ArgumentMutationDetector($parameters, $byReferenceParameters),

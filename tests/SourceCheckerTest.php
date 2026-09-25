@@ -309,6 +309,34 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #81: dynamic `global` declarations make later variable-variable reads
+     * and writes global accesses, within the declaring function-like only.
+     */
+    public function testReportsAccessesThroughDynamicGlobalDeclarations(): void
+    {
+        $source = file_get_contents(__DIR__ . '/Fixtures/dynamic-global.php');
+        self::assertIsString($source);
+
+        self::assertSame(
+            [
+                ['writes_to_dynamic_global', 3, [], ['wrote to global variable $...']],
+                ['reads_from_dynamic_global', 9, ['read from global variable $...'], []],
+                ['writes_to_dynamic_global_with_expression', 15, [], ['wrote to global variable $...']],
+                ['reads_name_expression_from_global', 21, [
+                    'read from global variable $...',
+                    'read from global variable $name',
+                ], []],
+                ['dynamic_global_declaration_alone', 28, [], []],
+                ['dynamic_global_does_not_classify_literal_local', 33, [], []],
+                ['dynamic_variable_without_global', 39, [], []],
+                ['dynamic_global_does_not_leak_into_closure', 44, [], []],
+                ['{closure}', 47, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
      * #72: a write through a by-reference parameter changes the caller's
      * data. Reading it, and writing a by-value copy, stay explicit.
      */

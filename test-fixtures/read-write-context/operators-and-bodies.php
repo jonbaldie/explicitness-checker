@@ -36,7 +36,7 @@ function globalsArrayKeys(string $key): void
     echo $GLOBALS[$$key];
 }
 
-// A variable-variable's name expression is not walked, so this reports nothing.
+// The name expression is read; the variable-variable write stays local without a global declaration.
 function variableVariable(): void
 {
     ${$_GET['name']} = 1;

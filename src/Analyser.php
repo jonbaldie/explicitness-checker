@@ -28,7 +28,8 @@ class Analyser
     {
         $stmts = $node->getStmts() ?? [];
         $parameters = $this->parameterNames($node);
-        $declaredGlobals = (new GlobalDeclarations())->collect($stmts);
+        $globals = (new GlobalDeclarations())->collectWithDynamic($stmts);
+        $declaredGlobals = $globals['names'];
         $staticVariables = (new StaticDeclarations())->collect($stmts);
 
         $findings = new FindingCollector();
@@ -38,6 +39,7 @@ class Analyser
                 $parameters,
                 $this->byReferenceParameterNames($node),
                 $declaredGlobals,
+                $globals['hasDynamicName'],
                 $staticVariables,
                 $this->capturedReferenceNames($node),
                 $mode,

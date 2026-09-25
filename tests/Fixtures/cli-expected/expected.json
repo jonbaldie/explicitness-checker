@@ -835,6 +835,10 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "dynamic-global.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "min-explicitness-met": {
         "exitCode": 0,
         "stderr": ""
