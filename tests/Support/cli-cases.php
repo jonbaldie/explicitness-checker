@@ -81,6 +81,9 @@ return $cases + [
     'static-variable.default' => ['tests/Fixtures/static-variable.php'],
     'captured-reference.default' => ['tests/Fixtures/captured-reference.php'],
 
+    // #82: a write through a property chain reads and writes the chain's base.
+    'property-chain.props' => ['--props', 'tests/Fixtures/property-chain.php'],
+
     // #72: network, database, process, mail, include and runtime-config
     // findings are critical in strict mode.
     'network.strict' => ['--strict', 'tests/Fixtures/network.php'],
