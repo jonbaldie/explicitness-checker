@@ -663,6 +663,73 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #88: a `global` or `static` declaration rebinds a name, even a parameter,
+     * for the whole body. `global` wins over every other binding, then
+     * `static`, then by-reference and plain parameters, then by-reference
+     * captures.
+     */
+    public function testGlobalAndStaticDeclarationsOverrideParametersOfTheSameName(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function paramThenGlobal($config) { global $config; $config = 1; }
+            function paramThenStatic($n) { static $n = 0; $n++; return $n; }
+            function refParamThenGlobal(&$config) { global $config; $config = 1; }
+            function globalOnly() { global $config; $config = 1; }
+            function propRebind($o) { global $o; $o->price = 1; }
+            function propRebindRef(&$o) { global $o; $o->price = 1; }
+            function propNoGlobal($o) { $o->price = 1; }
+            function useBefore($c) { return $c; global $c; }
+            function bothDecls($n) { global $n; static $n = 0; $n++; }
+            function refParamThenStatic(&$n) { static $n = 0; $n = 1; }
+            function refWrite(&$a) { $a = 1; }
+            function plainAssign($a) { $a = 1; }
+            function outer($x) { $f = function () use (&$x) { global $x; $x = 1; }; $x = 2; }
+            function capturedThenStatic() { $f = function () use (&$s) { static $s; $s = 1; }; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['paramThenGlobal', 2, [], ['wrote to global variable $config']],
+                ['paramThenStatic', 3, ['read from static variable $n'], ['wrote to static variable $n']],
+                ['refParamThenGlobal', 4, [], ['wrote to global variable $config']],
+                ['globalOnly', 5, [], ['wrote to global variable $config']],
+                ['propRebind', 6, ['read from global variable $o'], ['wrote to global variable $o']],
+                ['propRebindRef', 7, ['read from global variable $o'], ['wrote to global variable $o']],
+                ['propNoGlobal', 8, [], ['wrote to argument $o']],
+                ['useBefore', 9, ['read from global variable $c'], []],
+                ['bothDecls', 10, ['read from global variable $n'], ['wrote to global variable $n']],
+                ['refParamThenStatic', 11, [], ['wrote to static variable $n']],
+                ['refWrite', 12, [], ['wrote to argument $a']],
+                ['plainAssign', 13, [], []],
+                ['outer', 14, [], []],
+                ['{closure}', 14, [], ['wrote to global variable $x']],
+                ['capturedThenStatic', 15, [], []],
+                ['{closure}', 15, [], ['wrote to static variable $s']],
+            ],
+            $this->summaries($results),
+        );
+    }
+
+    /**
+     * #88: the verbose lists still report what was declared, so a name that
+     * is both a parameter and a `global` appears in both.
+     */
+    public function testDeclaredListsKeepParametersRedeclaredAsGlobal(): void
+    {
+        $parser = (new ParserFactory())->createForHostVersion();
+        $stmts = $parser->parse('<?php function f($a, &$b, $c) { global $b, $d; static $c; }') ?? [];
+        $function = $stmts[0];
+        self::assertInstanceOf(\PhpParser\Node\Stmt\Function_::class, $function);
+
+        $analysis = (new Analyser())->analyse($function, new Mode(false, false));
+
+        self::assertSame(['a', 'b', 'c'], $analysis->getParameters());
+        self::assertSame(['b', 'd'], $analysis->getDeclaredGlobals());
+    }
+
+    /**
      * @param list<\JonBaldie\ExplicitnessChecker\FunctionResult> $results
      *
      * @return list<array{string, int, list<string>, list<string>}>
