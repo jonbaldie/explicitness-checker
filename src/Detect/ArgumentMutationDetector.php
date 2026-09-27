@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Bindings;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -14,24 +15,14 @@ use PhpParser\Node\Expr;
  * Writes that change the caller's data through an argument: any write to a
  * by-reference parameter, and any write to a property reached from a
  * parameter, which is a handle on an object the caller shares. Both are
- * described by the root parameter. Reads of arguments are never implicit.
+ * described by the root parameter. A parameter rebound by `global` or
+ * `static` is no longer the caller's argument. Reads of arguments are never
+ * implicit.
  */
 class ArgumentMutationDetector implements Detector
 {
-    /** @var array<string, true> */
-    protected array $parameters;
-
-    /** @var array<string, true> */
-    protected array $byReferenceParameters;
-
-    /**
-     * @param list<string> $parameters
-     * @param list<string> $byReferenceParameters
-     */
-    public function __construct(array $parameters, array $byReferenceParameters)
+    public function __construct(protected Bindings $bindings)
     {
-        $this->parameters = array_fill_keys($parameters, true);
-        $this->byReferenceParameters = array_fill_keys($byReferenceParameters, true);
     }
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
@@ -41,7 +32,7 @@ class ArgumentMutationDetector implements Detector
         }
 
         $name = VariableName::of($node);
-        if ($name !== null && isset($this->byReferenceParameters[$name])) {
+        if ($name !== null && $this->bindings->kindOf($name) === Bindings::BY_REFERENCE_PARAMETER) {
             $findings->output('wrote to argument $' . $name, Category::ARGUMENT_MUTATION, $node);
 
             return;
@@ -49,7 +40,7 @@ class ArgumentMutationDetector implements Detector
 
         if ($node instanceof Expr\PropertyFetch) {
             $root = $this->rootOf($node);
-            if ($root !== null && isset($this->parameters[$root])) {
+            if ($root !== null && $this->bindings->isParameter($root)) {
                 $findings->output('wrote to argument $' . $root, Category::ARGUMENT_MUTATION, $node);
             }
         }

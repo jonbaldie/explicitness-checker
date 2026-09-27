@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Writing through a property chain (`$this->next->next = null`, `$this->next->items[] = 1`, `self::$head->count = 0`, `global $config; $config->debug = true;`) reports the chain's base as read as well as written, since PHP fetches it before assigning through it (#82). This can add input rows to existing results
+- A `global` or `static` declaration of a parameter's name rebinds it for the whole body, as in PHP (#88). `function f($config) { global $config; $config = 1; }` now reports `wrote to global variable $config` instead of nothing, `static $n` over a parameter `$n` is reported as a static variable, and a by-reference parameter or object argument redeclared `global` is reported as the global instead of `wrote to argument`. A name declared both `global` and `static` is reported as the global. This can add rows or change an argument-mutation row to a global-variable row
 
 ## [1.1.0] - 2026-09-24
 

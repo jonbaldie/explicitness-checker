@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Bindings;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 use PhpParser\Node;
@@ -13,8 +14,8 @@ use PhpParser\Node\Expr;
 
 /**
  * Reads and writes of variables declared `global` or `static`, of variables a
- * closure captures by reference, and of superglobals.
- * `$this` and parameters are never implicit.
+ * closure captures by reference, and of superglobals, by each name's
+ * winning binding. `$this` and parameters are never implicit.
  */
 class VariableDetector implements Detector
 {
@@ -30,43 +31,17 @@ class VariableDetector implements Detector
         'GLOBALS' => true,
     ];
 
-    /** @var array<string, true> */
-    protected array $parameters;
-
-    /** @var array<string, true> */
-    protected array $declaredGlobals;
-
-    protected bool $hasDynamicGlobal;
-
-    /** @var array<string, true> */
-    protected array $staticVariables;
-
-    /** @var array<string, true> */
-    protected array $capturedReferences;
-
-    protected ReferenceAliases $aliases;
-
     /**
-     * @param list<string> $parameters
-     * @param list<string> $declaredGlobals
-     * @param bool $hasDynamicGlobal
-     * @param list<string> $staticVariables
-     * @param list<string> $capturedReferences
+     * What each implicit binding is reported as.
      */
-    public function __construct(
-        array $parameters,
-        array $declaredGlobals,
-        bool $hasDynamicGlobal,
-        array $staticVariables,
-        array $capturedReferences,
-        ReferenceAliases $aliases,
-    ) {
-        $this->parameters = array_fill_keys($parameters, true);
-        $this->declaredGlobals = array_fill_keys($declaredGlobals, true);
-        $this->hasDynamicGlobal = $hasDynamicGlobal;
-        $this->staticVariables = array_fill_keys($staticVariables, true);
-        $this->capturedReferences = array_fill_keys($capturedReferences, true);
-        $this->aliases = $aliases;
+    protected const DESCRIPTIONS = [
+        Bindings::GLOBAL => ['global variable $', Category::GLOBAL_VARIABLE],
+        Bindings::STATIC => ['static variable $', Category::STATIC_VARIABLE],
+        Bindings::CAPTURED_REFERENCE => ['captured reference $', Category::CAPTURED_REFERENCE],
+    ];
+
+    public function __construct(protected Bindings $bindings, protected ReferenceAliases $aliases)
+    {
     }
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
@@ -96,7 +71,7 @@ class VariableDetector implements Detector
 
     protected function detectDynamicGlobal(Node $node, bool $isWrite, FindingCollector $findings): bool
     {
-        if (!$this->hasDynamicGlobal || !$node instanceof Expr\Variable || is_string($node->name)) {
+        if (!$this->bindings->hasDynamicGlobal() || !$node instanceof Expr\Variable || is_string($node->name)) {
             return false;
         }
 
@@ -111,76 +86,17 @@ class VariableDetector implements Detector
         if ($name === null) {
             return;
         }
-        if (isset($this->parameters[$name])) {
+
+        $kind = $this->bindings->kindOf($name);
+        if ($kind !== null && isset(self::DESCRIPTIONS[$kind])) {
+            [$prefix, $category] = self::DESCRIPTIONS[$kind];
+            $findings->access($isWrite, $prefix . $name, $category, $node);
+
             return;
         }
 
-        if ($this->recordGlobalVariable($name, $node, $isWrite, $findings)) {
-            return;
+        if ($kind === null && isset(self::SUPERGLOBALS[$name])) {
+            $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node);
         }
-
-        if ($this->recordStaticVariable($name, $node, $isWrite, $findings)) {
-            return;
-        }
-
-        if ($this->recordCapturedReference($name, $node, $isWrite, $findings)) {
-            return;
-        }
-
-        $this->recordSuperglobal($name, $node, $isWrite, $findings);
-    }
-
-    protected function recordGlobalVariable(
-        string $name,
-        Node $node,
-        bool $isWrite,
-        FindingCollector $findings,
-    ): bool {
-        if (!isset($this->declaredGlobals[$name])) {
-            return false;
-        }
-
-        $findings->access($isWrite, 'global variable $' . $name, Category::GLOBAL_VARIABLE, $node);
-
-        return true;
-    }
-
-    protected function recordStaticVariable(
-        string $name,
-        Node $node,
-        bool $isWrite,
-        FindingCollector $findings,
-    ): bool {
-        if (!isset($this->staticVariables[$name])) {
-            return false;
-        }
-
-        $findings->access($isWrite, 'static variable $' . $name, Category::STATIC_VARIABLE, $node);
-
-        return true;
-    }
-
-    protected function recordCapturedReference(
-        string $name,
-        Node $node,
-        bool $isWrite,
-        FindingCollector $findings,
-    ): bool {
-        if (!isset($this->capturedReferences[$name])) {
-            return false;
-        }
-
-        $findings->access($isWrite, 'captured reference $' . $name, Category::CAPTURED_REFERENCE, $node);
-
-        return true;
-    }
-
-    protected function recordSuperglobal(string $name, Node $node, bool $isWrite, FindingCollector $findings): void
-    {
-        if (!isset(self::SUPERGLOBALS[$name])) {
-            return;
-        }
-
-        $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node);
     }
 }
