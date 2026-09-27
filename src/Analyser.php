@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker;
 
 use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
+use JonBaldie\ExplicitnessChecker\Scope\BindingsBuilder;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
-use JonBaldie\ExplicitnessChecker\Walk\GlobalDeclarations;
 use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
-use JonBaldie\ExplicitnessChecker\Walk\StaticDeclarations;
 use PhpParser\Node;
 
 /**
@@ -27,21 +26,13 @@ class Analyser
     public function analyse(Node\FunctionLike $node, Mode $mode): FunctionAnalysis
     {
         $stmts = $node->getStmts() ?? [];
-        $parameters = $this->parameterNames($node);
-        $globals = (new GlobalDeclarations())->collectWithDynamic($stmts);
-        $declaredGlobals = $globals['names'];
-        $staticVariables = (new StaticDeclarations())->collect($stmts);
+        $bindings = (new BindingsBuilder())->build($node);
 
         $findings = new FindingCollector();
         $aliases = new ReferenceAliases();
         $walker = new BodyWalker(
             (new DetectorSet())->select(
-                $parameters,
-                $this->byReferenceParameterNames($node),
-                $declaredGlobals,
-                $globals['hasDynamicName'],
-                $staticVariables,
-                $this->capturedReferenceNames($node),
+                $bindings,
                 $mode,
                 $aliases,
             ),
@@ -53,60 +44,12 @@ class Analyser
             $walker->walk($stmt, false);
         }
 
-        return new FunctionAnalysis($findings->inputs(), $findings->outputs(), $parameters, $declaredGlobals);
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function parameterNames(Node\FunctionLike $node): array
-    {
-        $names = [];
-        foreach ($node->getParams() as $param) {
-            $name = VariableName::of($param->var);
-            if ($name !== null) {
-                $names[] = $name;
-            }
-        }
-
-        return $names;
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function byReferenceParameterNames(Node\FunctionLike $node): array
-    {
-        $names = [];
-        foreach ($node->getParams() as $param) {
-            $name = VariableName::of($param->var);
-            if ($param->byRef && $name !== null) {
-                $names[] = $name;
-            }
-        }
-
-        return $names;
-    }
-
-    /**
-     * The names a closure captures by reference with `use (&$x)`.
-     *
-     * @return list<string>
-     */
-    protected function capturedReferenceNames(Node\FunctionLike $node): array
-    {
-        if (!$node instanceof Node\Expr\Closure) {
-            return [];
-        }
-
-        $names = [];
-        foreach ($node->uses as $use) {
-            $name = VariableName::of($use->var);
-            if ($use->byRef && $name !== null) {
-                $names[] = $name;
-            }
-        }
-
-        return $names;
+        return new FunctionAnalysis(
+            $findings->inputs(),
+            $findings->outputs(),
+            $bindings->getParameters(),
+            $bindings->getDeclaredGlobals(),
+            $bindings,
+        );
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Mode;
+use JonBaldie\ExplicitnessChecker\Scope\Bindings;
 use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 
 /**
@@ -13,43 +14,22 @@ use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 class DetectorSet
 {
     /**
-     * @param list<string> $parameters
-     * @param list<string> $byReferenceParameters
-     * @param list<string> $declaredGlobals
-     * @param bool $hasDynamicGlobal
-     * @param list<string> $staticVariables
-     * @param list<string> $capturedReferences
-     *
      * @return list<Detector>
      */
     public function select(
-        array $parameters,
-        array $byReferenceParameters,
-        array $declaredGlobals,
-        bool $hasDynamicGlobal,
-        array $staticVariables,
-        array $capturedReferences,
+        Bindings $bindings,
         Mode $mode,
         ReferenceAliases $aliases,
     ): array
     {
         $detectors = [
-            new VariableDetector($parameters, $declaredGlobals, $hasDynamicGlobal, $staticVariables, $capturedReferences, $aliases),
+            new VariableDetector($bindings, $aliases),
             new GlobalsArrayDetector(),
             new StaticCallDetector(),
-            new ArgumentMutationDetector($parameters, $byReferenceParameters),
+            new ArgumentMutationDetector($bindings),
             new StaticPropertyDetector(),
         ];
-        if ($mode->isStrict()) {
-            $detectors[] = new LanguageConstructDetector();
-            $detectors[] = new ExitDetector();
-            $detectors[] = new FunctionCallDetector();
-            $detectors[] = new NewExpressionDetector();
-        }
-        if ($mode->isProps()) {
-            $detectors[] = new ObjectPropertyDetector();
-        }
 
-        return $detectors;
+        return array_merge($detectors, (new ModeDetectorSet())->select($mode));
     }
 }

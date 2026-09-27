@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker;
 
+use JonBaldie\ExplicitnessChecker\Scope\Bindings;
+
 /**
  * What the Analyser found in one function-like.
  */
 class FunctionAnalysis
 {
+    protected Bindings $bindings;
+
     /**
      * @param list<Finding> $implicitInputs
      * @param list<Finding> $implicitOutputs
@@ -18,9 +22,11 @@ class FunctionAnalysis
     public function __construct(
         protected array $implicitInputs,
         protected array $implicitOutputs,
-        protected array $parameters,
-        protected array $declaredGlobals,
+        array $parameters,
+        array $declaredGlobals,
+        ?Bindings $bindings = null,
     ) {
+        $this->bindings = $bindings ?? new Bindings($parameters, [], $declaredGlobals, false, [], []);
     }
 
     /**
@@ -50,7 +56,7 @@ class FunctionAnalysis
      */
     public function getParameters(): array
     {
-        return $this->parameters;
+        return $this->bindings->getParameters();
     }
 
     /**
@@ -60,6 +66,6 @@ class FunctionAnalysis
      */
     public function getDeclaredGlobals(): array
     {
-        return $this->declaredGlobals;
+        return $this->bindings->getDeclaredGlobals();
     }
 }
