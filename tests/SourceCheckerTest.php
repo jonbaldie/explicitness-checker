@@ -570,6 +570,64 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #88: one binding wins for every use in a function-like. Globals outrank
+     * statics, which outrank parameters and captured references; parameters
+     * keep the existing argument-mutation behaviour when they are the winner.
+     */
+    public function testResolvesNameBindingsOnceWithPhpPrecedence(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function parameterThenGlobal($config): void { global $config; $config = 1; }
+            function parameterThenStatic($n): int { static $n = 0; $n++; return $n; }
+            function referenceParameterThenStatic(&$n): int { static $n = 0; $n++; return $n; }
+            function referenceParameterThenGlobal(&$config): void { global $config; $config = 1; }
+            function globalOnly(): void { global $config; $config = 1; }
+            function propertyRebind($o): void { global $o; $o->price = 1; }
+            function referencePropertyRebind(&$o): void { global $o; $o->price = 1; }
+            function propertyParameter($o): void { $o->price = 1; }
+            function useBeforeGlobal($c) { return $c; global $c; }
+            function globalOverridesStatic($n): void { global $n; static $n = 0; $n++; }
+            function referenceParameterWithoutRebind(&$value): void { $value = 1; }
+            function plainParameter($value): void { $value = 1; }
+            $globalCapture = function () use (&$captured) { global $captured; $captured = 1; };
+            $capture = function () use (&$capturedValue) { ++$capturedValue; };
+            function nestedGlobalDoesNotLeak($value): void {
+                $closure = function () { global $value; $value = 1; };
+                $value = 2;
+            }
+            function parameterShadowsSuperglobal($_GET) { return $_GET; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['parameterThenGlobal', 2, [], ['wrote to global variable $config']],
+                ['parameterThenStatic', 3, ['read from static variable $n'], ['wrote to static variable $n']],
+                ['referenceParameterThenStatic', 4, ['read from static variable $n'], ['wrote to static variable $n']],
+                ['referenceParameterThenGlobal', 5, [], ['wrote to global variable $config']],
+                ['globalOnly', 6, [], ['wrote to global variable $config']],
+                ['propertyRebind', 7, ['read from global variable $o'], ['wrote to global variable $o']],
+                ['referencePropertyRebind', 8, ['read from global variable $o'], ['wrote to global variable $o']],
+                ['propertyParameter', 9, [], ['wrote to argument $o']],
+                ['useBeforeGlobal', 10, ['read from global variable $c'], []],
+                ['globalOverridesStatic', 11, ['read from global variable $n'], ['wrote to global variable $n']],
+                ['referenceParameterWithoutRebind', 12, [], ['wrote to argument $value']],
+                ['plainParameter', 13, [], []],
+                ['{closure}', 14, [], ['wrote to global variable $captured']],
+                ['{closure}', 15, ['read from captured reference $capturedValue'], ['wrote to captured reference $capturedValue']],
+                ['nestedGlobalDoesNotLeak', 16, [], []],
+                ['{closure}', 17, [], ['wrote to global variable $value']],
+                ['parameterShadowsSuperglobal', 20, [], []],
+            ],
+            $this->summaries($results),
+        );
+
+        self::assertSame(['config'], $results[0]->getAnalysis()->getParameters());
+        self::assertSame(['config'], $results[0]->getAnalysis()->getDeclaredGlobals());
+    }
+
+    /**
      * #72: a static variable survives between calls, so reading or writing it
      * makes the result depend on earlier calls. The declaration itself is
      * neither, but its initial value is read.

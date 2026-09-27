@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Bindings;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -18,20 +19,11 @@ use PhpParser\Node\Expr;
  */
 class ArgumentMutationDetector implements Detector
 {
-    /** @var array<string, true> */
-    protected array $parameters;
+    protected Bindings $bindings;
 
-    /** @var array<string, true> */
-    protected array $byReferenceParameters;
-
-    /**
-     * @param list<string> $parameters
-     * @param list<string> $byReferenceParameters
-     */
-    public function __construct(array $parameters, array $byReferenceParameters)
+    public function __construct(Bindings $bindings)
     {
-        $this->parameters = array_fill_keys($parameters, true);
-        $this->byReferenceParameters = array_fill_keys($byReferenceParameters, true);
+        $this->bindings = $bindings;
     }
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
@@ -41,7 +33,7 @@ class ArgumentMutationDetector implements Detector
         }
 
         $name = VariableName::of($node);
-        if ($name !== null && isset($this->byReferenceParameters[$name])) {
+        if ($name !== null && $this->bindings->kindOf($name) === Bindings::BY_REFERENCE_PARAMETER) {
             $findings->output('wrote to argument $' . $name, Category::ARGUMENT_MUTATION, $node);
 
             return;
@@ -49,7 +41,8 @@ class ArgumentMutationDetector implements Detector
 
         if ($node instanceof Expr\PropertyFetch) {
             $root = $this->rootOf($node);
-            if ($root !== null && isset($this->parameters[$root])) {
+            $kind = $root === null ? null : $this->bindings->kindOf($root);
+            if ($kind === Bindings::PARAMETER || $kind === Bindings::BY_REFERENCE_PARAMETER) {
                 $findings->output('wrote to argument $' . $root, Category::ARGUMENT_MUTATION, $node);
             }
         }
