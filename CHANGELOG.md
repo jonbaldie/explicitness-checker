@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-09-28
+
 ### Fixed
 
 - Writing through a property chain (`$this->next->next = null`, `$this->next->items[] = 1`, `self::$head->count = 0`, `global $config; $config->debug = true;`) reports the chain's base as read as well as written, since PHP fetches it before assigning through it (#82). This can add input rows to existing results
+- Strict mode reports `ini_alter`, `restore_error_handler` and `restore_exception_handler` as runtime-configuration writes (#83)
+- Dynamic `global` declarations are recognized; variable-variable reads and writes after a declaration are reported as global accesses, while declarations remain non-accesses and function and closure boundaries are respected (#85)
 - A `global` or `static` declaration of a parameter's name rebinds it for the whole body, as in PHP (#88). `function f($config) { global $config; $config = 1; }` now reports `wrote to global variable $config` instead of nothing, `static $n` over a parameter `$n` is reported as a static variable, and a by-reference parameter or object argument redeclared `global` is reported as the global instead of `wrote to argument`. A name declared both `global` and `static` is reported as the global. This can add rows or change an argument-mutation row to a global-variable row
 
 ## [1.1.0] - 2026-09-24
@@ -54,6 +58,7 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonbaldie/explicitness-checker/releases/tag/v1.0.0
