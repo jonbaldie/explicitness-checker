@@ -49,6 +49,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const DYNAMIC_THIS_PROPERTY_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-this-property.php';
 
+    protected const NULLSAFE_THIS_PROPERTY_FIXTURE = Process::ROOT . '/tests/Fixtures/nullsafe-this-property.php';
+
     protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
 
     /**
@@ -459,6 +461,21 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [12, 'objectProperty', 'DynamicProps::writeDynamic wrote to object property $this->....'],
             [17, 'objectProperty', 'DynamicProps::readBraced read from object property $this->....'],
             [22, 'objectProperty', 'DynamicProps::readLiteral read from object property $this->literal.'],
+        ]);
+    }
+
+    /**
+     * #93: the PHPStan rule reports nullsafe property fetches on `$this` under
+     * props, like the CLI.
+     */
+    public function testNullsafeThisPropertyUnderProps(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::NULLSAFE_THIS_PROPERTY_FIXTURE, [
+            [7, 'objectProperty', 'NullsafeProps::readLiteral read from object property $this->name.'],
+            [12, 'objectProperty', 'NullsafeProps::readDynamic read from object property $this->....'],
+            [17, 'objectProperty', 'NullsafeProps::readBraced read from object property $this->....'],
         ]);
     }
 

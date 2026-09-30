@@ -1,0 +1,18 @@
+Analyzing...
+
+Results:
+
++-------------------------------------------+------+----------------------------+---------------------------------------+------------------+----------+
+| File                                      | Line | Function                   | Implicit Inputs                       | Implicit Outputs | Severity |
++-------------------------------------------+------+----------------------------+---------------------------------------+------------------+----------+
+| tests/Fixtures/nullsafe-this-property.php | 5    | NullsafeProps::readLiteral | read from object property $this->name |                  | Serious  |
+| tests/Fixtures/nullsafe-this-property.php | 10   | NullsafeProps::readDynamic | read from object property $this->...  |                  | Serious  |
+| tests/Fixtures/nullsafe-this-property.php | 15   | NullsafeProps::readBraced  | read from object property $this->...  |                  | Serious  |
++-------------------------------------------+------+----------------------------+---------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
