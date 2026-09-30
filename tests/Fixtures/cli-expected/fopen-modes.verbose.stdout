@@ -17,4 +17,6 @@
 [verbose] Analyzing function/method: fopen_dynamic (line 33)
 [verbose]   Parameters for fopen_dynamic: mode
 [verbose]   No implicit inputs/outputs detected for fopen_dynamic
+[verbose] Analyzing function/method: fopen_named_mode_first (line 38)
+[verbose]   No implicit inputs/outputs detected for fopen_named_mode_first
 No implicit inputs or outputs found.

@@ -40,6 +40,16 @@ class CallArguments
     }
 
     /**
+     * The literal string passed for a parameter, or null when none is.
+     */
+    public function string(int $position, string $name): ?string
+    {
+        $value = $this->value($position, $name);
+
+        return $value instanceof Scalar\String_ ? $value->value : null;
+    }
+
+    /**
      * A date is built from the clock when its datetime argument is absent,
      * null, 'now' in any case, or '', which PHP also reads as now.
      */

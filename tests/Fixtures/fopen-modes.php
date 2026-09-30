@@ -34,3 +34,8 @@ function fopen_dynamic(string $mode): void
 {
     fopen('file.txt', $mode);
 }
+
+function fopen_named_mode_first(): void
+{
+    fopen(mode: 'w', filename: 'file.txt');
+}
