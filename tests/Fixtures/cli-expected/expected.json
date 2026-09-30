@@ -975,6 +975,14 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "dynamic-this-property.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "dynamic-this-property.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "network.strict": {
         "exitCode": 3,
         "stderr": ""

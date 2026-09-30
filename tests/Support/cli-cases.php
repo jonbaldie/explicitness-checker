@@ -84,6 +84,10 @@ return $cases + [
     // #82: a write through a property chain reads and writes the chain's base.
     'property-chain.props' => ['--props', 'tests/Fixtures/property-chain.php'],
 
+    // #94: `$this` properties with dynamic names are reported under props.
+    'dynamic-this-property.default' => ['tests/Fixtures/dynamic-this-property.php'],
+    'dynamic-this-property.props' => ['--props', 'tests/Fixtures/dynamic-this-property.php'],
+
     // #72: network, database, process, mail, include and runtime-config
     // findings are critical in strict mode.
     'network.strict' => ['--strict', 'tests/Fixtures/network.php'],

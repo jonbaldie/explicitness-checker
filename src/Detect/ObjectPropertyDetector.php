@@ -10,7 +10,8 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Props mode: reads and writes of `$this->name`.
+ * Props mode: reads and writes of `$this->name` (the name is shown as "..."
+ * when dynamic).
  */
 class ObjectPropertyDetector implements Detector
 {
@@ -20,12 +21,12 @@ class ObjectPropertyDetector implements Detector
             !$node instanceof Expr\PropertyFetch
             || !$node->var instanceof Expr\Variable
             || $node->var->name !== 'this'
-            || !$node->name instanceof Node\Identifier
         ) {
             return;
         }
 
-        $subject = 'object property $this->' . $node->name->toString();
+        $property = $node->name instanceof Node\Identifier ? $node->name->toString() : '...';
+        $subject = 'object property $this->' . $property;
         $findings->access($isWrite, $subject, Category::OBJECT_PROPERTY, $node);
     }
 }
