@@ -17,6 +17,8 @@ class ReadWriteContextTest extends TestCase
 {
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
+    protected const REFERENCE_TARGET_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-target.php';
+
     protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
 
     /**
@@ -126,6 +128,36 @@ class ReadWriteContextTest extends TestCase
                 'write_through_global' => ['read from global variable $config', 'wrote to global variable $config'],
             ],
             $this->reportedRowsAtPath(self::PROPERTY_CHAIN_FIXTURE),
+        );
+    }
+
+    /**
+     * #92: assigning an entry of $GLOBALS by reference to an object property,
+     * static property or argument writes to that target as well as reading and
+     * writing the globals entry.
+     */
+    public function testReferenceAssignmentOfGlobalsToNonVariablesIsAWrite(): void
+    {
+        self::assertSame(
+            [
+                'RefBug::assignThis' => [
+                    "read from \$GLOBALS['counter']",
+                    "wrote to object property \$this->ref; wrote to \$GLOBALS['counter']",
+                ],
+                'RefBug::assignStatic' => [
+                    "read from \$GLOBALS['counter']",
+                    "wrote to static property self::\$staticRef; wrote to \$GLOBALS['counter']",
+                ],
+                'mutateParamRef' => [
+                    "read from \$GLOBALS['counter']",
+                    "wrote to argument \$param; wrote to \$GLOBALS['counter']",
+                ],
+                'mutateParamArrayRef' => [
+                    "read from \$GLOBALS['counter']",
+                    "wrote to argument \$arr; wrote to \$GLOBALS['counter']",
+                ],
+            ],
+            $this->reportedRowsAtPath(self::REFERENCE_TARGET_FIXTURE),
         );
     }
 

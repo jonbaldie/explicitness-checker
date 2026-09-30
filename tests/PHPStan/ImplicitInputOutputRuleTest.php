@@ -37,6 +37,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const REFERENCE_ALIAS_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-alias.php';
 
+    protected const REFERENCE_TARGET_FIXTURE = Process::ROOT . '/tests/Fixtures/reference-global-target.php';
+
     protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
 
     protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
@@ -380,6 +382,30 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [54, 'argumentMutation', 'parameterReference wrote to argument $value.'],
             [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
             [59, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
+        ]);
+    }
+
+    /**
+     * #92: assigning $GLOBALS entries by reference to non-variable targets
+     * reports writes to those targets and read+write to the global entry.
+     */
+    public function testReferenceAssignmentOfGlobalsToNonVariables(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::REFERENCE_TARGET_FIXTURE, [
+            [14, 'globalsArray', 'RefBug::assignThis read from $GLOBALS[\'counter\'].'],
+            [14, 'objectProperty', 'RefBug::assignThis wrote to object property $this->ref.'],
+            [14, 'globalsArray', 'RefBug::assignThis wrote to $GLOBALS[\'counter\'].'],
+            [19, 'globalsArray', 'RefBug::assignStatic read from $GLOBALS[\'counter\'].'],
+            [19, 'staticProperty', 'RefBug::assignStatic wrote to static property self::$staticRef.'],
+            [19, 'globalsArray', 'RefBug::assignStatic wrote to $GLOBALS[\'counter\'].'],
+            [25, 'globalsArray', 'mutateParamRef read from $GLOBALS[\'counter\'].'],
+            [25, 'argumentMutation', 'mutateParamRef wrote to argument $param.'],
+            [25, 'globalsArray', 'mutateParamRef wrote to $GLOBALS[\'counter\'].'],
+            [30, 'globalsArray', 'mutateParamArrayRef read from $GLOBALS[\'counter\'].'],
+            [30, 'argumentMutation', 'mutateParamArrayRef wrote to argument $arr.'],
+            [30, 'globalsArray', 'mutateParamArrayRef wrote to $GLOBALS[\'counter\'].'],
         ]);
     }
 

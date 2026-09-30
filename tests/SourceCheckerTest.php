@@ -766,6 +766,67 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #92: assigning $GLOBALS by reference to a property or array element
+     * reports a write to that target and read+write to the globals entry.
+     */
+    public function testAssigningGlobalsByReferenceToPropertyOrArrayElementIsAWrite(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class RefBug
+            {
+                public mixed $ref;
+                public static mixed $staticRef;
+
+                public function assignThis(): void
+                {
+                    $this->ref = &$GLOBALS['counter'];
+                }
+
+                public static function assignStatic(): void
+                {
+                    self::$staticRef = &$GLOBALS['counter'];
+                }
+            }
+
+            function mutateParamRef($param): void
+            {
+                $param->ref = &$GLOBALS['counter'];
+            }
+
+            function mutateParamArrayRef(&$arr): void
+            {
+                $arr['key'] = &$GLOBALS['counter'];
+            }
+            PHP;
+
+        $results = (new SourceChecker())->check($source, new Mode(false, true));
+
+        self::assertSame(
+            [
+                ['RefBug::assignThis', 7, ["read from \$GLOBALS['counter']"], ['wrote to object property $this->ref', "wrote to \$GLOBALS['counter']"]],
+                ['RefBug::assignStatic', 12, ["read from \$GLOBALS['counter']"], ['wrote to static property self::$staticRef', "wrote to \$GLOBALS['counter']"]],
+                ['mutateParamRef', 18, ["read from \$GLOBALS['counter']"], ['wrote to argument $param', "wrote to \$GLOBALS['counter']"]],
+                ['mutateParamArrayRef', 23, ["read from \$GLOBALS['counter']"], ['wrote to argument $arr', "wrote to \$GLOBALS['counter']"]],
+            ],
+            $this->summaries($results),
+        );
+
+        $defaultResults = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['RefBug::assignThis', 7, ["read from \$GLOBALS['counter']"], ["wrote to \$GLOBALS['counter']"]],
+                ['RefBug::assignStatic', 12, ["read from \$GLOBALS['counter']"], ['wrote to static property self::$staticRef', "wrote to \$GLOBALS['counter']"]],
+                ['mutateParamRef', 18, ["read from \$GLOBALS['counter']"], ['wrote to argument $param', "wrote to \$GLOBALS['counter']"]],
+                ['mutateParamArrayRef', 23, ["read from \$GLOBALS['counter']"], ['wrote to argument $arr', "wrote to \$GLOBALS['counter']"]],
+            ],
+            $this->summaries($defaultResults),
+        );
+    }
+
+
+    /**
      * @param list<\JonBaldie\ExplicitnessChecker\FunctionResult> $results
      *
      * @return list<array{string, int, list<string>, list<string>}>

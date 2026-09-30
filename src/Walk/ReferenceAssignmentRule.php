@@ -22,11 +22,8 @@ class ReferenceAssignmentRule implements ChildAccessRule
         if (!$node instanceof Expr\AssignRef) {
             return null;
         }
-        if (!GlobalsArrayDetector::isGlobalsFetch($node->expr)) {
+        if (!GlobalsArrayDetector::isGlobalsFetch($node->expr) || VariableName::of($node->var) === null) {
             return [[$node->var, true], [$node->expr, false], [$node->expr, true]];
-        }
-        if (VariableName::of($node->var) === null) {
-            return null;
         }
 
         return [];
