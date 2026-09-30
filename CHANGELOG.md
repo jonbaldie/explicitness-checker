@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `--props` and the PHPStan `props` parameter report `$this` properties with dynamic names (`$this->$prop`, `$this->{$prop}`) as `object property $this->...` instead of ignoring them (#94). This can add rows under `--props`
+
 ## [1.1.1] - 2026-09-28
 
 ### Fixed

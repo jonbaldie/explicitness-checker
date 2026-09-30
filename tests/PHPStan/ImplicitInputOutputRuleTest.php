@@ -45,6 +45,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
 
+    protected const DYNAMIC_THIS_PROPERTY_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-this-property.php';
+
     protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
 
     /**
@@ -415,6 +417,22 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [39, 'objectProperty', 'Node::readChain read from object property $this->next.'],
             [46, 'globalVariable', 'write_through_global read from global variable $config.'],
             [46, 'globalVariable', 'write_through_global wrote to global variable $config.'],
+        ]);
+    }
+
+    /**
+     * #94: the PHPStan rule reports `$this` properties with dynamic names
+     * under props, like the CLI.
+     */
+    public function testDynamicThisPropertyNamesUnderProps(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::DYNAMIC_THIS_PROPERTY_FIXTURE, [
+            [7, 'objectProperty', 'DynamicProps::readDynamic read from object property $this->....'],
+            [12, 'objectProperty', 'DynamicProps::writeDynamic wrote to object property $this->....'],
+            [17, 'objectProperty', 'DynamicProps::readBraced read from object property $this->....'],
+            [22, 'objectProperty', 'DynamicProps::readLiteral read from object property $this->literal.'],
         ]);
     }
 
