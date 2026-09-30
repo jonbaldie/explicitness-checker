@@ -88,6 +88,11 @@ return $cases + [
     'dynamic-this-property.default' => ['tests/Fixtures/dynamic-this-property.php'],
     'dynamic-this-property.props' => ['--props', 'tests/Fixtures/dynamic-this-property.php'],
 
+    // #92: assigning $GLOBALS entries by reference to properties or array
+    // elements writes to that target and reads+writes the global entry.
+    'reference-global-target.default' => ['tests/Fixtures/reference-global-target.php'],
+    'reference-global-target.props' => ['--props', 'tests/Fixtures/reference-global-target.php'],
+
     // #72: network, database, process, mail, include and runtime-config
     // findings are critical in strict mode.
     'network.strict' => ['--strict', 'tests/Fixtures/network.php'],

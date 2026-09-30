@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++--------------------------------------------+------+----------------------+-------------------------------+-------------------------------------------------------------------------+----------+
+| File                                       | Line | Function             | Implicit Inputs               | Implicit Outputs                                                        | Severity |
++--------------------------------------------+------+----------------------+-------------------------------+-------------------------------------------------------------------------+----------+
+| tests/Fixtures/reference-global-target.php | 12   | RefBug::assignThis   | read from $GLOBALS['counter'] | wrote to object property $this->ref; wrote to $GLOBALS['counter']       | Serious  |
+| tests/Fixtures/reference-global-target.php | 17   | RefBug::assignStatic | read from $GLOBALS['counter'] | wrote to static property self::$staticRef; wrote to $GLOBALS['counter'] | Serious  |
+| tests/Fixtures/reference-global-target.php | 23   | mutateParamRef       | read from $GLOBALS['counter'] | wrote to argument $param; wrote to $GLOBALS['counter']                  | Serious  |
+| tests/Fixtures/reference-global-target.php | 28   | mutateParamArrayRef  | read from $GLOBALS['counter'] | wrote to argument $arr; wrote to $GLOBALS['counter']                    | Serious  |
++--------------------------------------------+------+----------------------+-------------------------------+-------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -983,6 +983,14 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "reference-global-target.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "reference-global-target.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "network.strict": {
         "exitCode": 3,
         "stderr": ""
