@@ -224,6 +224,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [30, 'file', 'fopen_read_write reads from file (fopen).'],
             [30, 'file', 'fopen_read_write writes to file (fopen).'],
             [35, 'file', 'fopen_dynamic reads from file (fopen).'],
+            [40, 'file', 'fopen_named_mode_first writes to file (fopen).'],
         ]);
     }
 

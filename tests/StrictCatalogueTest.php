@@ -354,6 +354,26 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #95: fopen's mode is found by position or by name, so a named mode
+     * passed before the filename still decides between read and write.
+     */
+    public function testClassifiesFopenByModeByPositionOrName(): void
+    {
+        $read = [[['reads from file (fopen)', Category::FILE]], []];
+        $write = [[], [['writes to file (fopen)', Category::FILE]]];
+        $this->assertFindings([
+            "fopen(\$a, 'w')" => $write,
+            "fopen(mode: 'w', filename: \$a)" => $write,
+            "fopen(filename: \$a, mode: 'w')" => $write,
+            "fopen(\$a, mode: 'w')" => $write,
+            "fopen(mode: 'r', filename: \$a)" => $read,
+            "fopen(mode: 'r+', filename: \$a)" => [$read[0], $write[1]],
+            "fopen(mode: \$b, filename: 'w')" => $read,
+            'fopen(filename: $a)' => $read,
+        ]);
+    }
+
+    /**
      * PHP function names are case-insensitive and may be fully qualified.
      * The description keeps the name as written, less the leading "\".
      */

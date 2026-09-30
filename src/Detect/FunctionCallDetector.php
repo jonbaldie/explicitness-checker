@@ -8,7 +8,6 @@ use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Scalar;
 
 /**
  * Strict mode: calls to known impure functions, matched case-insensitively as
@@ -284,14 +283,14 @@ class FunctionCallDetector implements Detector
 
     protected function detectFopen(Expr\FuncCall $node, string $name, FindingCollector $findings): void
     {
-        $mode = $node->args[1]->value ?? null;
-        if (!$mode instanceof Scalar\String_) {
+        $mode = (new CallArguments($node))->string(1, 'mode');
+        if ($mode === null) {
             $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
 
             return;
         }
 
-        $mode = strtolower($mode->value);
+        $mode = strtolower($mode);
         if (str_contains($mode, '+')) {
             $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
             $findings->output('writes to file (' . $name . ')', Category::FILE, $node);
