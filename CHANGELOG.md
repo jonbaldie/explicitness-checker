@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Assigning an entry of `$GLOBALS` by reference into an object property, static property or array element (`$this->ref = &$GLOBALS['key']`, `self::$ref = &$GLOBALS['key']`, `$param->ref = &$GLOBALS['key']`, `&$arr['key'] = &$GLOBALS['key']`) is walked as a write to that target and a read+write of the globals entry, rather than erroneously reporting a read of the target and missing argument mutations (#92)
+- Reading instance properties on `$this` using the nullsafe operator (`$this?->prop`, `$this?->$prop`) is reported under `--props` and in the PHPStan extension under `props: true` instead of being ignored (#93). This can add rows under `--props`
 - `--props` and the PHPStan `props` parameter report `$this` properties with dynamic names (`$this->$prop`, `$this->{$prop}`) as `object property $this->...` instead of ignoring them (#94). This can add rows under `--props`
 
 ## [1.1.1] - 2026-09-28

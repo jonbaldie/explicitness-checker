@@ -699,6 +699,39 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #93: `$this?->prop` reads instance state like `$this->prop`, so `--props`
+     * reports it, including when dynamic (`$this?->$p`).
+     */
+    public function testReportsNullsafePropertyFetchOnThisUnderProps(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class C {
+                public function literal(): ?string { return $this?->name; }
+                public function dynamic(string $p): mixed { return $this?->$p; }
+                public function braced(string $p): mixed { return $this?->{'x' . $p}; }
+            }
+            PHP;
+
+        self::assertSame(
+            [
+                ['C::literal', 3, ['read from object property $this->name'], []],
+                ['C::dynamic', 4, ['read from object property $this->...'], []],
+                ['C::braced', 5, ['read from object property $this->...'], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, true))),
+        );
+        self::assertSame(
+            [
+                ['C::literal', 3, [], []],
+                ['C::dynamic', 4, [], []],
+                ['C::braced', 5, [], []],
+            ],
+            $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
+        );
+    }
+
+    /**
      * #88: a `global` or `static` declaration rebinds a name, even a parameter,
      * for the whole body. `global` wins over every other binding, then
      * `static`, then by-reference and plain parameters, then by-reference

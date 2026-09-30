@@ -983,6 +983,14 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "nullsafe-this-property.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "nullsafe-this-property.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "reference-global-target.default": {
         "exitCode": 2,
         "stderr": ""

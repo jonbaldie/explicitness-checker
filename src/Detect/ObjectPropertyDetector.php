@@ -10,15 +10,15 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Props mode: reads and writes of `$this->name` (the name is shown as "..."
- * when dynamic).
+ * Props mode: reads and writes of `$this->name` and `$this?->name` (the name
+ * is shown as "..." when dynamic).
  */
 class ObjectPropertyDetector implements Detector
 {
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
         if (
-            !$node instanceof Expr\PropertyFetch
+            (!$node instanceof Expr\PropertyFetch && !$node instanceof Expr\NullsafePropertyFetch)
             || !$node->var instanceof Expr\Variable
             || $node->var->name !== 'this'
         ) {
