@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-01
+
 ### Fixed
 
 - Assigning an entry of `$GLOBALS` by reference into an object property, static property or array element (`$this->ref = &$GLOBALS['key']`, `self::$ref = &$GLOBALS['key']`, `$param->ref = &$GLOBALS['key']`, `&$arr['key'] = &$GLOBALS['key']`) is walked as a write to that target and a read+write of the globals entry, rather than erroneously reporting a read of the target and missing argument mutations (#92)
 - Reading instance properties on `$this` using the nullsafe operator (`$this?->prop`, `$this?->$prop`) is reported under `--props` and in the PHPStan extension under `props: true` instead of being ignored (#93). This can add rows under `--props`
 - `--props` and the PHPStan `props` parameter report `$this` properties with dynamic names (`$this->$prop`, `$this->{$prop}`) as `object property $this->...` instead of ignoring them (#94). This can add rows under `--props`
+- Strict mode reads `fopen`'s mode by name as well as position, so `fopen(mode: 'w', filename: $path)` is reported as `writes to file (fopen)` instead of `reads from file (fopen)` (#95). This can move a file row from inputs to outputs
 
 ## [1.1.1] - 2026-09-28
 
@@ -64,7 +67,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonbaldie/explicitness-checker/releases/tag/v1.0.0
