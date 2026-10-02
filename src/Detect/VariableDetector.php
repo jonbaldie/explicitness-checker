@@ -90,13 +90,13 @@ class VariableDetector implements Detector
         $kind = $this->bindings->kindOf($name);
         if ($kind !== null && isset(self::DESCRIPTIONS[$kind])) {
             [$prefix, $category] = self::DESCRIPTIONS[$kind];
-            $findings->access($isWrite, $prefix . $name, $category, $node);
+            $findings->access($isWrite, $prefix . $name, $category, $node, $name);
 
             return;
         }
 
         if ($kind === null && isset(self::SUPERGLOBALS[$name])) {
-            $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node);
+            $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node, $name);
         }
     }
 }

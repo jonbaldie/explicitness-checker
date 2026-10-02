@@ -7,6 +7,9 @@ namespace JonBaldie\ExplicitnessChecker\Tests;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\Cli\Severity;
 use JonBaldie\ExplicitnessChecker\Finding;
+use JonBaldie\ExplicitnessChecker\FunctionResult;
+use JonBaldie\ExplicitnessChecker\Mode;
+use JonBaldie\ExplicitnessChecker\SourceChecker;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -54,5 +57,30 @@ class SeverityTest extends TestCase
             $severity = Severity::of([new Finding('a finding', $category, 1)]);
             self::assertSame($exitCode, Severity::EXIT_CODES[$severity], $category);
         }
+    }
+
+    /**
+     * `$_ENV` is environment access, so critical although it is reported as a
+     * superglobal. That is decided by the finding's variable name, not its
+     * wording (#36).
+     */
+    public function testEnvSuperglobalIsCriticalByVariableNameNotDescription(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function readEnv(): string { return $_ENV['KEY']; }
+            function writeEnv(): void { $_ENV['KEY'] = 'x'; }
+            function readGet(): string { return $_GET['page']; }
+            PHP;
+        $severities = array_map(
+            static fn (FunctionResult $result): string => Severity::of([...$result->getInputs(), ...$result->getOutputs()]),
+            (new SourceChecker())->check($source, new Mode(false, false)),
+        );
+        self::assertSame([Severity::CRITICAL, Severity::CRITICAL, Severity::SERIOUS], $severities);
+
+        self::assertSame(Severity::CRITICAL, Severity::of([new Finding('reworded', Category::SUPERGLOBAL, 1, '_ENV')]));
+        self::assertSame(Severity::SERIOUS, Severity::of([new Finding('read from superglobal $_ENV', Category::SUPERGLOBAL, 1)]));
+        self::assertSame(Severity::SERIOUS, Severity::of([new Finding('read from superglobal $_ENV', Category::SUPERGLOBAL, 1, '_GET')]));
+        self::assertSame(Severity::SERIOUS, Severity::of([new Finding('read from global variable $_ENV', Category::GLOBAL_VARIABLE, 1, '_ENV')]));
     }
 }

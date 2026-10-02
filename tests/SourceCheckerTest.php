@@ -57,6 +57,37 @@ class SourceCheckerTest extends TestCase
         self::assertSame(5, $outputs[0]->getLine());
     }
 
+    /**
+     * Findings about a named variable carry its name as data, so consumers
+     * such as the CLI's severity can tell `$_ENV` from `$_GET` without
+     * parsing the description (#36).
+     */
+    public function testVariableFindingsCarryTheVariableName(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function env(): void { global $config; $_GET['a'] = $_ENV['KEY'] . $config; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        $variables = static fn (array $findings): array => array_map(
+            static fn (Finding $finding): array => [$finding->getDescription(), $finding->getVariable()],
+            $findings,
+        );
+        self::assertSame(
+            [['read from superglobal $_ENV', '_ENV'], ['read from global variable $config', 'config']],
+            $variables($results[0]->getInputs()),
+        );
+        self::assertSame([['wrote to superglobal $_GET', '_GET']], $variables($results[0]->getOutputs()));
+    }
+
+    public function testFindingsNotAboutANamedVariableHaveNoVariableName(): void
+    {
+        $results = (new SourceChecker())->check(self::SOURCE, new Mode(true, true));
+
+        self::assertNull($results[1]->getOutputs()[0]->getVariable());
+    }
+
     public function testReportsImplicitInputsOfEveryFunctionLike(): void
     {
         $source = <<<'PHP'
