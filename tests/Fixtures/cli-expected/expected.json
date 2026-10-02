@@ -823,6 +823,10 @@
         "exitCode": 1,
         "stderr": ""
     },
+    "first-class-callables.strict": {
+        "exitCode": 0,
+        "stderr": ""
+    },
     "nested-anonymous-classes": {
         "exitCode": 2,
         "stderr": ""

@@ -31,6 +31,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const FOPEN_FIXTURE = Process::ROOT . '/tests/Fixtures/fopen-modes.php';
 
+    protected const FIRST_CLASS_CALLABLES_FIXTURE = Process::ROOT . '/tests/Fixtures/first-class-callables.php';
+
     protected const EXIT_FIXTURE = Process::ROOT . '/tests/Fixtures/exit-forms.php';
 
     protected const CASE_INSENSITIVE_FIXTURE = Process::ROOT . '/tests/Fixtures/case-insensitive-functions.php';
@@ -230,6 +232,13 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [35, 'file', 'fopen_dynamic reads from file (fopen).'],
             [40, 'file', 'fopen_named_mode_first writes to file (fopen).'],
         ]);
+    }
+
+    public function testFirstClassCallablesAreNotReportedInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::FIRST_CLASS_CALLABLES_FIXTURE, []);
     }
 
     /**
