@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Finding::getVariable()` returns the name of the global, superglobal, static variable, captured reference or mutated argument a finding is about (e.g. `_ENV`), or null for other findings, so consumers can classify findings without parsing their descriptions. The CLI now recognises `$_ENV` as Critical from this name rather than from the description text; exit codes are unchanged (#36)
+
 ### Fixed
 
 - The key of a keyed destructuring item (`[$key => $val] = $data`, `list($key => $val) = $data`, `foreach ($data as [$key => $val])`) is walked as a read instead of a write, so `[$param->key => $val] = $data` no longer reports `wrote to argument $param` and keys that read globals, `$GLOBALS` entries, static properties or (under `--props`) `$this` properties are reported as inputs rather than outputs (#105). This can move rows from outputs to inputs

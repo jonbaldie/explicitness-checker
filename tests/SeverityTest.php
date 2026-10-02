@@ -61,10 +61,9 @@ class SeverityTest extends TestCase
 
     /**
      * `$_ENV` is environment access, so critical although it is reported as a
-     * superglobal. That is decided by the finding's variable name, not its
-     * wording (#36).
+     * superglobal, whether read or written; other superglobals are serious.
      */
-    public function testEnvSuperglobalIsCriticalByVariableNameNotDescription(): void
+    public function testEnvSuperglobalIsCritical(): void
     {
         $source = <<<'PHP'
             <?php
@@ -77,7 +76,13 @@ class SeverityTest extends TestCase
             (new SourceChecker())->check($source, new Mode(false, false)),
         );
         self::assertSame([Severity::CRITICAL, Severity::CRITICAL, Severity::SERIOUS], $severities);
+    }
 
+    /**
+     * Rewording a finding cannot change whether it counts as `$_ENV` (#36).
+     */
+    public function testEnvSeverityIgnoresTheDescription(): void
+    {
         self::assertSame(Severity::CRITICAL, Severity::of([new Finding('reworded', Category::SUPERGLOBAL, 1, '_ENV')]));
         self::assertSame(Severity::SERIOUS, Severity::of([new Finding('read from superglobal $_ENV', Category::SUPERGLOBAL, 1)]));
         self::assertSame(Severity::SERIOUS, Severity::of([new Finding('read from superglobal $_ENV', Category::SUPERGLOBAL, 1, '_GET')]));

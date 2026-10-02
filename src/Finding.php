@@ -42,8 +42,10 @@ class Finding
     }
 
     /**
-     * The name of the variable read or written, without the `$`, e.g. "_ENV";
-     * null when the finding is not about a named variable.
+     * The name of the variable read or written, without the `$`, e.g. "_ENV":
+     * a global, superglobal, static variable, captured reference or mutated
+     * argument. Null for anything else, including `$GLOBALS` entries and
+     * properties.
      */
     public function getVariable(): ?string
     {
