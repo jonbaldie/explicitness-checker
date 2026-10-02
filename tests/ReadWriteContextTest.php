@@ -23,6 +23,8 @@ class ReadWriteContextTest extends TestCase
 
     protected const KEYED_DESTRUCTURING_FIXTURE = Process::ROOT . '/tests/Fixtures/keyed-destructuring.php';
 
+    protected const DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE = Process::ROOT . '/test-fixtures/read-write-context/static-class.php';
+
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -160,6 +162,38 @@ class ReadWriteContextTest extends TestCase
                 ],
             ],
             $this->reportedRowsAtPath(self::REFERENCE_TARGET_FIXTURE),
+        );
+    }
+
+    /**
+     * #106: a dynamic class expression is read when writing to its static property.
+     */
+    public function testDynamicClassExpressionOnStaticPropertyWriteIsRead(): void
+    {
+        self::assertSame(
+            [
+                'DynamicClassProbe::writeThroughParam' => [
+                    '',
+                    'wrote to static property ...::$value',
+                ],
+                'DynamicClassProbe::writeThroughGlobal' => [
+                    'read from global variable $className',
+                    'wrote to static property ...::$value',
+                ],
+                'DynamicClassProbe::writeThroughProperty' => [
+                    'read from object property $this->className',
+                    'wrote to static property ...::$value',
+                ],
+                'DynamicClassProbe::writeThroughGlobals' => [
+                    "read from \$GLOBALS['className']",
+                    'wrote to static property ...::$value',
+                ],
+                'DynamicClassProbe::readThroughParam' => [
+                    'read from static property ...::$value',
+                    '',
+                ],
+            ],
+            $this->reportedRowsAtPath(self::DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE, ['--props']),
         );
     }
 
