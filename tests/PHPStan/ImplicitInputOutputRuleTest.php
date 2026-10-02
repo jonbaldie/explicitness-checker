@@ -41,6 +41,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
 
+    protected const DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE = Process::ROOT . '/test-fixtures/read-write-context/static-class.php';
+
     protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
 
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
@@ -448,6 +450,26 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [39, 'objectProperty', 'Node::readChain read from object property $this->next.'],
             [46, 'globalVariable', 'write_through_global read from global variable $config.'],
             [46, 'globalVariable', 'write_through_global wrote to global variable $config.'],
+        ]);
+    }
+
+    /**
+     * #106: a static-property write reads the dynamic class expression; reads
+     * of dynamic static properties remain unchanged.
+     */
+    public function testDynamicClassExpressionOnStaticPropertyWriteIsRead(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE, [
+            [10, 'staticProperty', 'DynamicClassProbe::writeThroughParam wrote to static property ...::$value.'],
+            [16, 'globalVariable', 'DynamicClassProbe::writeThroughGlobal read from global variable $className.'],
+            [16, 'staticProperty', 'DynamicClassProbe::writeThroughGlobal wrote to static property ...::$value.'],
+            [21, 'objectProperty', 'DynamicClassProbe::writeThroughProperty read from object property $this->className.'],
+            [21, 'staticProperty', 'DynamicClassProbe::writeThroughProperty wrote to static property ...::$value.'],
+            [26, 'globalsArray', "DynamicClassProbe::writeThroughGlobals read from \$GLOBALS['className']."],
+            [26, 'staticProperty', 'DynamicClassProbe::writeThroughGlobals wrote to static property ...::$value.'],
+            [31, 'staticProperty', 'DynamicClassProbe::readThroughParam read from static property ...::$value.'],
         ]);
     }
 
