@@ -555,6 +555,9 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [60, 'standardOutput', 'qualified_die_with_status terminates the program (die).'],
             [65, 'standardOutput', 'qualified_die_with_message writes to standard output (die).'],
             [70, 'standardOutput', 'qualified_die_with_dynamic_value terminates the program (die).'],
+            [75, 'standardOutput', 'mixed_case_die_with_status terminates the program (die).'],
+            [80, 'standardOutput', 'uppercase_die_with_message writes to standard output (die).'],
+            [85, 'standardOutput', 'mixed_case_exit_with_dynamic_value terminates the program (exit).'],
         ]);
     }
 

@@ -127,6 +127,9 @@ class CliOutputTest extends TestCase
                 'qualified_die_with_status' => ['terminates the program (die)', 'Minor'],
                 'qualified_die_with_message' => ['writes to standard output (die)', 'Minor'],
                 'qualified_die_with_dynamic_value' => ['terminates the program (die)', 'Minor'],
+                'mixed_case_die_with_status' => ['terminates the program (die)', 'Minor'],
+                'uppercase_die_with_message' => ['writes to standard output (die)', 'Minor'],
+                'mixed_case_exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
             ],
             $rows,
         );
