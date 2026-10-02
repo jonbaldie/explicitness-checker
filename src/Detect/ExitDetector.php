@@ -20,6 +20,10 @@ class ExitDetector implements Detector
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
+        if ($node instanceof Expr\FuncCall && $node->isFirstClassCallable()) {
+            return;
+        }
+
         if ($node instanceof Expr\Exit_) {
             $name = $this->constructName($node);
             $argument = $node->expr;

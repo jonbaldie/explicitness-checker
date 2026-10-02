@@ -183,6 +183,10 @@ class FunctionCallDetector implements Detector
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
+        if ($node instanceof Expr\FuncCall && $node->isFirstClassCallable()) {
+            return;
+        }
+
         $name = $this->calledName($node);
         if ($name === null) {
             return;
