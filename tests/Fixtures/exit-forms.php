@@ -69,3 +69,18 @@ function qualified_die_with_dynamic_value($value): void
 {
     \die($value);
 }
+
+function mixed_case_die_with_status(): void
+{
+    \Die(1);
+}
+
+function uppercase_die_with_message(): void
+{
+    \DIE('bye');
+}
+
+function mixed_case_exit_with_dynamic_value($value): void
+{
+    \Exit($value);
+}

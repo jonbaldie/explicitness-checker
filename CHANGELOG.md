@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The key of a keyed destructuring item (`[$key => $val] = $data`, `list($key => $val) = $data`, `foreach ($data as [$key => $val])`) is walked as a read instead of a write, so `[$param->key => $val] = $data` no longer reports `wrote to argument $param` and keys that read globals, `$GLOBALS` entries, static properties or (under `--props`) `$this` properties are reported as inputs rather than outputs (#105). This can move rows from outputs to inputs
+- Strict mode matches the call forms of `exit` and `die` case-insensitively, as PHP does, so `\Die(1)` is reported as `terminates the program (die)` and `\DIE('bye')` as `writes to standard output (die)` instead of being ignored (#108). This can add rows under `--strict`
 
 ## [1.1.2] - 2026-10-01
 

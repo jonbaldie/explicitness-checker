@@ -24,7 +24,7 @@ class ExitDetector implements Detector
             $name = $this->constructName($node);
             $argument = $node->expr;
         } elseif ($node instanceof Expr\FuncCall && $node->name instanceof Node\Name) {
-            $name = $node->name->toString();
+            $name = strtolower($node->name->toString());
             if (!in_array($name, self::NAMES, true)) {
                 return;
             }
