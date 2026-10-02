@@ -51,6 +51,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const NULLSAFE_THIS_PROPERTY_FIXTURE = Process::ROOT . '/tests/Fixtures/nullsafe-this-property.php';
 
+    protected const KEYED_DESTRUCTURING_FIXTURE = Process::ROOT . '/tests/Fixtures/keyed-destructuring.php';
+
     protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
 
     /**
@@ -477,6 +479,26 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [7, 'objectProperty', 'NullsafeProps::readLiteral read from object property $this->name.'],
             [12, 'objectProperty', 'NullsafeProps::readDynamic read from object property $this->....'],
             [17, 'objectProperty', 'NullsafeProps::readBraced read from object property $this->....'],
+        ]);
+    }
+
+    /**
+     * #105: the PHPStan rule reads the key of a keyed destructuring item and
+     * writes only its value, like the CLI.
+     */
+    public function testKeyedDestructuringKeyIsRead(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::KEYED_DESTRUCTURING_FIXTURE, [
+            [16, 'objectProperty', 'KeyedDestructureProbe::readKeyThroughProp read from object property $this->key.'],
+            [26, 'objectProperty', 'KeyedDestructureProbe::writeValueToProp wrote to object property $this->value.'],
+            [31, 'objectProperty', 'KeyedDestructureProbe::readKeyInNestedList read from object property $this->key.'],
+            [38, 'globalVariable', 'read_global_key read from global variable $key.'],
+            [43, 'globalsArray', "read_globals_array_key read from \$GLOBALS['key']."],
+            [48, 'staticProperty', 'read_static_key read from static property KeyedDestructureProbe::$staticKey.'],
+            [54, 'globalVariable', 'read_foreach_key read from global variable $key.'],
+            [61, 'globalVariable', 'write_global_value wrote to global variable $out.'],
         ]);
     }
 

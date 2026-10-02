@@ -21,6 +21,8 @@ class ReadWriteContextTest extends TestCase
 
     protected const PROPERTY_CHAIN_FIXTURE = Process::ROOT . '/tests/Fixtures/property-chain.php';
 
+    protected const KEYED_DESTRUCTURING_FIXTURE = Process::ROOT . '/tests/Fixtures/keyed-destructuring.php';
+
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -158,6 +160,27 @@ class ReadWriteContextTest extends TestCase
                 ],
             ],
             $this->reportedRowsAtPath(self::REFERENCE_TARGET_FIXTURE),
+        );
+    }
+
+    /**
+     * #105: the key of a keyed destructuring item is read; only its value is
+     * written.
+     */
+    public function testKeyedDestructuringKeyIsRead(): void
+    {
+        self::assertSame(
+            [
+                'KeyedDestructureProbe::readKeyThroughProp' => ['read from object property $this->key', ''],
+                'KeyedDestructureProbe::writeValueToProp' => ['', 'wrote to object property $this->value'],
+                'KeyedDestructureProbe::readKeyInNestedList' => ['read from object property $this->key', ''],
+                'read_global_key' => ['read from global variable $key', ''],
+                'read_globals_array_key' => ["read from \$GLOBALS['key']", ''],
+                'read_static_key' => ['read from static property KeyedDestructureProbe::$staticKey', ''],
+                'read_foreach_key' => ['read from global variable $key', ''],
+                'write_global_value' => ['', 'wrote to global variable $out'],
+            ],
+            $this->reportedRowsAtPath(self::KEYED_DESTRUCTURING_FIXTURE),
         );
     }
 
