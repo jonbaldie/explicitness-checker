@@ -82,7 +82,7 @@ class Severity
      */
     protected static function ofFinding(Finding $finding): string
     {
-        if ($finding->getCategory() === Category::SUPERGLOBAL && str_ends_with($finding->getDescription(), ' $_ENV')) {
+        if ($finding->getCategory() === Category::SUPERGLOBAL && $finding->getVariable() === '_ENV') {
             return self::CRITICAL;
         }
 

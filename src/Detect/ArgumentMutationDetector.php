@@ -33,7 +33,7 @@ class ArgumentMutationDetector implements Detector
 
         $name = VariableName::of($node);
         if ($name !== null && $this->bindings->kindOf($name) === Bindings::BY_REFERENCE_PARAMETER) {
-            $findings->output('wrote to argument $' . $name, Category::ARGUMENT_MUTATION, $node);
+            $findings->output('wrote to argument $' . $name, Category::ARGUMENT_MUTATION, $node, $name);
 
             return;
         }
@@ -41,7 +41,7 @@ class ArgumentMutationDetector implements Detector
         if ($node instanceof Expr\PropertyFetch) {
             $root = $this->rootOf($node);
             if ($root !== null && $this->bindings->isParameter($root)) {
-                $findings->output('wrote to argument $' . $root, Category::ARGUMENT_MUTATION, $node);
+                $findings->output('wrote to argument $' . $root, Category::ARGUMENT_MUTATION, $node, $root);
             }
         }
     }

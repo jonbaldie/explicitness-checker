@@ -13,6 +13,7 @@ class Finding
         protected string $description,
         protected string $category,
         protected int $line,
+        protected ?string $variable = null,
     ) {
     }
 
@@ -38,5 +39,16 @@ class Finding
     public function getLine(): int
     {
         return $this->line;
+    }
+
+    /**
+     * The name of the variable read or written, without the `$`, e.g. "_ENV":
+     * a global, superglobal, static variable, captured reference or mutated
+     * argument. Null for anything else, including `$GLOBALS` entries and
+     * properties.
+     */
+    public function getVariable(): ?string
+    {
+        return $this->variable;
     }
 }

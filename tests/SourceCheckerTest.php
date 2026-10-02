@@ -57,6 +57,49 @@ class SourceCheckerTest extends TestCase
         self::assertSame(5, $outputs[0]->getLine());
     }
 
+    /**
+     * Findings about a named variable carry its name as data, so consumers
+     * such as the CLI's severity can tell `$_ENV` from `$_GET` without
+     * parsing the description (#36).
+     */
+    public function testVariableFindingsCarryTheVariableName(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function env(): void { global $config; $_GET['a'] = $_ENV['KEY'] . $config; }
+            function mutate(array &$list, object $item): void { $list[] = 1; $item->n = 2; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        $variables = static fn (array $findings): array => array_map(
+            static fn (Finding $finding): array => [$finding->getDescription(), $finding->getVariable()],
+            $findings,
+        );
+        self::assertSame(
+            [['read from superglobal $_ENV', '_ENV'], ['read from global variable $config', 'config']],
+            $variables($results[0]->getInputs()),
+        );
+        self::assertSame([['wrote to superglobal $_GET', '_GET']], $variables($results[0]->getOutputs()));
+        self::assertSame(
+            [['wrote to argument $list', 'list'], ['wrote to argument $item', 'item']],
+            $variables($results[1]->getOutputs()),
+        );
+    }
+
+    public function testFindingsNotAboutANamedVariableHaveNoVariableName(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function other(): void { $GLOBALS['key'] = Thing::$shared; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame("wrote to \$GLOBALS['key']", $results[0]->getOutputs()[0]->getDescription());
+        self::assertNull($results[0]->getOutputs()[0]->getVariable());
+        self::assertSame('read from static property Thing::$shared', $results[0]->getInputs()[0]->getDescription());
+        self::assertNull($results[0]->getInputs()[0]->getVariable());
+    }
+
     public function testReportsImplicitInputsOfEveryFunctionLike(): void
     {
         $source = <<<'PHP'
