@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The key of a keyed destructuring item (`[$key => $val] = $data`, `list($key => $val) = $data`, `foreach ($data as [$key => $val])`) is walked as a read instead of a write, so `[$param->key => $val] = $data` no longer reports `wrote to argument $param` and keys that read globals, `$GLOBALS` entries, static properties or (under `--props`) `$this` properties are reported as inputs rather than outputs (#105). This can move rows from outputs to inputs
+
 ## [1.1.2] - 2026-10-01
 
 ### Fixed

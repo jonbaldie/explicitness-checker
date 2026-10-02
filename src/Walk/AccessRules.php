@@ -18,6 +18,7 @@ class AccessRules extends RuleChain
             new WriteRules(),
             new LeafRule(),
             new ArrayIndexRule(),
+            new ArrayItemRule(),
             new PropertyFetchRule(),
             new StaticDeclarationRule(),
             new SubNodesRule(),
