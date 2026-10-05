@@ -121,6 +121,9 @@ class Application
             $checked += $result->getChecked();
         }
 
-        return (new Report($console))->print($violations, $hasParseErrors, $checked, $options->getMinimum());
+        $summary = new RunSummary($violations, $hasParseErrors, $checked, $options->getMinimum());
+        (new Report($console))->print($summary);
+
+        return $summary->getExitCode();
     }
 }
