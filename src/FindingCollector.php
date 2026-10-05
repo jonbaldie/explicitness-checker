@@ -8,15 +8,16 @@ use PhpParser\Node;
 
 /**
  * Accumulates findings for one function-like, keeping the first occurrence of
- * each description in the order it was found.
+ * each description in the order it was found, inputs and outputs together.
+ *
+ * One map serves both directions: every description names its direction
+ * ("read from …" or "wrote to …", "reads …" or "writes …"), so an input and an
+ * output never share one.
  */
 class FindingCollector
 {
     /** @var array<string, Finding> */
-    protected array $inputs = [];
-
-    /** @var array<string, Finding> */
-    protected array $outputs = [];
+    protected array $findings = [];
 
     /**
      * Record a read ("read from <subject>") or a write ("wrote to <subject>"),
@@ -35,27 +36,26 @@ class FindingCollector
 
     public function input(string $description, string $category, Node $node, ?string $variable = null): void
     {
-        $this->inputs[$description] ??= new Finding($description, $category, $node->getStartLine(), $variable);
+        $this->record($description, $category, $node, $variable, false);
     }
 
     public function output(string $description, string $category, Node $node, ?string $variable = null): void
     {
-        $this->outputs[$description] ??= new Finding($description, $category, $node->getStartLine(), $variable);
+        $this->record($description, $category, $node, $variable, true);
     }
 
     /**
+     * Distinct inputs and outputs, in order of first occurrence.
+     *
      * @return list<Finding>
      */
-    public function inputs(): array
+    public function findings(): array
     {
-        return array_values($this->inputs);
+        return array_values($this->findings);
     }
 
-    /**
-     * @return list<Finding>
-     */
-    public function outputs(): array
+    protected function record(string $description, string $category, Node $node, ?string $variable, bool $isOutput): void
     {
-        return array_values($this->outputs);
+        $this->findings[$description] ??= new Finding($description, $category, $node->getStartLine(), $variable, $isOutput);
     }
 }

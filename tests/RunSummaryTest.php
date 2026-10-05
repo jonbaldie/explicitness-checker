@@ -99,6 +99,6 @@ class RunSummaryTest extends TestCase
 
     protected static function violation(string $category): Violation
     {
-        return new Violation('file.php', 1, 'fn', [new Finding('a finding', $category, 1)], []);
+        return new Violation('file.php', 1, 'fn', [new Finding('a finding', $category, 1)]);
     }
 }

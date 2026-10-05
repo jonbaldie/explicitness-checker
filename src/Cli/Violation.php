@@ -12,15 +12,13 @@ use JonBaldie\ExplicitnessChecker\Finding;
 class Violation
 {
     /**
-     * @param list<Finding> $inputs  implicit inputs
-     * @param list<Finding> $outputs implicit outputs
+     * @param list<Finding> $findings implicit inputs and outputs, in order of first occurrence
      */
     public function __construct(
         protected string $file,
         protected int $line,
         protected string $function,
-        protected array $inputs,
-        protected array $outputs,
+        protected array $findings,
     ) {
     }
 
@@ -40,11 +38,21 @@ class Violation
     }
 
     /**
+     * Implicit inputs and outputs, in order of first occurrence.
+     *
+     * @return list<Finding>
+     */
+    public function getFindings(): array
+    {
+        return $this->findings;
+    }
+
+    /**
      * @return list<string> implicit input descriptions
      */
     public function getInputs(): array
     {
-        return self::descriptions($this->inputs);
+        return self::descriptions(Finding::inputsOf($this->findings));
     }
 
     /**
@@ -52,7 +60,7 @@ class Violation
      */
     public function getOutputs(): array
     {
-        return self::descriptions($this->outputs);
+        return self::descriptions(Finding::outputsOf($this->findings));
     }
 
     /**
@@ -60,7 +68,7 @@ class Violation
      */
     public function getSeverity(): string
     {
-        return Severity::of(array_merge($this->inputs, $this->outputs));
+        return Severity::of($this->findings);
     }
 
     /**
