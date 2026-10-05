@@ -30,8 +30,7 @@ class CheckedFile
         Assert::assertNotNull($options);
 
         $result = (new FileChecker(new SourceChecker(), $options->getMode()))->check($path);
-        Assert::assertFalse($result->isUnreadable(), "Cannot read {$path}");
-        Assert::assertNull($result->getParseError(), "Cannot parse {$path}");
+        Assert::assertNull($result->getUnchecked(), "Cannot check {$path}");
 
         return $result->getViolations();
     }

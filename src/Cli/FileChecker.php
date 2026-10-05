@@ -29,13 +29,17 @@ class FileChecker
     {
         $code = @file_get_contents($file);
         if ($code === false) {
-            return new FileCheckResult($file, [], unreadable: true);
+            return new FileCheckResult($file, [], new UncheckedInput($file, UncheckedInput::UNREADABLE_FILE));
         }
 
         try {
             return new FileCheckResult($file, $this->sourceChecker->check($code, $this->mode));
         } catch (Error $error) {
-            return new FileCheckResult($file, [], parseError: $error->getMessage());
+            return new FileCheckResult(
+                $file,
+                [],
+                new UncheckedInput($file, UncheckedInput::UNPARSEABLE_FILE, $error->getMessage()),
+            );
         }
     }
 }

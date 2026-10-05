@@ -100,7 +100,8 @@ class Application
             $console->verbose('Props mode enabled.');
         }
 
-        $files = (new PhpFileFinder($options->getFilter(), $console))->find($path);
+        $discovered = (new PhpFileFinder($options->getFilter(), $console))->find($path);
+        $files = $discovered->getFiles();
         $console->verbose('Found ' . count($files) . ' PHP file(s).');
         if ($files === []) {
             $console->out("No PHP files found in {$path}\n");
@@ -111,17 +112,20 @@ class Application
         $checker = new FileChecker(new SourceChecker(), $mode);
         $narrator = new FileNarrator($console);
         $violations = [];
-        $hasParseErrors = false;
+        $unchecked = $discovered->getUnchecked();
         $checked = 0;
         foreach ($files as $file) {
             $result = $checker->check($file);
             $narrator->narrate($result);
             $violations = array_merge($violations, $result->getViolations());
-            $hasParseErrors = $hasParseErrors || $result->hasParseError();
+            $fileUnchecked = $result->getUnchecked();
+            if ($fileUnchecked !== null) {
+                $unchecked[] = $fileUnchecked;
+            }
             $checked += $result->getChecked();
         }
 
-        $summary = new RunSummary($violations, $hasParseErrors, $checked, $options->getMinimum());
+        $summary = new RunSummary($violations, $unchecked, $checked, $options->getMinimum());
         (new Report($console))->print($summary);
 
         return $summary->getExitCode();

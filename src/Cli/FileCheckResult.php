@@ -13,15 +13,13 @@ use JonBaldie\ExplicitnessChecker\FunctionResult;
 class FileCheckResult
 {
     /**
-     * @param list<FunctionResult> $functions  every function-like, in source order
-     * @param bool                 $unreadable whether the file could not be read
-     * @param string|null          $parseError the parser's message when the file did not parse
+     * @param list<FunctionResult> $functions every function-like, in source order
+     * @param UncheckedInput|null  $unchecked why the file could not be analysed, or null when it was
      */
     public function __construct(
         protected string $file,
         protected array $functions,
-        protected bool $unreadable = false,
-        protected ?string $parseError = null,
+        protected ?UncheckedInput $unchecked = null,
     ) {
     }
 
@@ -62,22 +60,12 @@ class FileCheckResult
         return $violations;
     }
 
-    public function isUnreadable(): bool
-    {
-        return $this->unreadable;
-    }
-
-    public function hasParseError(): bool
-    {
-        return $this->parseError !== null;
-    }
-
     /**
-     * The parser's message, or null when the file parsed or was not read.
+     * Why the file could not be read or parsed, or null when it was checked.
      */
-    public function getParseError(): ?string
+    public function getUnchecked(): ?UncheckedInput
     {
-        return $this->parseError;
+        return $this->unchecked;
     }
 
     /**
