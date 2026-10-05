@@ -8,18 +8,26 @@ use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
 
 /**
- * Strict mode: calls to known impure functions, matched case-insensitively as
- * PHP function names are (leading "\" ignored), and the constructs that
- * stand for one.
+ * Strict mode: the PHP built-ins that perform side effects or read ambient
+ * state. These are calls to known impure functions, matched
+ * case-insensitively as PHP function names are (leading "\" ignored); the
+ * language constructs echo, print, exit, die, include, require and backticks;
+ * and creating an object that reads the clock or the default random engine,
+ * matched by its resolved class name in any case.
+ *
+ * Every rule that depends on a call's arguments reads them through
+ * CallArguments, so a parameter is found by position or by name.
  */
-class FunctionCallDetector implements Detector
+class BuiltinCatalogueDetector implements Detector
 {
     protected const INPUT = false;
     protected const OUTPUT = true;
 
     protected const STDOUT = [Category::STANDARD_OUTPUT, self::OUTPUT, 'writes to standard output'];
+    protected const TERMINATES = [Category::STANDARD_OUTPUT, self::OUTPUT, 'terminates the program'];
     protected const FILE_READ = [Category::FILE, self::INPUT, 'reads from file'];
     protected const FILE_WRITE = [Category::FILE, self::OUTPUT, 'writes to file'];
     protected const TIME = [Category::TIME, self::INPUT, 'reads system time'];
@@ -42,6 +50,14 @@ class FunctionCallDetector implements Detector
     protected const DATABASE = [
         [Category::DATABASE, self::INPUT, 'reads from database'],
         [Category::DATABASE, self::OUTPUT, 'writes to database'],
+    ];
+
+    /**
+     * Output construct => its name.
+     */
+    protected const OUTPUT_CONSTRUCTS = [
+        Stmt\Echo_::class => 'echo',
+        Expr\Print_::class => 'print',
     ];
 
     /**
@@ -73,7 +89,7 @@ class FunctionCallDetector implements Detector
      * Function name => the findings a call reports, each as [category, is
      * output, description prefix].
      *
-     * echo, print, exit and die are handled by their own detectors.
+     * The rules that depend on a call's arguments are in callEntries().
      */
     protected const CATALOGUE = [
         'printf' => [self::STDOUT],
@@ -183,23 +199,13 @@ class FunctionCallDetector implements Detector
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
-        if ($node instanceof Expr\FuncCall && $node->isFirstClassCallable()) {
+        $classified = $this->classify($node);
+        if ($classified === null) {
             return;
         }
 
-        $name = $this->calledName($node);
-        if ($name === null) {
-            return;
-        }
-
-        $lowerName = strtolower($name);
-        if ($node instanceof Expr\FuncCall && $lowerName === 'fopen') {
-            $this->detectFopen($node, $name, $findings);
-
-            return;
-        }
-
-        foreach ($this->entries($node, $lowerName) as [$category, $isOutput, $prefix]) {
+        [$name, $entries] = $classified;
+        foreach ($entries as [$category, $isOutput, $prefix]) {
             $description = $prefix . ' (' . $name . ')';
             if ($isOutput) {
                 $findings->output($description, $category, $node);
@@ -210,22 +216,74 @@ class FunctionCallDetector implements Detector
     }
 
     /**
-     * The function a node calls: a call by name, a backtick expression, which
-     * calls shell_exec, or an include construct, named for itself.
+     * The name a node's findings are described by, and those findings, or
+     * null for a node the catalogue does not cover.
+     *
+     * @return array{string, list<array{string, bool, string}>}|null
      */
-    protected function calledName(Node $node): ?string
+    protected function classify(Node $node): ?array
     {
+        return $this->classifyConstruct($node) ?? $this->classifyCall($node);
+    }
+
+    /**
+     * @return array{string, list<array{string, bool, string}>}|null
+     */
+    protected function classifyConstruct(Node $node): ?array
+    {
+        foreach (self::OUTPUT_CONSTRUCTS as $class => $construct) {
+            if ($node instanceof $class) {
+                return [$construct, [self::STDOUT]];
+            }
+        }
+        if ($node instanceof Expr\Exit_) {
+            return [$this->exitName($node), $this->exitEntries(new CallArguments($node))];
+        }
         if ($node instanceof Expr\ShellExec) {
-            return 'shell_exec';
+            return ['shell_exec', $this->catalogueEntries('shell_exec')];
         }
         if ($node instanceof Expr\Include_) {
-            return self::INCLUDES[$node->type];
-        }
-        if ($node instanceof Expr\FuncCall && $node->name instanceof Node\Name) {
-            return $node->name->toString();
+            $name = self::INCLUDES[$node->type];
+
+            return [$name, $this->catalogueEntries($name)];
         }
 
         return null;
+    }
+
+    /**
+     * A call by name, or a `new` of a named class.
+     *
+     * @return array{string, list<array{string, bool, string}>}|null
+     */
+    protected function classifyCall(Node $node): ?array
+    {
+        if ($node instanceof Expr\New_ && $node->class instanceof Node\Name) {
+            $class = $node->class->toString();
+
+            return [$class, $this->newEntries(strtolower($class), new CallArguments($node))];
+        }
+        if ($node instanceof Expr\FuncCall && $node->name instanceof Node\Name && !$node->isFirstClassCallable()) {
+            return $this->classifyFunction($node->name->toString(), new CallArguments($node));
+        }
+
+        return null;
+    }
+
+    /**
+     * A function call. exit and die, which PHP also accepts as functions,
+     * are described by their lowercase name, as the constructs are.
+     *
+     * @return array{string, list<array{string, bool, string}>}
+     */
+    protected function classifyFunction(string $name, CallArguments $arguments): array
+    {
+        $lowerName = strtolower($name);
+        if (in_array($lowerName, ['exit', 'die'], true)) {
+            return [$lowerName, $this->exitEntries($arguments)];
+        }
+
+        return [$name, $this->callEntries($lowerName, $arguments)];
     }
 
     /**
@@ -234,23 +292,83 @@ class FunctionCallDetector implements Detector
      *
      * @return list<array{string, bool, string}>
      */
-    protected function entries(Node $node, string $lowerName): array
+    protected function callEntries(string $lowerName, CallArguments $arguments): array
     {
-        if (!$node instanceof Expr\FuncCall) {
-            return $this->catalogueEntries($lowerName);
-        }
-
-        $arguments = new CallArguments($node);
-
         return match ($lowerName) {
+            'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
             'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
             'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-            'date_create', 'date_create_immutable' => $arguments->readsClock() ? [self::TIME] : [],
+            'date_create', 'date_create_immutable' => $this->readsClock($arguments) ? [self::TIME] : [],
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp') ? [self::TIME] : [],
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp') ? [self::TIME] : [],
             'mktime', 'gmmktime' => $this->omitsDateField($arguments) ? [self::TIME] : [],
             default => $this->catalogueEntries($lowerName),
         };
+    }
+
+    /**
+     * A date reads the clock; a Randomizer given no engine reads the default
+     * random engine.
+     *
+     * @return list<array{string, bool, string}>
+     */
+    protected function newEntries(string $lowerClass, CallArguments $arguments): array
+    {
+        return match ($lowerClass) {
+            'datetime', 'datetimeimmutable' => $this->readsClock($arguments) ? [self::TIME] : [],
+            'random\randomizer' => $arguments->omits(0, 'engine') ? [self::RANDOM_READ] : [],
+            default => [],
+        };
+    }
+
+    /**
+     * exit and die terminate the process, unless their status is a string
+     * literal, which PHP writes to standard output first.
+     *
+     * @return list<array{string, bool, string}>
+     */
+    protected function exitEntries(CallArguments $arguments): array
+    {
+        return $arguments->string(0, 'status') === null ? [self::TERMINATES] : [self::STDOUT];
+    }
+
+    protected function exitName(Expr\Exit_ $node): string
+    {
+        return $node->getAttribute('kind', Expr\Exit_::KIND_EXIT) === Expr\Exit_::KIND_DIE
+            ? 'die'
+            : 'exit';
+    }
+
+    /**
+     * fopen reads a file opened with no literal mode or a read mode, writes
+     * one opened to write, append, create or exclusively create, and does
+     * both with "+".
+     *
+     * @return list<array{string, bool, string}>
+     */
+    protected function fopenEntries(?string $mode): array
+    {
+        $mode = strtolower($mode ?? 'r');
+        if (str_contains($mode, '+')) {
+            return [self::FILE_READ, self::FILE_WRITE];
+        }
+        if (in_array(substr($mode, 0, 1), ['w', 'a', 'c', 'x'], true)) {
+            return [self::FILE_WRITE];
+        }
+
+        return [self::FILE_READ];
+    }
+
+    /**
+     * A date is built from the clock when its datetime argument is absent,
+     * null, 'now' in any case, or '', which PHP also reads as now.
+     */
+    protected function readsClock(CallArguments $arguments): bool
+    {
+        $datetime = $arguments->string(0, 'datetime');
+
+        return $arguments->omits(0, 'datetime')
+            || ($datetime !== null && in_array(strtolower($datetime), ['now', ''], true));
     }
 
     /**
@@ -283,31 +401,5 @@ class FunctionCallDetector implements Detector
         }
 
         return [];
-    }
-
-    protected function detectFopen(Expr\FuncCall $node, string $name, FindingCollector $findings): void
-    {
-        $mode = (new CallArguments($node))->string(1, 'mode');
-        if ($mode === null) {
-            $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
-
-            return;
-        }
-
-        $mode = strtolower($mode);
-        if (str_contains($mode, '+')) {
-            $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
-            $findings->output('writes to file (' . $name . ')', Category::FILE, $node);
-
-            return;
-        }
-
-        if (in_array(substr($mode, 0, 1), ['w', 'a', 'c', 'x'], true)) {
-            $findings->output('writes to file (' . $name . ')', Category::FILE, $node);
-
-            return;
-        }
-
-        $findings->input('reads from file (' . $name . ')', Category::FILE, $node);
     }
 }

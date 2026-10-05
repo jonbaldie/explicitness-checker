@@ -26,7 +26,7 @@ class DetectorSet
             new StaticPropertyDetector(),
         ];
         if ($mode->isStrict()) {
-            $detectors = [...$detectors, ...(new StrictDetectors())->all()];
+            $detectors[] = new BuiltinCatalogueDetector();
         }
         if ($mode->isProps()) {
             $detectors[] = new ObjectPropertyDetector();

@@ -374,6 +374,26 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #78: exit's status is found by position or by name, so a named string
+     * status still writes to standard output.
+     */
+    public function testClassifiesExitByStatusByPositionOrName(): void
+    {
+        $prints = static fn (string $name): array => [[], [['writes to standard output (' . $name . ')', Category::STANDARD_OUTPUT]]];
+        $ends = static fn (string $name): array => [[], [['terminates the program (' . $name . ')', Category::STANDARD_OUTPUT]]];
+        $this->assertFindings([
+            "exit('error')" => $prints('exit'),
+            "exit(status: 'error')" => $prints('exit'),
+            "die(status: 'error')" => $prints('die'),
+            "\\exit(status: 'error')" => $prints('exit'),
+            "\\Die(status: 'error')" => $prints('die'),
+            'exit(status: 1)' => $ends('exit'),
+            'die(status: $a)' => $ends('die'),
+            'exit()' => $ends('exit'),
+        ]);
+    }
+
+    /**
      * PHP function names are case-insensitive and may be fully qualified.
      * The description keeps the name as written, less the leading "\".
      */
