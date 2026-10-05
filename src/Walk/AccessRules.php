@@ -11,11 +11,12 @@ use PhpParser\Node;
  * children that rule returns; a node no rule claims walks every child, in its
  * own mode.
  *
- * The rules are asked in order and the first claim wins, but no two of them
- * claim the same node, so the order never decides anything. Keep it that way:
+ * The rules are asked in order and the first claim wins, but they claim
+ * disjoint kinds of node, so the order decides nothing. Keep it that way:
  * a new rule claims only nodes no other rule claims, or an existing rule takes
  * on the new case. AccessRulesTest asks every rule about every node of the
- * fixtures and src, and fails if two of them claim one. The catch-all is not
+ * fixtures and src, and fails if two of them claim one; a fixture is the place
+ * to show a node kind it would otherwise miss. The catch-all is not
  * in the list for the same reason: it claims every node.
  */
 class AccessRules extends RuleChain
