@@ -10,6 +10,10 @@ CI in `.github/workflows/` defines the required checks, which enforce `CODING_ST
 
 Reports from exploratory passes over the CLI and the PHPStan extension live in `docs/exploratory-testing/`, named `YYYY-MM-DD-<scope>.md`. Each one records the journeys exercised, the findings it filed as issues, the candidates it rejected, and the areas it did not reach. Read the most recent one before starting a pass so you explore somewhere new.
 
+## Fleet operation
+
+Before changing Fleet enrollment, source delivery, or automatic maintenance for this repository, read [Fleet maintenance](docs/agents/fleet.md).
+
 ## Agent skills
 
 ### Issue tracker
