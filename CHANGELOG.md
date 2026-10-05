@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Internal refactoring puts the lookup of which arguments a built-in takes by reference behind `ByReferenceParameters`, and reflects on each built-in once per run instead of once per call (#80). No change to findings or CLI output is intended
+
 ## [1.2.3] - 2026-10-05
 
 ### Changed

@@ -23,6 +23,14 @@ use PhpParser\Node;
  */
 class Analyser
 {
+    /** Shared by every analysis, so each built-in is reflected once. */
+    protected AccessRules $rules;
+
+    public function __construct()
+    {
+        $this->rules = new AccessRules();
+    }
+
     public function analyse(Node\FunctionLike $node, Mode $mode): FunctionAnalysis
     {
         $bindings = (new BindingsCollector())->collect($node);
@@ -31,7 +39,7 @@ class Analyser
         $aliases = new ReferenceAliases();
         $walker = new BodyWalker(
             (new DetectorSet())->select($bindings, $mode, $aliases),
-            new AccessRules(),
+            $this->rules,
             $findings,
             $aliases,
         );

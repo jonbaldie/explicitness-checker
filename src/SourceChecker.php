@@ -29,9 +29,12 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 {
     protected Parser $parser;
 
+    protected Analyser $analyser;
+
     public function __construct()
     {
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $this->analyser = new Analyser();
     }
 
     /**
@@ -66,7 +69,7 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 
     protected function result(CheckedFunctionLike $functionLike, Mode $mode): FunctionResult
     {
-        $analysis = (new Analyser())->analyse($functionLike->getNode(), $mode);
+        $analysis = $this->analyser->analyse($functionLike->getNode(), $mode);
 
         return new FunctionResult(
             $functionLike->getName(),

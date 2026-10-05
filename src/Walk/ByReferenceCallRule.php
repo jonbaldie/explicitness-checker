@@ -9,31 +9,35 @@ use PhpParser\Node\Expr;
 
 /**
  * `sort($items)`: an argument a built-in takes by reference is read, then
- * written. Which positions are by reference comes from reflection, so it
- * depends on the extensions loaded. User-defined functions, undefined
- * functions and calls with unpacked arguments get no marking.
+ * written. Which positions are by reference comes from ByReferenceParameters,
+ * by default reflected on the running PHP once per function, so it depends on
+ * the extensions loaded. User-defined functions, undefined functions and calls
+ * with unpacked arguments get no marking.
  */
 class ByReferenceCallRule implements ChildAccessRule
 {
+    protected ByReferenceParameters $byReference;
+
+    public function __construct(?ByReferenceParameters $byReference = null)
+    {
+        $this->byReference = $byReference ?? new ReflectedByReferenceParameters();
+    }
+
     public function children(Node $node, bool $isWrite): ?array
     {
         if (
             !$node instanceof Expr\FuncCall
             || !$node->name instanceof Node\Name
-            || !function_exists($node->name->toString())
+            || !$this->byReference->isBuiltin($node->name->toString())
+            || $this->hasUnpackedArgument($node)
         ) {
             return null;
         }
 
-        $function = new \ReflectionFunction($node->name->toString());
-        if (!$function->isInternal() || $this->hasUnpackedArgument($node)) {
-            return null;
-        }
-
-        $parameters = $function->getParameters();
+        $function = $node->name->toString();
         $children = [[$node->name, $isWrite]];
         foreach ($node->args as $position => $arg) {
-            if ($this->parameter($parameters, $position, $arg)?->isPassedByReference() === true) {
+            if ($arg instanceof Node\Arg && $this->byReference->isPassedByReference($function, $position, $arg->name?->toString())) {
                 $children[] = [$arg, false];
                 $children[] = [$arg, true];
                 continue;
@@ -53,27 +57,5 @@ class ByReferenceCallRule implements ChildAccessRule
         }
 
         return false;
-    }
-
-    /**
-     * @param list<\ReflectionParameter> $parameters
-     */
-    protected function parameter(array $parameters, int $position, Node $arg): ?\ReflectionParameter
-    {
-        if (!$arg instanceof Node\Arg) {
-            return null;
-        }
-        if ($arg->name === null) {
-            $last = end($parameters);
-
-            return $parameters[$position] ?? ($last !== false && $last->isVariadic() ? $last : null);
-        }
-        foreach ($parameters as $parameter) {
-            if ($parameter->getName() === $arg->name->toString()) {
-                return $parameter;
-            }
-        }
-
-        return null;
     }
 }
