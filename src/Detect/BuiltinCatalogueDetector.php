@@ -46,6 +46,7 @@ class BuiltinCatalogueDetector implements Detector
         [Category::PROCESS, self::INPUT, 'reads from external process'],
         [Category::PROCESS, self::OUTPUT, 'runs external process'],
     ];
+    protected const SUPERGLOBAL_READ = [Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals'];
     protected const CONFIG_READ = [Category::RUNTIME_CONFIG, self::INPUT, 'reads runtime configuration'];
     protected const CONFIG_WRITE = [Category::RUNTIME_CONFIG, self::OUTPUT, 'writes runtime configuration'];
     protected const DATABASE = [
@@ -212,9 +213,9 @@ class BuiltinCatalogueDetector implements Detector
         'set_time_limit' => [self::CONFIG_WRITE],
         'ini_get' => [self::CONFIG_READ],
         'date_default_timezone_get' => [self::CONFIG_READ],
-        'filter_input' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
-        'filter_input_array' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
-        'getopt' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
+        'filter_input' => [self::SUPERGLOBAL_READ],
+        'filter_input_array' => [self::SUPERGLOBAL_READ],
+        'getopt' => [self::SUPERGLOBAL_READ],
     ];
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void

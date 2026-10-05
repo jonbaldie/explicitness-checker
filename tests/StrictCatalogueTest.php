@@ -172,8 +172,7 @@ class StrictCatalogueTest extends TestCase
             'set_time_limit($a)', 'ignore_user_abort(true)', 'ignore_user_abort()',
         ];
         foreach ($calls as $call) {
-            $result = (new SourceChecker())->check("<?php\nfunction f(\$a, \$b) { {$call}; }", new Mode(false, false))[0];
-            self::assertSame([[], []], [$result->getInputs(), $result->getOutputs()], $call);
+            self::assertSame([[], []], $this->findings($call, new Mode(false, false)), $call);
         }
     }
 
@@ -535,17 +534,17 @@ class StrictCatalogueTest extends TestCase
     /**
      * @return array{list<array{string, string}>, list<array{string, string}>}
      */
-    protected function findings(string $statement): array
+    protected function findings(string $statement, ?Mode $mode = null): array
     {
-        return $this->findingsIn("<?php\nfunction f(\$a, \$b) { {$statement}; }", 0);
+        return $this->findingsIn("<?php\nfunction f(\$a, \$b) { {$statement}; }", 0, $mode);
     }
 
     /**
      * @return array{list<array{string, string}>, list<array{string, string}>}
      */
-    protected function findingsIn(string $source, int $function): array
+    protected function findingsIn(string $source, int $function, ?Mode $mode = null): array
     {
-        $result = (new SourceChecker())->check($source, new Mode(true, false))[$function];
+        $result = (new SourceChecker())->check($source, $mode ?? new Mode(true, false))[$function];
         $pair = static fn (Finding $finding): array => [$finding->getDescription(), $finding->getCategory()];
 
         return [array_map($pair, $result->getInputs()), array_map($pair, $result->getOutputs())];
