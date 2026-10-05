@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
-use RecursiveArrayIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIterator;
-use RecursiveIteratorIterator;
 use SplFileInfo;
 use UnexpectedValueException;
 
@@ -25,10 +23,7 @@ class PhpFileFinder
     {
     }
 
-    /**
-     * @return list<string> file paths, sorted
-     */
-    public function find(string $path): array
+    public function find(string $path): DiscoveredFiles
     {
         if (is_file($path)) {
             return $this->findFile($path);
@@ -37,34 +32,35 @@ class PhpFileFinder
         return $this->findInDirectory($path);
     }
 
-    /**
-     * @return list<string>
-     */
-    protected function findFile(string $path): array
+    protected function findFile(string $path): DiscoveredFiles
     {
         if (!preg_match(self::PHP_FILE, $path)) {
             $this->console->verbose("Path is file but not PHP: {$path}");
 
-            return [];
+            return new DiscoveredFiles([]);
         }
 
         $this->console->verbose("Path is file and ends with .php: {$path}");
 
-        return $this->matchesPatterns($path) ? [$path] : [];
+        return new DiscoveredFiles($this->matchesPatterns($path) ? [$path] : []);
     }
 
-    /**
-     * @return list<string>
-     */
-    protected function findInDirectory(string $path): array
+    protected function findInDirectory(string $path): DiscoveredFiles
     {
         $this->console->verbose("Scanning directory recursively: {$path}");
         foreach ($this->filter->describe() as $line) {
             $this->console->verbose($line);
         }
 
+        $iterator = $this->createDirectoryIterator($path);
+        if ($iterator === null) {
+            $this->console->error("Cannot read directory: {$path}" . PHP_EOL);
+
+            return new DiscoveredFiles([], [new UncheckedInput($path, UncheckedInput::UNREADABLE_DIRECTORY)]);
+        }
+
         $found = [];
-        $files = new SafeRecursiveIteratorIterator($this->createDirectoryIterator($path), $this->console);
+        $files = new SafeRecursiveIteratorIterator($iterator, $this->console);
         foreach ($files as $file) {
             if ($file instanceof SplFileInfo && $file->isFile() && $this->accepts($file)) {
                 $found[] = $file->getPathname();
@@ -72,20 +68,18 @@ class PhpFileFinder
         }
         sort($found, SORT_STRING);
 
-        return $found;
+        return new DiscoveredFiles($found, $files->getUnchecked());
     }
 
     /**
-     * @return RecursiveIterator<mixed, mixed>
+     * @return RecursiveIterator<mixed, mixed>|null null when the directory cannot be opened
      */
-    protected function createDirectoryIterator(string $path): RecursiveIterator
+    protected function createDirectoryIterator(string $path): ?RecursiveIterator
     {
         try {
             return new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
         } catch (UnexpectedValueException) {
-            $this->console->error("Cannot read directory: {$path}" . PHP_EOL);
-
-            return new RecursiveArrayIterator([]);
+            return null;
         }
     }
 

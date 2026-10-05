@@ -11,17 +11,19 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
  * The exit code is 0 with no violations or analysis failures, otherwise the
  * exit code of the highest severity found, with parse failures forcing at
  * least 2. When a --min-explicitness threshold is met, the violations no
- * longer set the exit code; parse failures still do.
+ * longer set the exit code; parse failures still do. Unreadable files and
+ * directories set neither the exit code nor the percentage.
  */
 class RunSummary
 {
     /**
-     * @param list<Violation> $violations
-     * @param int             $checked    how many function-likes were checked
+     * @param list<Violation>      $violations
+     * @param list<UncheckedInput> $unchecked  the files and directories the run could not check
+     * @param int                  $checked    how many function-likes were checked
      */
     public function __construct(
         protected array $violations,
-        protected bool $hasParseErrors,
+        protected array $unchecked,
         protected int $checked,
         protected ?ExplicitnessMinimum $minimum,
     ) {
@@ -104,8 +106,10 @@ class RunSummary
             }
         }
 
-        if ($this->hasParseErrors) {
-            $exitCode = max($exitCode, Severity::EXIT_CODES[Severity::SERIOUS]);
+        foreach ($this->unchecked as $input) {
+            if ($this->raisesExitCode($input)) {
+                $exitCode = max($exitCode, Severity::EXIT_CODES[Severity::SERIOUS]);
+            }
         }
 
         return $exitCode;
@@ -118,5 +122,16 @@ class RunSummary
     protected function isPassedByMinimum(): bool
     {
         return $this->minimum !== null && $this->isMinimumMet();
+    }
+
+    /**
+     * Whether an input the run could not check forces the exit code to at
+     * least 2, whether or not a --min-explicitness threshold is met: the
+     * gate waives violations, not files it couldn't check. Only unparseable
+     * files do today.
+     */
+    protected function raisesExitCode(UncheckedInput $input): bool
+    {
+        return $input->getReason() === UncheckedInput::UNPARSEABLE_FILE;
     }
 }

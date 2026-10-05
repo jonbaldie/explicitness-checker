@@ -193,7 +193,8 @@ class CliOutputTest extends TestCase
         chdir(Process::ROOT);
         try {
             $files = (new PhpFileFinder($options->getFilter(), new Console($stream, $stream, false)))
-                ->find($options->getPath());
+                ->find($options->getPath())
+                ->getFiles();
             $checker = new FileChecker(new SourceChecker(), $options->getMode());
             $reported = [];
             foreach ($files as $file) {

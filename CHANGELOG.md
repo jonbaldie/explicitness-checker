@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Internal refactoring puts the lookup of which arguments a built-in takes by reference behind `ByReferenceParameters`, and reflects on each built-in once per run instead of once per call (#80). No change to findings or CLI output is intended
+- Internal refactoring gives the CLI one representation of the inputs it could not check, `UncheckedInput` (unreadable files, unreadable directories and unparseable files), and routes all of them to `RunSummary`, the one place that decides what they do to the exit code (#114). File discovery now returns the directories it could not open alongside the files it found. No change to CLI output or exit codes is intended
 
 ## [1.2.3] - 2026-10-05
 

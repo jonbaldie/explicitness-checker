@@ -21,17 +21,25 @@ class FileNarrator
     {
         $file = $result->getFile();
         $this->console->verbose("Parsing file: {$file}");
-        if ($result->isUnreadable()) {
-            $this->console->error("Cannot read file: {$file}" . PHP_EOL);
-        }
-        $parseError = $result->getParseError();
-        if ($parseError !== null) {
-            $this->console->error("Parse error in {$file}: {$parseError}" . PHP_EOL);
+        $unchecked = $result->getUnchecked();
+        if ($unchecked !== null) {
+            $this->narrateUnchecked($unchecked);
         }
 
         foreach ($result->getFunctions() as $function) {
             $this->narrateFunction($function);
         }
+    }
+
+    protected function narrateUnchecked(UncheckedInput $unchecked): void
+    {
+        $file = $unchecked->getPath();
+        if ($unchecked->getReason() === UncheckedInput::UNPARSEABLE_FILE) {
+            $this->console->error("Parse error in {$file}: {$unchecked->getDetail()}" . PHP_EOL);
+
+            return;
+        }
+        $this->console->error("Cannot read file: {$file}" . PHP_EOL);
     }
 
     protected function narrateFunction(FunctionResult $function): void

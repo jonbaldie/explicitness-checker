@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
 use JonBaldie\ExplicitnessChecker\Cli\FileChecker;
+use JonBaldie\ExplicitnessChecker\Cli\UncheckedInput;
 use JonBaldie\ExplicitnessChecker\Cli\Violation;
 use JonBaldie\ExplicitnessChecker\FunctionResult;
 use JonBaldie\ExplicitnessChecker\Mode;
@@ -25,8 +26,7 @@ class FileCheckerTest extends TestCase
         $result = (new FileChecker(new SourceChecker(), new Mode(false, false)))->check(self::GLOBAL_DECLARATION);
 
         self::assertSame(self::GLOBAL_DECLARATION, $result->getFile());
-        self::assertFalse($result->hasParseError());
-        self::assertFalse($result->isUnreadable());
+        self::assertNull($result->getUnchecked());
         self::assertSame(
             [
                 ['writeOnly', ['counter'], []],
@@ -79,26 +79,30 @@ class FileCheckerTest extends TestCase
         );
     }
 
-    public function testParseErrorIsFlaggedWithTheParserMessage(): void
+    public function testUnparseableFileIsUncheckedWithTheParserMessage(): void
     {
         $file = Process::ROOT . '/tests/Fixtures/cli/parse-error.php';
         $result = (new FileChecker(new SourceChecker(), new Mode(false, false)))->check($file);
 
-        self::assertTrue($result->hasParseError());
-        self::assertFalse($result->isUnreadable());
-        self::assertSame('Syntax error, unexpected \'{\', expecting T_VARIABLE on line 4', $result->getParseError());
+        $unchecked = $result->getUnchecked();
+        self::assertNotNull($unchecked);
+        self::assertSame($file, $unchecked->getPath());
+        self::assertSame(UncheckedInput::UNPARSEABLE_FILE, $unchecked->getReason());
+        self::assertSame('Syntax error, unexpected \'{\', expecting T_VARIABLE on line 4', $unchecked->getDetail());
         self::assertSame([], $result->getFunctions());
         self::assertSame(0, $result->getChecked());
     }
 
-    public function testUnreadableFileIsFlaggedWithoutAParseError(): void
+    public function testUnreadableFileIsUncheckedWithoutADetail(): void
     {
         $file = Process::ROOT . '/tests/Fixtures/cli/does-not-exist.php';
         $result = (new FileChecker(new SourceChecker(), new Mode(false, false)))->check($file);
 
-        self::assertTrue($result->isUnreadable());
-        self::assertFalse($result->hasParseError());
-        self::assertNull($result->getParseError());
+        $unchecked = $result->getUnchecked();
+        self::assertNotNull($unchecked);
+        self::assertSame($file, $unchecked->getPath());
+        self::assertSame(UncheckedInput::UNREADABLE_FILE, $unchecked->getReason());
+        self::assertNull($unchecked->getDetail());
         self::assertSame([], $result->getFunctions());
         self::assertSame(0, $result->getChecked());
     }
