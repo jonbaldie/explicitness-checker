@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-05
+
 ### Added
 
 - `Finding::getVariable()` returns the name of the global, superglobal, static variable, captured reference or mutated argument a finding is about (e.g. `_ENV`), or null for other findings, so consumers can classify findings without parsing their descriptions. The CLI now recognises `$_ENV` as Critical from this name rather than from the description text; exit codes are unchanged (#36)
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The key of a keyed destructuring item (`[$key => $val] = $data`, `list($key => $val) = $data`, `foreach ($data as [$key => $val])`) is walked as a read instead of a write, so `[$param->key => $val] = $data` no longer reports `wrote to argument $param` and keys that read globals, `$GLOBALS` entries, static properties or (under `--props`) `$this` properties are reported as inputs rather than outputs (#105). This can move rows from outputs to inputs
+- Writing to a static property through a dynamic class expression (`$class::$prop = 1`, `$param::$prop = 1`, `$this->class::$prop = 1`, `$GLOBALS['class']::$prop = 1`) walks the class expression as a read instead of a write, so a by-reference parameter used as the class is no longer reported as `wrote to argument`, and globals, `$GLOBALS` entries and (under `--props`) `$this` properties used as the class are reported as inputs rather than outputs (#106). This can move rows from outputs to inputs
 - Strict mode matches the call forms of `exit` and `die` case-insensitively, as PHP does, so `\Die(1)` is reported as `terminates the program (die)` and `\DIE('bye')` as `writes to standard output (die)` instead of being ignored (#108). This can add rows under `--strict`
 - Strict mode ignores first-class callable creation for impure built-ins and `exit`/`die`, which creates a `Closure` without executing the function or terminating the process (#107). This removes false findings and can lower the strict-mode exit code
 
@@ -77,7 +80,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.0.0...v1.1.0
