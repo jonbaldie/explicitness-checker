@@ -12,7 +12,7 @@ use PhpParser\Node\Scalar;
  * What a `$GLOBALS` access is. The walk, the reference-alias tracking and the
  * detectors all ask this one place, so they cannot disagree.
  *
- * Bare `$GLOBALS` is a superglobal named NAME. A `$GLOBALS[...]` fetch is
+ * Bare `$GLOBALS` is the superglobal called NAME. A `$GLOBALS[...]` fetch is
  * reported as a whole, by its subject, and its dimension is never walked.
  */
 class GlobalsArray
@@ -22,9 +22,9 @@ class GlobalsArray
     /**
      * Whether the node is `$GLOBALS[...]` (with any dimension, or none).
      *
-     * @phpstan-assert-if-true Expr\ArrayDimFetch $node
+     * @phpstan-assert-if-true =Expr\ArrayDimFetch $node
      */
-    public static function isFetch(?Node $node): bool
+    public static function isFetch(Node $node): bool
     {
         return $node instanceof Expr\ArrayDimFetch
             && VariableName::of($node->var) === self::NAME;
@@ -41,8 +41,9 @@ class GlobalsArray
         }
 
         $key = self::keyToString($node->dim);
+        $subject = '$' . self::NAME;
 
-        return $key === null ? '$GLOBALS' : '$GLOBALS[' . $key . ']';
+        return $key === null ? $subject : $subject . '[' . $key . ']';
     }
 
     protected static function keyToString(?Expr $dim): ?string

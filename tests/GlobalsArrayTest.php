@@ -72,8 +72,8 @@ class GlobalsArrayTest extends TestCase
      */
     public function testDetectAndWalkDependOnEachOtherInOneDirectionOnly(): void
     {
-        self::assertSame([], $this->importsBetween('Detect', 'JonBaldie\\ExplicitnessChecker\\Walk\\'));
-        self::assertSame([], $this->importsBetween('Walk', 'JonBaldie\\ExplicitnessChecker\\Detect\\GlobalsArrayDetector'));
+        self::assertSame([], $this->filesNaming('Detect', 'ExplicitnessChecker\\Walk\\'));
+        self::assertSame([], $this->filesNaming('Walk', 'GlobalsArrayDetector'));
     }
 
     protected function assignedTo(string $source): Expr\ArrayDimFetch
@@ -88,19 +88,17 @@ class GlobalsArrayTest extends TestCase
     }
 
     /**
-     * @return list<string> "file: use ..." for each import in src/$package starting with $prefix
+     * @return list<string> the files in src/$package whose source mentions $name anywhere
      */
-    protected function importsBetween(string $package, string $prefix): array
+    protected function filesNaming(string $package, string $name): array
     {
-        $imports = [];
+        $files = [];
         foreach (glob(Process::ROOT . '/src/' . $package . '/*.php') ?: [] as $path) {
-            foreach (file($path) ?: [] as $line) {
-                if (str_starts_with($line, 'use ' . $prefix)) {
-                    $imports[] = basename($path) . ': ' . trim($line);
-                }
+            if (str_contains((string) file_get_contents($path), $name)) {
+                $files[] = basename($path);
             }
         }
 
-        return $imports;
+        return $files;
     }
 }
