@@ -90,10 +90,13 @@ class RunSummary
         return $this->minimum === null || $this->minimum->isMetBy($this->getExplicitCount(), $this->checked);
     }
 
+    /**
+     * The exit code, as the class docblock describes.
+     */
     public function getExitCode(): int
     {
         $exitCode = 0;
-        if ($this->minimum === null || !$this->isMinimumMet()) {
+        if (!$this->isPassedByMinimum()) {
             foreach ($this->getSeverityCounts() as $severity => $count) {
                 if ($count > 0) {
                     $exitCode = Severity::EXIT_CODES[$severity];
@@ -106,5 +109,14 @@ class RunSummary
         }
 
         return $exitCode;
+    }
+
+    /**
+     * Whether a --min-explicitness threshold was given and met, so the
+     * violations do not set the exit code.
+     */
+    protected function isPassedByMinimum(): bool
+    {
+        return $this->minimum !== null && $this->isMinimumMet();
     }
 }
