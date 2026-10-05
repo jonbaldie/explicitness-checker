@@ -10,7 +10,8 @@ use PhpParser\Node\Expr;
 /**
  * `$a[$k]`: the array is accessed in the node's own mode; the index is always read.
  *
- * `$GLOBALS[...]` never reaches this rule: LeafRule claims it first.
+ * A `$GLOBALS[...]` fetch (GlobalsArray::isFetch) never reaches this rule:
+ * LeafRule claims it first, so its dimension is not walked.
  */
 class ArrayIndexRule implements ChildAccessRule
 {

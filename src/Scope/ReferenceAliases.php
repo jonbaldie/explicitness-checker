@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JonBaldie\ExplicitnessChecker\Walk;
+namespace JonBaldie\ExplicitnessChecker\Scope;
 
-use JonBaldie\ExplicitnessChecker\Detect\GlobalsArrayDetector;
+use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -71,7 +71,7 @@ class ReferenceAliases
             return;
         }
 
-        $target = GlobalsArrayDetector::subjectOf($node->expr);
+        $target = GlobalsArray::subjectOf($node->expr);
         if ($target === null) {
             $this->forget($node->var);
 

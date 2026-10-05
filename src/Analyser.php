@@ -6,9 +6,9 @@ namespace JonBaldie\ExplicitnessChecker;
 
 use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
 use JonBaldie\ExplicitnessChecker\Scope\BindingsCollector;
+use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
-use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 use PhpParser\Node;
 
 /**

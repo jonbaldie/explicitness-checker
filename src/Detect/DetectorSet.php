@@ -6,7 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
-use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
 
 /**
  * Chooses the detectors for one analysis from the enabled modes.

@@ -6,9 +6,10 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
+use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
 use JonBaldie\ExplicitnessChecker\VariableName;
-use JonBaldie\ExplicitnessChecker\Walk\ReferenceAliases;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 
@@ -28,7 +29,7 @@ class VariableDetector implements Detector
         '_COOKIE' => true,
         '_ENV' => true,
         '_SESSION' => true,
-        'GLOBALS' => true,
+        GlobalsArray::NAME => true,
     ];
 
     /**

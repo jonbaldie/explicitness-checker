@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
-use JonBaldie\ExplicitnessChecker\Detect\GlobalsArrayDetector;
+use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use JonBaldie\ExplicitnessChecker\Scope\ScopeBoundary;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -25,7 +25,7 @@ class LeafRule implements ChildAccessRule
             return is_string($node->name) ? [] : [[$node->name, false]];
         }
 
-        if (ScopeBoundary::opensScope($node) || $node instanceof Stmt\Global_ || GlobalsArrayDetector::isGlobalsFetch($node)) {
+        if (ScopeBoundary::opensScope($node) || $node instanceof Stmt\Global_ || GlobalsArray::isFetch($node)) {
             return [];
         }
 
