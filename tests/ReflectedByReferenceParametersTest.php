@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\CountingByReferenceParameters;
 use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 use PHPUnit\Framework\TestCase;
 
@@ -38,16 +39,16 @@ class ReflectedByReferenceParametersTest extends TestCase
     {
         $parameters = new ReflectedByReferenceParameters();
 
-        self::assertTrue($parameters->isByReference('sort', 0, null));
-        self::assertFalse($parameters->isByReference('sort', 1, null));
-        self::assertFalse($parameters->isByReference('sort', 2, null));
-        self::assertTrue($parameters->isByReference('Preg_Match', 2, null));
-        self::assertFalse($parameters->isByReference('preg_match', 1, null));
-        self::assertFalse($parameters->isByReference('sscanf', 1, null));
-        self::assertTrue($parameters->isByReference('sscanf', 2, null));
-        self::assertTrue($parameters->isByReference('sscanf', 7, null));
-        self::assertTrue($parameters->isByReference('array_multisort', 0, null));
-        self::assertFalse($parameters->isByReference('strlen', 0, null));
+        self::assertTrue($parameters->isPassedByReference('sort', 0, null));
+        self::assertFalse($parameters->isPassedByReference('sort', 1, null));
+        self::assertFalse($parameters->isPassedByReference('sort', 2, null));
+        self::assertTrue($parameters->isPassedByReference('Preg_Match', 2, null));
+        self::assertFalse($parameters->isPassedByReference('preg_match', 1, null));
+        self::assertFalse($parameters->isPassedByReference('sscanf', 1, null));
+        self::assertTrue($parameters->isPassedByReference('sscanf', 2, null));
+        self::assertTrue($parameters->isPassedByReference('sscanf', 7, null));
+        self::assertTrue($parameters->isPassedByReference('array_multisort', 0, null));
+        self::assertFalse($parameters->isPassedByReference('strlen', 0, null));
     }
 
     /**
@@ -58,10 +59,10 @@ class ReflectedByReferenceParametersTest extends TestCase
     {
         $parameters = new ReflectedByReferenceParameters();
 
-        self::assertTrue($parameters->isByReference('preg_match', 0, 'matches'));
-        self::assertFalse($parameters->isByReference('preg_match', 2, 'subject'));
-        self::assertFalse($parameters->isByReference('sort', 0, 'flags'));
-        self::assertFalse($parameters->isByReference('sort', 0, 'no_such_parameter'));
+        self::assertTrue($parameters->isPassedByReference('preg_match', 0, 'matches'));
+        self::assertFalse($parameters->isPassedByReference('preg_match', 2, 'subject'));
+        self::assertFalse($parameters->isPassedByReference('sort', 0, 'flags'));
+        self::assertFalse($parameters->isPassedByReference('sort', 0, 'no_such_parameter'));
     }
 
     /**
@@ -72,9 +73,9 @@ class ReflectedByReferenceParametersTest extends TestCase
         require_once __DIR__ . '/Support/by-reference-function.php';
         $parameters = new ReflectedByReferenceParameters();
 
-        self::assertFalse($parameters->isByReference('no_such_function', 0, null));
+        self::assertFalse($parameters->isPassedByReference('no_such_function', 0, null));
         self::assertFalse(
-            $parameters->isByReference('JonBaldie\ExplicitnessChecker\Tests\Support\take_by_reference', 0, null),
+            $parameters->isPassedByReference('JonBaldie\ExplicitnessChecker\Tests\Support\take_by_reference', 0, null),
         );
     }
 
@@ -85,10 +86,30 @@ class ReflectedByReferenceParametersTest extends TestCase
     {
         $parameters = new ReflectedByReferenceParameters();
 
-        self::assertTrue($parameters->isByReference('sort', 0, null));
+        self::assertTrue($parameters->isPassedByReference('sort', 0, null));
         self::assertFalse($parameters->isBuiltin('no_such_function'));
-        self::assertTrue($parameters->isByReference('SORT', 0, null));
-        self::assertFalse($parameters->isByReference('sort', 1, null));
+        self::assertTrue($parameters->isPassedByReference('SORT', 0, null));
+        self::assertFalse($parameters->isPassedByReference('sort', 1, null));
         self::assertFalse($parameters->isBuiltin('no_such_function'));
+    }
+
+    /**
+     * Each function is reflected once, whatever the spelling of its name and
+     * however often it's asked about, and so is each name that isn't a
+     * built-in.
+     */
+    public function testReflectsEachFunctionOnce(): void
+    {
+        $parameters = new CountingByReferenceParameters();
+
+        $parameters->isBuiltin('sort');
+        $parameters->isPassedByReference('sort', 0, null);
+        $parameters->isPassedByReference('SORT', 1, null);
+        $parameters->isPassedByReference('Sort', 0, 'array');
+        $parameters->isBuiltin('no_such_function');
+        $parameters->isPassedByReference('no_such_function', 0, null);
+        $parameters->isPassedByReference('preg_match', 2, null);
+
+        self::assertSame(['sort' => 1, 'no_such_function' => 1, 'preg_match' => 1], $parameters->reflections);
     }
 }

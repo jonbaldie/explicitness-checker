@@ -23,7 +23,7 @@ class ReflectedByReferenceParameters implements ByReferenceParameters
         return $this->parametersOf($function) !== null;
     }
 
-    public function isByReference(string $function, int $position, ?string $name): bool
+    public function isPassedByReference(string $function, int $position, ?string $name): bool
     {
         return $this->parameter($this->parametersOf($function) ?? [], $position, $name)?->isPassedByReference() === true;
     }

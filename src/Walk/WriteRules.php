@@ -11,7 +11,7 @@ namespace JonBaldie\ExplicitnessChecker\Walk;
  */
 class WriteRules extends RuleChain
 {
-    public function __construct(ByReferenceParameters $byReference)
+    public function __construct()
     {
         $this->rules = [
             new ReferenceAssignmentRule(),
@@ -21,7 +21,7 @@ class WriteRules extends RuleChain
             new ForeachRule(),
             new CatchRule(),
             new UnsetRule(),
-            new ByReferenceCallRule($byReference),
+            new ByReferenceCallRule(),
         ];
     }
 }

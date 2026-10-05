@@ -26,7 +26,7 @@ class AccessRules extends RuleChain
     public function __construct()
     {
         $this->rules = [
-            new WriteRules(new ReflectedByReferenceParameters()),
+            new WriteRules(),
             new LeafRule(),
             new ArrayIndexRule(),
             new ArrayItemRule(),

@@ -20,5 +20,5 @@ interface ByReferenceParameters
      * named $name if it's a named one, by reference. False for functions that
      * aren't built-ins.
      */
-    public function isByReference(string $function, int $position, ?string $name): bool;
+    public function isPassedByReference(string $function, int $position, ?string $name): bool;
 }
