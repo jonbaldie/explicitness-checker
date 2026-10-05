@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
-use JonBaldie\ExplicitnessChecker\Detect\GlobalsArrayDetector;
+use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -22,7 +22,7 @@ class ReferenceAssignmentRule implements ChildAccessRule
         if (!$node instanceof Expr\AssignRef) {
             return null;
         }
-        if (!GlobalsArrayDetector::isGlobalsFetch($node->expr) || VariableName::of($node->var) === null) {
+        if (!GlobalsArray::isFetch($node->expr) || VariableName::of($node->var) === null) {
             return [[$node->var, true], [$node->expr, false], [$node->expr, true]];
         }
 

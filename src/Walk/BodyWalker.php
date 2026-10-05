@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Walk;
 
 use JonBaldie\ExplicitnessChecker\Detect\Detector;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
 use PhpParser\Node;
 
 /**
