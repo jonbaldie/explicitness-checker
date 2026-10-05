@@ -13,8 +13,8 @@ use JonBaldie\ExplicitnessChecker\Mode;
  * "=" or as the next argument; a value option with nothing after it is
  * ignored, except for "--exclude", whose missing value is retained as empty
  * so it can be reported as invalid usage. Every value option accumulates:
- * "--exclude" on top of the default "vendor", and each pattern option over
- * its earlier occurrences. The first argument that does not start with "-" is
+ * "--exclude" on top of FileFilter::DEFAULT_EXCLUDE_DIRS, and each pattern
+ * option over its earlier occurrences. The first argument that does not start with "-" is
  * the path; later ones are ignored.
  * Any other argument starting with "-" is an unknown option and stops the
  * parse, so a mistyped flag cannot quietly change what is checked.
@@ -40,7 +40,7 @@ class ArgumentParser
     public function parse(array $argv): ?Options
     {
         $switches = ['verbose' => false, 'strict' => false, 'props' => false];
-        $values = ['--exclude' => ['vendor'], '--include-pattern' => [], '--exclude-pattern' => [], '--min-explicitness' => []];
+        $values = ['--exclude' => FileFilter::DEFAULT_EXCLUDE_DIRS, '--include-pattern' => [], '--exclude-pattern' => [], '--min-explicitness' => []];
         $path = null;
 
         $arguments = array_slice($argv, 1);

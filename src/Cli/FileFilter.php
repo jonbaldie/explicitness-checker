@@ -13,6 +13,9 @@ class FileFilter
     /** Prefix preg_match() puts on its warnings, dropped from the reason reported. */
     protected const WARNING_PREFIX = 'preg_match(): ';
 
+    /** Directories excluded when none are given; `--exclude` adds to these. */
+    public const DEFAULT_EXCLUDE_DIRS = ['vendor'];
+
     /**
      * Every occurrence of a pattern flag is kept: a file must match one of the
      * include patterns (when any are given) and none of the exclude patterns.
@@ -22,9 +25,9 @@ class FileFilter
      * @param list<string> $excludePatterns regex bodies, without delimiters
      */
     public function __construct(
-        protected array $excludeDirs,
-        protected array $includePatterns,
-        protected array $excludePatterns,
+        protected array $excludeDirs = self::DEFAULT_EXCLUDE_DIRS,
+        protected array $includePatterns = [],
+        protected array $excludePatterns = [],
     ) {
     }
 
