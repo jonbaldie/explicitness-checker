@@ -68,4 +68,24 @@ class Finding
     {
         return $this->output;
     }
+
+    /**
+     * @param list<Finding> $findings
+     *
+     * @return list<Finding> the inputs among $findings, in their order
+     */
+    public static function inputsOf(array $findings): array
+    {
+        return array_values(array_filter($findings, static fn (Finding $finding): bool => $finding->isInput()));
+    }
+
+    /**
+     * @param list<Finding> $findings
+     *
+     * @return list<Finding> the outputs among $findings, in their order
+     */
+    public static function outputsOf(array $findings): array
+    {
+        return array_values(array_filter($findings, static fn (Finding $finding): bool => $finding->isOutput()));
+    }
 }

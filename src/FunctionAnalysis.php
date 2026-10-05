@@ -38,7 +38,7 @@ class FunctionAnalysis
      */
     public function getImplicitInputs(): array
     {
-        return array_values(array_filter($this->findings, static fn (Finding $finding): bool => $finding->isInput()));
+        return Finding::inputsOf($this->findings);
     }
 
     /**
@@ -48,7 +48,7 @@ class FunctionAnalysis
      */
     public function getImplicitOutputs(): array
     {
-        return array_values(array_filter($this->findings, static fn (Finding $finding): bool => $finding->isOutput()));
+        return Finding::outputsOf($this->findings);
     }
 
     /**

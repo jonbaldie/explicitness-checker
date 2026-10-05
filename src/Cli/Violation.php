@@ -38,14 +38,21 @@ class Violation
     }
 
     /**
+     * Implicit inputs and outputs, in order of first occurrence.
+     *
+     * @return list<Finding>
+     */
+    public function getFindings(): array
+    {
+        return $this->findings;
+    }
+
+    /**
      * @return list<string> implicit input descriptions
      */
     public function getInputs(): array
     {
-        return self::descriptions(array_values(array_filter(
-            $this->findings,
-            static fn (Finding $finding): bool => $finding->isInput(),
-        )));
+        return self::descriptions(Finding::inputsOf($this->findings));
     }
 
     /**
@@ -53,10 +60,7 @@ class Violation
      */
     public function getOutputs(): array
     {
-        return self::descriptions(array_values(array_filter(
-            $this->findings,
-            static fn (Finding $finding): bool => $finding->isOutput(),
-        )));
+        return self::descriptions(Finding::outputsOf($this->findings));
     }
 
     /**
