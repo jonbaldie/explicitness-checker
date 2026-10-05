@@ -53,6 +53,11 @@ class BuiltinCatalogueDetector implements Detector
     ];
 
     /**
+     * The constructs PHP also accepts as functions.
+     */
+    protected const EXIT_NAMES = ['exit', 'die'];
+
+    /**
      * Output construct => its name.
      */
     protected const OUTPUT_CONSTRUCTS = [
@@ -223,7 +228,7 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function classify(Node $node): ?array
     {
-        return $this->classifyConstruct($node) ?? $this->classifyCall($node);
+        return $this->classifyConstruct($node) ?? $this->classifyNamedInvocation($node);
     }
 
     /**
@@ -256,7 +261,7 @@ class BuiltinCatalogueDetector implements Detector
      *
      * @return array{string, list<array{string, bool, string}>}|null
      */
-    protected function classifyCall(Node $node): ?array
+    protected function classifyNamedInvocation(Node $node): ?array
     {
         if ($node instanceof Expr\New_ && $node->class instanceof Node\Name) {
             $class = $node->class->toString();
@@ -279,7 +284,7 @@ class BuiltinCatalogueDetector implements Detector
     protected function classifyFunction(string $name, CallArguments $arguments): array
     {
         $lowerName = strtolower($name);
-        if (in_array($lowerName, ['exit', 'die'], true)) {
+        if (in_array($lowerName, self::EXIT_NAMES, true)) {
             return [$lowerName, $this->exitEntries($arguments)];
         }
 
