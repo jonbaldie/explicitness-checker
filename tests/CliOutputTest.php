@@ -5,6 +5,13 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
 use JonBaldie\ExplicitnessChecker\Cli\Application;
+use JonBaldie\ExplicitnessChecker\Cli\ArgumentParser;
+use JonBaldie\ExplicitnessChecker\Cli\Console;
+use JonBaldie\ExplicitnessChecker\Cli\FileChecker;
+use JonBaldie\ExplicitnessChecker\Cli\PhpFileFinder;
+use JonBaldie\ExplicitnessChecker\Cli\Severity;
+use JonBaldie\ExplicitnessChecker\SourceChecker;
+use JonBaldie\ExplicitnessChecker\Tests\Support\CheckedFile;
 use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
@@ -77,7 +84,7 @@ class CliOutputTest extends TestCase
      */
     public function testSameBasenameFilesAreDistinguishable(): void
     {
-        $files = $this->fileCells($this->runApplication(['tests/Fixtures/same-basename']));
+        $files = $this->reportedFiles(['tests/Fixtures/same-basename']);
         sort($files);
 
         self::assertSame(
@@ -97,39 +104,36 @@ class CliOutputTest extends TestCase
     {
         self::assertSame(
             ['tests/Fixtures/same-basename/src/Calculator.php'],
-            $this->fileCells($this->runApplication(['tests/Fixtures/same-basename/src/Calculator.php'])),
+            $this->reportedFiles(['tests/Fixtures/same-basename/src/Calculator.php']),
         );
     }
 
     public function testExitAndDieDescriptionsUseTheirArgumentSemantics(): void
     {
         $rows = [];
-        foreach (explode("\n", $this->runApplication(['--strict', 'tests/Fixtures/exit-forms.php'])) as $line) {
-            $cells = array_map('trim', explode('|', $line));
-            if (count($cells) === 8 && (str_contains($cells[3], 'exit') || str_contains($cells[3], 'die'))) {
-                $rows[$cells[3]] = [$cells[5], $cells[6]];
-            }
+        foreach (CheckedFile::violations(Process::ROOT . '/tests/Fixtures/exit-forms.php', ['--strict']) as $violation) {
+            $rows[$violation->getFunction()] = [$violation->getOutputs(), $violation->getSeverity()];
         }
 
         self::assertSame(
             [
-                'exit_with_status' => ['terminates the program (exit)', 'Minor'],
-                'exit_without_status' => ['terminates the program (exit)', 'Minor'],
-                'exit_with_message' => ['writes to standard output (exit)', 'Minor'],
-                'exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
-                'die_with_status' => ['terminates the program (die)', 'Minor'],
-                'die_without_status' => ['terminates the program (die)', 'Minor'],
-                'die_with_message' => ['writes to standard output (die)', 'Minor'],
-                'die_with_dynamic_value' => ['terminates the program (die)', 'Minor'],
-                'qualified_exit_with_status' => ['terminates the program (exit)', 'Minor'],
-                'qualified_exit_with_message' => ['writes to standard output (exit)', 'Minor'],
-                'qualified_exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
-                'qualified_die_with_status' => ['terminates the program (die)', 'Minor'],
-                'qualified_die_with_message' => ['writes to standard output (die)', 'Minor'],
-                'qualified_die_with_dynamic_value' => ['terminates the program (die)', 'Minor'],
-                'mixed_case_die_with_status' => ['terminates the program (die)', 'Minor'],
-                'uppercase_die_with_message' => ['writes to standard output (die)', 'Minor'],
-                'mixed_case_exit_with_dynamic_value' => ['terminates the program (exit)', 'Minor'],
+                'exit_with_status' => [['terminates the program (exit)'], Severity::MINOR],
+                'exit_without_status' => [['terminates the program (exit)'], Severity::MINOR],
+                'exit_with_message' => [['writes to standard output (exit)'], Severity::MINOR],
+                'exit_with_dynamic_value' => [['terminates the program (exit)'], Severity::MINOR],
+                'die_with_status' => [['terminates the program (die)'], Severity::MINOR],
+                'die_without_status' => [['terminates the program (die)'], Severity::MINOR],
+                'die_with_message' => [['writes to standard output (die)'], Severity::MINOR],
+                'die_with_dynamic_value' => [['terminates the program (die)'], Severity::MINOR],
+                'qualified_exit_with_status' => [['terminates the program (exit)'], Severity::MINOR],
+                'qualified_exit_with_message' => [['writes to standard output (exit)'], Severity::MINOR],
+                'qualified_exit_with_dynamic_value' => [['terminates the program (exit)'], Severity::MINOR],
+                'qualified_die_with_status' => [['terminates the program (die)'], Severity::MINOR],
+                'qualified_die_with_message' => [['writes to standard output (die)'], Severity::MINOR],
+                'qualified_die_with_dynamic_value' => [['terminates the program (die)'], Severity::MINOR],
+                'mixed_case_die_with_status' => [['terminates the program (die)'], Severity::MINOR],
+                'uppercase_die_with_message' => [['writes to standard output (die)'], Severity::MINOR],
+                'mixed_case_exit_with_dynamic_value' => [['terminates the program (exit)'], Severity::MINOR],
             ],
             $rows,
         );
@@ -141,9 +145,9 @@ class CliOutputTest extends TestCase
      */
     public function testRepeatedExcludePatternsAllApply(): void
     {
-        $files = $this->fileCells($this->runApplication(
+        $files = $this->reportedFiles(
             ['--exclude-pattern=gen/', '--exclude-pattern=src/', 'tests/Fixtures/same-basename'],
-        ));
+        );
 
         self::assertSame([], $files);
     }
@@ -154,9 +158,9 @@ class CliOutputTest extends TestCase
      */
     public function testRepeatedIncludePatternsAllApply(): void
     {
-        $files = $this->fileCells($this->runApplication(
+        $files = $this->reportedFiles(
             ['--include-pattern=gen/', '--include-pattern=src/', 'tests/Fixtures/same-basename'],
-        ));
+        );
         sort($files);
 
         self::assertSame(
@@ -169,43 +173,38 @@ class CliOutputTest extends TestCase
     }
 
     /**
+     * The files the CLI would report rows for: the files it finds for the
+     * arguments, checked with its options, as their File cells name them.
+     *
      * @param list<string> $arguments
+     *
+     * @return list<string>
      */
-    protected function runApplication(array $arguments): string
+    protected function reportedFiles(array $arguments): array
     {
-        $out = fopen('php://memory', 'w+');
-        $err = fopen('php://memory', 'w+');
-        self::assertIsResource($out);
-        self::assertIsResource($err);
+        $options = (new ArgumentParser())->parse(array_merge(['bin/explicitness-checker'], $arguments));
+        self::assertNotNull($options);
+        $stream = fopen('php://memory', 'w+');
+        self::assertIsResource($stream);
 
         $cwd = getcwd();
         self::assertIsString($cwd);
         chdir(Process::ROOT);
         try {
-            (new Application($out, $err))->run(array_merge(['bin/explicitness-checker'], $arguments));
+            $files = (new PhpFileFinder($options->getFilter(), new Console($stream, $stream, false)))
+                ->find($options->getPath());
+            $checker = new FileChecker(new SourceChecker(), $options->getMode());
+            $reported = [];
+            foreach ($files as $file) {
+                foreach ($checker->check($file)->getViolations() as $violation) {
+                    $reported[] = $violation->getFile();
+                }
+            }
         } finally {
             chdir($cwd);
         }
 
-        rewind($out);
-
-        return (string) stream_get_contents($out);
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function fileCells(string $stdout): array
-    {
-        $files = [];
-        foreach (explode("\n", $stdout) as $line) {
-            $cells = array_map('trim', explode('|', $line));
-            if (count($cells) === 8 && $cells[1] !== '' && $cells[1] !== 'File') {
-                $files[] = $cells[1];
-            }
-        }
-
-        return $files;
+        return $reported;
     }
 
     /**
