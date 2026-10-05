@@ -108,12 +108,14 @@ class Application
             return 0;
         }
 
-        $checker = new FileChecker(new SourceChecker(), $console, $mode);
+        $checker = new FileChecker(new SourceChecker(), $mode);
+        $narrator = new FileNarrator($console);
         $violations = [];
         $hasParseErrors = false;
         $checked = 0;
         foreach ($files as $file) {
             $result = $checker->check($file);
+            $narrator->narrate($result);
             $violations = array_merge($violations, $result->getViolations());
             $hasParseErrors = $hasParseErrors || $result->hasParseError();
             $checked += $result->getChecked();

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
+use JonBaldie\ExplicitnessChecker\Tests\Support\CheckedFile;
 use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Which function-likes the real CLI checks, and what it calls them (#8, #12).
+ * Which function-likes the CLI checks, and what it calls them (#8, #12).
  */
 class FunctionLikeScopeTest extends TestCase
 {
@@ -30,20 +31,19 @@ class FunctionLikeScopeTest extends TestCase
     public function testChecksEveryFunctionLikeWithQualifiedNames(string $fixture, string $namespace): void
     {
         $offset = $namespace === '' ? 0 : 2;
-        [$exitCode, $rows] = $this->runCli($fixture);
+        $rows = $this->rows($fixture);
 
         self::assertSame(
             [
-                [(string) (9 + $offset), $namespace . 'scope_conditional', 'read from global variable $conditional', ''],
-                [(string) (18 + $offset), 'class@anonymous::anonymousMethod', 'read from superglobal $_GET', ''],
-                [(string) (26 + $offset), $namespace . 'ScopeNamed::namedMethod', 'read from global variable $named', ''],
-                [(string) (35 + $offset), '{closure}', 'read from superglobal $_POST', ''],
-                [(string) (38 + $offset), '{closure}', 'read from superglobal $_COOKIE', ''],
-                [(string) (44 + $offset), '{closure}', 'read from superglobal $_GET', ''],
+                [9 + $offset, $namespace . 'scope_conditional', ['read from global variable $conditional'], []],
+                [18 + $offset, 'class@anonymous::anonymousMethod', ['read from superglobal $_GET'], []],
+                [26 + $offset, $namespace . 'ScopeNamed::namedMethod', ['read from global variable $named'], []],
+                [35 + $offset, '{closure}', ['read from superglobal $_POST'], []],
+                [38 + $offset, '{closure}', ['read from superglobal $_COOKIE'], []],
+                [44 + $offset, '{closure}', ['read from superglobal $_GET'], []],
             ],
             $rows,
         );
-        self::assertSame(2, $exitCode);
     }
 
     /**
@@ -52,17 +52,16 @@ class FunctionLikeScopeTest extends TestCase
      */
     public function testGlobalInNestedFunctionLikeDoesNotBleedIntoEnclosingFunction(): void
     {
-        [$exitCode, $rows] = $this->runCli('closure-global-bleed.php');
+        $rows = $this->rows('closure-global-bleed.php');
 
         self::assertSame(
             [
-                ['12', '{closure}', 'read from global variable $x', ''],
-                ['24', 'nested_reads_global', 'read from global variable $y', ''],
-                ['38', 'class@anonymous::readsGlobal', 'read from global variable $z', ''],
+                [12, '{closure}', ['read from global variable $x'], []],
+                [24, 'nested_reads_global', ['read from global variable $y'], []],
+                [38, 'class@anonymous::readsGlobal', ['read from global variable $z'], []],
             ],
             $rows,
         );
-        self::assertSame(2, $exitCode);
     }
 
     /**
@@ -72,20 +71,19 @@ class FunctionLikeScopeTest extends TestCase
      */
     public function testPropertyHooksAreNamedAfterTheirPropertyAndHookKind(): void
     {
-        [$exitCode, $rows] = $this->runCli('property-hooks.php', ['--props']);
+        $rows = $this->rows('property-hooks.php', ['--props']);
 
         self::assertSame(
             [
-                ['15', 'App\\Sub\\Temperature::$celsius::get', 'read from object property $this->celsius', ''],
-                ['16', 'App\\Sub\\Temperature::$celsius::set', '', 'wrote to object property $this->celsius'],
-                ['22', 'App\\Sub\\Temperature::$source::get', 'read from superglobal $_GET', ''],
-                ['26', 'App\\Sub\\Temperature::$label::get', 'read from object property $this->label', ''],
-                ['33', 'class@anonymous::$reading::get', 'read from superglobal $_SERVER', ''],
-                ['34', '{closure}', 'read from superglobal $_POST', ''],
+                [15, 'App\\Sub\\Temperature::$celsius::get', ['read from object property $this->celsius'], []],
+                [16, 'App\\Sub\\Temperature::$celsius::set', [], ['wrote to object property $this->celsius']],
+                [22, 'App\\Sub\\Temperature::$source::get', ['read from superglobal $_GET'], []],
+                [26, 'App\\Sub\\Temperature::$label::get', ['read from object property $this->label'], []],
+                [33, 'class@anonymous::$reading::get', ['read from superglobal $_SERVER'], []],
+                [34, '{closure}', ['read from superglobal $_POST'], []],
             ],
             $rows,
         );
-        self::assertSame(2, $exitCode);
     }
 
     /**
@@ -94,53 +92,29 @@ class FunctionLikeScopeTest extends TestCase
      */
     public function testNestedAnonymousClassesKeepTheirNamedEnclosingClass(): void
     {
-        [$exitCode, $rows] = $this->runFile(Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php');
+        $rows = CheckedFile::rows(Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php');
 
         self::assertSame(
             [
-                ['10', 'App\\ServiceA::class@anonymous::send', 'read from superglobal $_GET', ''],
-                ['16', 'App\\ServiceA::class@anonymous::$value::get', 'read from superglobal $_GET', ''],
-                ['27', 'App\\ServiceB::class@anonymous::send', 'read from superglobal $_GET', ''],
-                ['33', 'App\\ServiceB::class@anonymous::$value::get', 'read from superglobal $_GET', ''],
+                [10, 'App\\ServiceA::class@anonymous::send', ['read from superglobal $_GET'], []],
+                [16, 'App\\ServiceA::class@anonymous::$value::get', ['read from superglobal $_GET'], []],
+                [27, 'App\\ServiceB::class@anonymous::send', ['read from superglobal $_GET'], []],
+                [33, 'App\\ServiceB::class@anonymous::$value::get', ['read from superglobal $_GET'], []],
             ],
             $rows,
         );
-        self::assertSame(2, $exitCode);
     }
 
     /**
-     * Runs the CLI on a fixture and returns its exit code and table rows as
+     * Checks a fixture as the CLI does and returns its report rows as
      * [line, function, implicit inputs, implicit outputs].
      *
      * @param list<string> $flags
      *
-     * @return array{int, list<list<string>>}
+     * @return list<array{int, string, list<string>, list<string>}>
      */
-    protected function runCli(string $fixture, array $flags = []): array
+    protected function rows(string $fixture, array $flags = []): array
     {
-        $path = Process::ROOT . '/test-fixtures/' . $fixture;
-        return $this->runFile($path, $flags);
-    }
-
-    /**
-     * @param list<string> $flags
-     *
-     * @return array{int, list<list<string>>}
-     */
-    protected function runFile(string $path, array $flags = []): array
-    {
-        [$exitCode, $output, $errors] = Process::cli(array_merge($flags, [$path]));
-        self::assertSame('', $errors);
-
-        $rows = [];
-        foreach (explode("\n", $output) as $line) {
-            $cells = array_map('trim', explode('|', $line));
-            if (count($cells) !== 8 || $cells[1] !== $path) {
-                continue;
-            }
-            $rows[] = [$cells[2], $cells[3], $cells[4], $cells[5]];
-        }
-
-        return [$exitCode, $rows];
+        return CheckedFile::rows(Process::ROOT . '/test-fixtures/' . $fixture, $flags);
     }
 }

@@ -8,6 +8,7 @@ use JonBaldie\ExplicitnessChecker\Analyser;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\PHPStan\ImplicitInputOutputRule;
+use JonBaldie\ExplicitnessChecker\Tests\Support\CheckedFile;
 use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 use PHPStan\Rules\Rule;
@@ -773,8 +774,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     }
 
     /**
-     * Runs the real CLI and turns each table row into the messages the rule
-     * should report for it: `<function> <description>.`, sorted.
+     * Checks the fixture as the CLI does and turns each report row into the
+     * messages the rule should report for it: `<function> <description>.`, sorted.
      *
      * @param list<string> $flags
      *
@@ -782,19 +783,10 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
      */
     protected function cliMessages(string $fixture, array $flags): array
     {
-        [, $output, $errors] = Process::cli(array_merge($flags, [self::FIXTURES . $fixture]));
-        self::assertSame('', $errors);
-
         $messages = [];
-        foreach (explode("\n", $output) as $line) {
-            $cells = array_map('trim', explode('|', $line));
-            if (count($cells) !== 8 || $cells[1] !== self::FIXTURES . $fixture) {
-                continue;
-            }
-            foreach ([$cells[4], $cells[5]] as $descriptions) {
-                foreach (array_filter(explode('; ', $descriptions)) as $description) {
-                    $messages[] = $cells[3] . ' ' . $description . '.';
-                }
+        foreach (CheckedFile::violations(self::FIXTURES . $fixture, $flags) as $violation) {
+            foreach (array_merge($violation->getInputs(), $violation->getOutputs()) as $description) {
+                $messages[] = $violation->getFunction() . ' ' . $description . '.';
             }
         }
         sort($messages);

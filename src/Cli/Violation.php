@@ -66,9 +66,9 @@ class Violation
     /**
      * @param list<Finding> $findings
      *
-     * @return list<string>
+     * @return list<string> the findings' descriptions, as the report lists them
      */
-    protected static function descriptions(array $findings): array
+    public static function descriptions(array $findings): array
     {
         return array_map(static fn (Finding $finding): string => $finding->getDescription(), $findings);
     }
