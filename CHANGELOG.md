@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-05
+
 ### Added
 
 - `--strict` and `explicitness.strict: true` report more network, database, request-input and runtime-config built-ins (#84): the `socket_*` and `ftp_*` families and `get_headers` as network reads and writes; `gethostbyaddr`, `checkdnsrr` and `dns_check_record` as network reads; the `odbc_*`, `sqlsrv_*` and `oci_*` families as database reads and writes; `getallheaders` and `apache_request_headers` as HTTP header reads; `readline` as a file read; `getopt` as a superglobal read; `set_time_limit` as a runtime-config write; and `ignore_user_abort` as a runtime-config write when given a value other than `null`, otherwise a read
 
 ### Changed
 
+- Within a function or method, the PHPStan extension reports findings in the order they are discovered instead of all inputs before all outputs (#102). `Finding` gains `isInput()` and `isOutput()`, and `FunctionAnalysis`, `FunctionResult` and `Cli\Violation` gain `getFindings()`, which returns inputs and outputs in one list; the existing input and output getters return the same values as before
+- Internal refactoring consolidates strict mode's built-in detection into one `BuiltinCatalogueDetector` (#78). No change to findings or CLI output is intended
 - Internal refactoring puts the lookup of which arguments a built-in takes by reference behind `ByReferenceParameters`, and reflects on each built-in once per run instead of once per call (#80). No change to findings or CLI output is intended
 - Internal refactoring gives the CLI one representation of the inputs it could not check, `UncheckedInput` (unreadable files, unreadable directories and unparseable files), and routes all of them to `RunSummary`, the one place that decides what they do to the exit code (#114). File discovery now returns the directories it could not open alongside the files it found. No change to CLI output or exit codes is intended
 
@@ -107,7 +111,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.0...v1.2.1
