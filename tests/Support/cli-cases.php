@@ -108,6 +108,11 @@ return $cases + [
     'include.strict' => ['--strict', 'tests/Fixtures/include.php'],
     'runtime-config.strict' => ['--strict', 'tests/Fixtures/runtime-config.php'],
 
+    // #84: socket_*, ftp_*, odbc_*, get_headers, getallheaders, readline,
+    // getopt, set_time_limit, ignore_user_abort and the reverse DNS lookups.
+    'strict-catalogue-additions.strict' => ['--strict', 'tests/Fixtures/strict-catalogue-additions.php'],
+    'strict-catalogue-additions.default' => ['tests/Fixtures/strict-catalogue-additions.php'],
+
     // Usage and invalid paths.
     'no-arguments' => [],
     'flags-only' => ['-v', '--strict'],

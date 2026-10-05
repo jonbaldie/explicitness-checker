@@ -1,0 +1,26 @@
+Analyzing...
+
+Results:
+
++-----------------------------------------------+------+--------------------+------------------------------------+--------------------------------------------------+----------+
+| File                                          | Line | Function           | Implicit Inputs                    | Implicit Outputs                                 | Severity |
++-----------------------------------------------+------+--------------------+------------------------------------+--------------------------------------------------+----------+
+| tests/Fixtures/strict-catalogue-additions.php | 3    | parse_options      | reads from superglobals (getopt)   |                                                  | Serious  |
+| tests/Fixtures/strict-catalogue-additions.php | 7    | fetch_headers      | reads from network (get_headers)   | writes to network (get_headers)                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 11   | connect_ftp        | reads from network (ftp_connect)   | writes to network (ftp_connect)                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 15   | run_odbc           | reads from database (odbc_exec)    | writes to database (odbc_exec)                   | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 19   | open_socket        | reads from network (socket_create) | writes to network (socket_create)                | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 23   | extend_time_limit  |                                    | writes runtime configuration (set_time_limit)    | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 27   | prompt             | reads from file (readline)         |                                                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 31   | request_headers    | reads HTTP headers (getallheaders) |                                                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 35   | reverse_lookup     | reads from network (gethostbyaddr) |                                                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 39   | has_mail_exchanger | reads from network (checkdnsrr)    |                                                  | Critical |
+| tests/Fixtures/strict-catalogue-additions.php | 43   | keep_running       |                                    | writes runtime configuration (ignore_user_abort) | Critical |
++-----------------------------------------------+------+--------------------+------------------------------------+--------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 10 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

@@ -101,8 +101,8 @@ Run the checker on `app`:
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
   - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
   - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
-  - Network (`curl_exec`, `fsockopen`, etc.), databases (`mysqli_*`, `pg_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, etc.)
-  - Superglobals read through `filter_input` and `filter_input_array`
+  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
+  - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 
 Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.
@@ -284,11 +284,11 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Environment variables (`getenv`, `putenv`) | `explicitness.environment` | `strict` |
 | System time (`time`, `date`, `microtime`, `new DateTime()`, ...) | `explicitness.time` | `strict` |
 | Random number generator (`rand`, `random_int`, `shuffle`, `uniqid`, ...) | `explicitness.random` | `strict` |
-| HTTP headers (`header`, `setcookie`, ...) | `explicitness.httpHeaders` | `strict` |
+| HTTP headers (`header`, `setcookie`, `getallheaders`, ...) | `explicitness.httpHeaders` | `strict` |
 | Error log (`error_log`, `trigger_error`, `syslog`, ...) | `explicitness.errorLog` | `strict` |
 | Session (`session_start`, `session_id`, ...) | `explicitness.session` | `strict` |
-| Network (`curl_exec`, `fsockopen`, `gethostbyname`, ...) | `explicitness.network` | `strict` |
-| Database (`mysqli_*`, `pg_*`) | `explicitness.database` | `strict` |
+| Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, `gethostbyname`, ...) | `explicitness.network` | `strict` |
+| Database (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`) | `explicitness.database` | `strict` |
 | External process (`exec`, `shell_exec`, backticks, `proc_open`, ...) | `explicitness.process` | `strict` |
 | Email (`mail`, `mb_send_mail`) | `explicitness.mail` | `strict` |
 | Included file (`include`, `require`, `include_once`, `require_once`) | `explicitness.include` | `strict` |

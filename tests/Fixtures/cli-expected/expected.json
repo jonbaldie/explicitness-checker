@@ -1026,5 +1026,13 @@
     "runtime-config.strict": {
         "exitCode": 3,
         "stderr": ""
+    },
+    "strict-catalogue-additions.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "strict-catalogue-additions.default": {
+        "exitCode": 0,
+        "stderr": ""
     }
 }

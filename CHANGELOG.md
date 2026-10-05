@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--strict` and `explicitness.strict: true` report more network, database, request-input and runtime-config built-ins (#84): the `socket_*` and `ftp_*` families and `get_headers` as network reads and writes; `gethostbyaddr`, `checkdnsrr` and `dns_check_record` as network reads; the `odbc_*`, `sqlsrv_*` and `oci_*` families as database reads and writes; `getallheaders` and `apache_request_headers` as HTTP header reads; `readline` as a file read; `getopt` as a superglobal read; `set_time_limit` as a runtime-config write; and `ignore_user_abort` as a runtime-config write when given a value other than `null`, otherwise a read
+
 ### Changed
 
 - Internal refactoring puts the lookup of which arguments a built-in takes by reference behind `ByReferenceParameters`, and reflects on each built-in once per run instead of once per call (#80). No change to findings or CLI output is intended
