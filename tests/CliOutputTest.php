@@ -175,6 +175,7 @@ class CliOutputTest extends TestCase
     /**
      * The files the CLI would report rows for: the files it finds for the
      * arguments, checked with its options, as their File cells name them.
+     * The golden cases pin how Application renders the same runs.
      *
      * @param list<string> $arguments
      *

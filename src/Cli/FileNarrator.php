@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
-use JonBaldie\ExplicitnessChecker\Finding;
 use JonBaldie\ExplicitnessChecker\FunctionResult;
 
 /**
@@ -31,11 +30,11 @@ class FileNarrator
         }
 
         foreach ($result->getFunctions() as $function) {
-            $this->function($function);
+            $this->narrateFunction($function);
         }
     }
 
-    protected function function(FunctionResult $function): void
+    protected function narrateFunction(FunctionResult $function): void
     {
         $name = $function->getName();
         $this->console->verbose("Analyzing function/method: {$name} (line {$function->getLine()})");
@@ -43,8 +42,8 @@ class FileNarrator
         $this->verboseList("  Declared globals in {$name}: ", ', ', $analysis->getDeclaredGlobals());
         $this->verboseList("  Parameters for {$name}: ", ', ', $analysis->getParameters());
 
-        $inputs = self::descriptions($function->getInputs());
-        $outputs = self::descriptions($function->getOutputs());
+        $inputs = Violation::descriptions($function->getInputs());
+        $outputs = Violation::descriptions($function->getOutputs());
         if ($inputs === [] && $outputs === []) {
             $this->console->verbose("  No implicit inputs/outputs detected for {$name}");
 
@@ -63,15 +62,5 @@ class FileNarrator
         if ($items !== []) {
             $this->console->verbose($label . implode($glue, $items));
         }
-    }
-
-    /**
-     * @param list<Finding> $findings
-     *
-     * @return list<string>
-     */
-    protected static function descriptions(array $findings): array
-    {
-        return array_map(static fn (Finding $finding): string => $finding->getDescription(), $findings);
     }
 }
