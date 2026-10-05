@@ -60,6 +60,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
 
+    protected const STRICT_CATALOGUE_ADDITIONS_FIXTURE = Process::ROOT . '/tests/Fixtures/strict-catalogue-additions.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -633,6 +635,38 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testRuntimeConfigIsNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::RUNTIME_CONFIG_FIXTURE, []);
+    }
+
+    /**
+     * #84: the network, database, request-input and runtime-config built-ins
+     * added to the strict catalogue, under their categories' identifiers.
+     */
+    public function testStrictCatalogueAdditionsInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, [
+            [4, 'superglobal', 'parse_options reads from superglobals (getopt).'],
+            [8, 'network', 'fetch_headers reads from network (get_headers).'],
+            [8, 'network', 'fetch_headers writes to network (get_headers).'],
+            [12, 'network', 'connect_ftp reads from network (ftp_connect).'],
+            [12, 'network', 'connect_ftp writes to network (ftp_connect).'],
+            [16, 'database', 'run_odbc reads from database (odbc_exec).'],
+            [16, 'database', 'run_odbc writes to database (odbc_exec).'],
+            [20, 'network', 'open_socket reads from network (socket_create).'],
+            [20, 'network', 'open_socket writes to network (socket_create).'],
+            [24, 'runtimeConfig', 'extend_time_limit writes runtime configuration (set_time_limit).'],
+            [28, 'file', 'prompt reads from file (readline).'],
+            [32, 'httpHeaders', 'request_headers reads HTTP headers (getallheaders).'],
+            [36, 'network', 'reverse_lookup reads from network (gethostbyaddr).'],
+            [40, 'network', 'has_mail_exchanger reads from network (checkdnsrr).'],
+            [44, 'runtimeConfig', 'keep_running writes runtime configuration (ignore_user_abort).'],
+        ]);
+    }
+
+    public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void

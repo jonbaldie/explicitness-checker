@@ -36,6 +36,7 @@ class BuiltinCatalogueDetector implements Detector
     protected const FILE_SYSTEM = [Category::FILE_SYSTEM, self::INPUT, 'reads from file system'];
     protected const FILE_SYSTEM_WRITE = [Category::FILE_SYSTEM, self::OUTPUT, 'writes to file system'];
     protected const HEADERS = [Category::HTTP_HEADERS, self::OUTPUT, 'writes HTTP headers'];
+    protected const HEADERS_READ = [Category::HTTP_HEADERS, self::INPUT, 'reads HTTP headers'];
     protected const ERROR_LOG = [Category::ERROR_LOG, self::OUTPUT, 'writes to error log'];
     protected const SESSION_READ = [Category::SESSION, self::INPUT, 'reads session state'];
     protected const SESSION_WRITE = [Category::SESSION, self::OUTPUT, 'writes to session state'];
@@ -87,6 +88,11 @@ class BuiltinCatalogueDetector implements Detector
     protected const PREFIXES = [
         'mysqli_' => self::DATABASE,
         'pg_' => self::DATABASE,
+        'odbc_' => self::DATABASE,
+        'sqlsrv_' => self::DATABASE,
+        'oci_' => self::DATABASE,
+        'socket_' => self::NETWORK,
+        'ftp_' => self::NETWORK,
         'ob_' => [self::STDOUT],
     ];
 
@@ -106,6 +112,7 @@ class BuiltinCatalogueDetector implements Detector
         'file_get_contents' => [self::FILE_READ],
         'fread' => [self::FILE_READ],
         'fgets' => [self::FILE_READ],
+        'readline' => [self::FILE_READ],
         'fgetc' => [self::FILE_READ],
         'fgetcsv' => [self::FILE_READ],
         'fscanf' => [self::FILE_READ],
@@ -156,6 +163,8 @@ class BuiltinCatalogueDetector implements Detector
         'setcookie' => [self::HEADERS],
         'setrawcookie' => [self::HEADERS],
         'http_response_code' => [self::HEADERS],
+        'getallheaders' => [self::HEADERS_READ],
+        'apache_request_headers' => [self::HEADERS_READ],
         'error_log' => [self::ERROR_LOG],
         'trigger_error' => [self::ERROR_LOG],
         'user_error' => [self::ERROR_LOG],
@@ -171,9 +180,13 @@ class BuiltinCatalogueDetector implements Detector
         'fsockopen' => self::NETWORK,
         'pfsockopen' => self::NETWORK,
         'stream_socket_client' => self::NETWORK,
+        'get_headers' => self::NETWORK,
         'gethostbyname' => [self::NETWORK_READ],
         'gethostbynamel' => [self::NETWORK_READ],
         'dns_get_record' => [self::NETWORK_READ],
+        'gethostbyaddr' => [self::NETWORK_READ],
+        'checkdnsrr' => [self::NETWORK_READ],
+        'dns_check_record' => [self::NETWORK_READ],
         'exec' => self::PROCESS,
         'shell_exec' => self::PROCESS,
         'system' => self::PROCESS,
@@ -196,10 +209,12 @@ class BuiltinCatalogueDetector implements Detector
         'setlocale' => [self::CONFIG_WRITE],
         'define' => [self::CONFIG_WRITE],
         'register_shutdown_function' => [self::CONFIG_WRITE],
+        'set_time_limit' => [self::CONFIG_WRITE],
         'ini_get' => [self::CONFIG_READ],
         'date_default_timezone_get' => [self::CONFIG_READ],
         'filter_input' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
         'filter_input_array' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
+        'getopt' => [[Category::SUPERGLOBAL, self::INPUT, 'reads from superglobals']],
     ];
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
@@ -303,6 +318,7 @@ class BuiltinCatalogueDetector implements Detector
             'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
             'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
             'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
+            'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
             'date_create', 'date_create_immutable' => $this->readsClock($arguments) ? [self::TIME] : [],
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp') ? [self::TIME] : [],
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp') ? [self::TIME] : [],

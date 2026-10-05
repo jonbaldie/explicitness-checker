@@ -74,6 +74,110 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #84: every socket_* and ftp_* function, diagnostic helpers included,
+     * reads and writes the network as fsockopen does; so does get_headers.
+     * The reverse and record DNS lookups only read it.
+     */
+    public function testReportsSocketFtpHeaderAndDnsNetworkAccess(): void
+    {
+        $network = static fn (string $name): array => [
+            [['reads from network (' . $name . ')', Category::NETWORK]],
+            [['writes to network (' . $name . ')', Category::NETWORK]],
+        ];
+        $lookup = static fn (string $name): array => [[['reads from network (' . $name . ')', Category::NETWORK]], []];
+        $this->assertFindings([
+            'socket_create($a, $b, $a)' => $network('socket_create'),
+            'socket_strerror($a)' => $network('socket_strerror'),
+            'Socket_Read($a, $b)' => $network('Socket_Read'),
+            'ftp_connect($a)' => $network('ftp_connect'),
+            '\\FTP_Get($a, $b, $a)' => $network('FTP_Get'),
+            'get_headers($a)' => $network('get_headers'),
+            'gethostbyaddr($a)' => $lookup('gethostbyaddr'),
+            'checkdnsrr($a)' => $lookup('checkdnsrr'),
+            'dns_check_record($a)' => $lookup('dns_check_record'),
+            'my_socket_create($a)' => [[], []],
+            'sockets($a)' => [[], []],
+        ]);
+    }
+
+    /**
+     * #84: odbc_*, sqlsrv_* and oci_* join mysqli_* and pg_* as prefix
+     * families.
+     */
+    public function testReportsOdbcSqlsrvAndOciDatabaseAccessByPrefix(): void
+    {
+        $database = static fn (string $name): array => [
+            [['reads from database (' . $name . ')', Category::DATABASE]],
+            [['writes to database (' . $name . ')', Category::DATABASE]],
+        ];
+        $this->assertFindings([
+            'odbc_exec($a, $b)' => $database('odbc_exec'),
+            'ODBC_Connect($a, $b, $a)' => $database('ODBC_Connect'),
+            'sqlsrv_query($a, $b)' => $database('sqlsrv_query'),
+            'oci_execute($a)' => $database('oci_execute'),
+            '\\OCI_Parse($a, $b)' => $database('OCI_Parse'),
+            'my_odbc_exec($a)' => [[], []],
+            'ocilogon($a)' => [[], []],
+        ]);
+    }
+
+    /**
+     * #84: getallheaders and its apache_request_headers alias read the
+     * request's headers; readline reads standard input as fgets(STDIN) does;
+     * getopt reads $_SERVER['argv'].
+     */
+    public function testReportsRequestHeadersStandardInputAndCommandLineOptions(): void
+    {
+        $headers = static fn (string $name): array => [[['reads HTTP headers (' . $name . ')', Category::HTTP_HEADERS]], []];
+        $this->assertFindings([
+            'getallheaders()' => $headers('getallheaders'),
+            'apache_request_headers()' => $headers('apache_request_headers'),
+            '\\GetAllHeaders()' => $headers('GetAllHeaders'),
+            'readline($a)' => [[['reads from file (readline)', Category::FILE]], []],
+            'getopt($a, $b)' => [[['reads from superglobals (getopt)', Category::SUPERGLOBAL]], []],
+        ]);
+    }
+
+    /**
+     * #84: set_time_limit always sets the limit. ignore_user_abort reads the
+     * setting unless it's given a value other than literal null, by position
+     * or by name.
+     */
+    public function testReportsTimeLimitAndUserAbortConfiguration(): void
+    {
+        $read = static fn (string $name): array => [[['reads runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]], []];
+        $write = static fn (string $name): array => [[], [['writes runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]]];
+        $this->assertFindings([
+            'set_time_limit($a)' => $write('set_time_limit'),
+            'ignore_user_abort()' => $read('ignore_user_abort'),
+            'ignore_user_abort(null)' => $read('ignore_user_abort'),
+            'ignore_user_abort(enable: NULL)' => $read('ignore_user_abort'),
+            'ignore_user_abort(true)' => $write('ignore_user_abort'),
+            'ignore_user_abort(false)' => $write('ignore_user_abort'),
+            'ignore_user_abort($a)' => $write('ignore_user_abort'),
+            'ignore_user_abort(enable: $a)' => $write('ignore_user_abort'),
+            '\\Ignore_User_Abort(true)' => $write('Ignore_User_Abort'),
+        ]);
+    }
+
+    /**
+     * #84: none of the new entries is reported outside strict mode.
+     */
+    public function testNewEntriesAreNotReportedInDefaultMode(): void
+    {
+        $calls = [
+            'socket_create($a, $b, $a)', 'ftp_connect($a)', 'get_headers($a)', 'gethostbyaddr($a)',
+            'checkdnsrr($a)', 'dns_check_record($a)', 'odbc_exec($a, $b)', 'sqlsrv_query($a, $b)',
+            'oci_execute($a)', 'getallheaders()', 'apache_request_headers()', 'readline()', 'getopt($a)',
+            'set_time_limit($a)', 'ignore_user_abort(true)', 'ignore_user_abort()',
+        ];
+        foreach ($calls as $call) {
+            $result = (new SourceChecker())->check("<?php\nfunction f(\$a, \$b) { {$call}; }", new Mode(false, false))[0];
+            self::assertSame([[], []], [$result->getInputs(), $result->getOutputs()], $call);
+        }
+    }
+
+    /**
      * A backtick expression calls shell_exec, so it's described as one.
      */
     public function testReportsExternalProcesses(): void
