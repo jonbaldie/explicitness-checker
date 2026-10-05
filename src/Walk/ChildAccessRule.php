@@ -10,7 +10,8 @@ use PhpParser\Node;
  * Decides which children of a node the walk visits, and whether each child is
  * visited as a read or as a write.
  *
- * Rules are tried in order by AccessRules; the first one that returns a list wins.
+ * AccessRules asks its rules in order and the first one that returns a list
+ * wins; no two of its rules return a list for the same node.
  */
 interface ChildAccessRule
 {
