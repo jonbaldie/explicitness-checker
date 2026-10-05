@@ -14,6 +14,7 @@ class Finding
         protected string $category,
         protected int $line,
         protected ?string $variable = null,
+        protected bool $output = false,
     ) {
     }
 
@@ -50,5 +51,21 @@ class Finding
     public function getVariable(): ?string
     {
         return $this->variable;
+    }
+
+    /**
+     * Whether this is an implicit input: something the function-like reads.
+     */
+    public function isInput(): bool
+    {
+        return !$this->output;
+    }
+
+    /**
+     * Whether this is an implicit output: something the function-like writes.
+     */
+    public function isOutput(): bool
+    {
+        return $this->output;
     }
 }

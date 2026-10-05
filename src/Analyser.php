@@ -48,8 +48,7 @@ class Analyser
         }
 
         return new FunctionAnalysis(
-            $findings->inputs(),
-            $findings->outputs(),
+            $findings->findings(),
             $bindings->getParameters(),
             $bindings->getDeclaredGlobals(),
         );

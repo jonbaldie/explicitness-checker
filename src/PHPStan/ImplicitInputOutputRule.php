@@ -72,15 +72,13 @@ class ImplicitInputOutputRule implements Rule
     }
 
     /**
-     * Inputs then outputs, each in order of first occurrence.
+     * Inputs and outputs together, in order of first occurrence.
      *
      * @return list<Finding>
      */
     protected function findingsOf(CheckedFunctionLike $functionLike): array
     {
-        $analysis = $this->analyser->analyse($functionLike->getNode(), $this->mode);
-
-        return array_merge($analysis->getImplicitInputs(), $analysis->getImplicitOutputs());
+        return $this->analyser->analyse($functionLike->getNode(), $this->mode)->getFindings();
     }
 
     protected function error(string $functionName, Finding $finding): IdentifierRuleError

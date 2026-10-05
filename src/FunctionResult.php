@@ -33,6 +33,16 @@ class FunctionResult
     }
 
     /**
+     * Distinct implicit inputs and outputs, in order of first occurrence.
+     *
+     * @return list<Finding>
+     */
+    public function getFindings(): array
+    {
+        return $this->analysis->getFindings();
+    }
+
+    /**
      * Distinct implicit inputs, in order of first occurrence.
      *
      * @return list<Finding>

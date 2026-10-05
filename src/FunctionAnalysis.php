@@ -10,17 +10,25 @@ namespace JonBaldie\ExplicitnessChecker;
 class FunctionAnalysis
 {
     /**
-     * @param list<Finding> $implicitInputs
-     * @param list<Finding> $implicitOutputs
+     * @param list<Finding> $findings distinct implicit inputs and outputs, in order of first occurrence
      * @param list<string> $parameters
      * @param list<string> $declaredGlobals
      */
     public function __construct(
-        protected array $implicitInputs,
-        protected array $implicitOutputs,
+        protected array $findings,
         protected array $parameters,
         protected array $declaredGlobals,
     ) {
+    }
+
+    /**
+     * Distinct implicit inputs and outputs, in order of first occurrence.
+     *
+     * @return list<Finding>
+     */
+    public function getFindings(): array
+    {
+        return $this->findings;
     }
 
     /**
@@ -30,7 +38,7 @@ class FunctionAnalysis
      */
     public function getImplicitInputs(): array
     {
-        return $this->implicitInputs;
+        return array_values(array_filter($this->findings, static fn (Finding $finding): bool => $finding->isInput()));
     }
 
     /**
@@ -40,7 +48,7 @@ class FunctionAnalysis
      */
     public function getImplicitOutputs(): array
     {
-        return $this->implicitOutputs;
+        return array_values(array_filter($this->findings, static fn (Finding $finding): bool => $finding->isOutput()));
     }
 
     /**

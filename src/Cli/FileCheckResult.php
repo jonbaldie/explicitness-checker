@@ -53,10 +53,9 @@ class FileCheckResult
     {
         $violations = [];
         foreach ($this->functions as $function) {
-            $inputs = $function->getInputs();
-            $outputs = $function->getOutputs();
-            if ($inputs !== [] || $outputs !== []) {
-                $violations[] = new Violation($this->file, $function->getLine(), $function->getName(), $inputs, $outputs);
+            $findings = $function->getFindings();
+            if ($findings !== []) {
+                $violations[] = new Violation($this->file, $function->getLine(), $function->getName(), $findings);
             }
         }
 

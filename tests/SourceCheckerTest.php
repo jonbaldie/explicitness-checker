@@ -58,6 +58,41 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #102: each finding knows whether it is an input or an output, and the
+     * full list keeps discovery order across both, so an output found before
+     * an input comes first.
+     */
+    public function testFindingsKeepDiscoveryOrderAcrossInputsAndOutputs(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function f(): void {
+                global $a, $b;
+                $a = 1;
+                echo $b;
+                $c = $b;
+                $a = $c;
+            }
+            PHP;
+        $result = (new SourceChecker())->check($source, new Mode(false, false))[0];
+        $directions = static fn (array $findings): array => array_map(
+            static fn (Finding $finding): array => [$finding->getDescription(), $finding->isInput(), $finding->isOutput()],
+            $findings,
+        );
+
+        self::assertSame(
+            [
+                ['wrote to global variable $a', false, true],
+                ['read from global variable $b', true, false],
+            ],
+            $directions($result->getFindings()),
+        );
+        self::assertSame($result->getFindings(), $result->getAnalysis()->getFindings());
+        self::assertSame([['read from global variable $b', true, false]], $directions($result->getInputs()));
+        self::assertSame([['wrote to global variable $a', false, true]], $directions($result->getOutputs()));
+    }
+
+    /**
      * Findings about a named variable carry its name as data, so consumers
      * such as the CLI's severity can tell `$_ENV` from `$_GET` without
      * parsing the description (#36).
