@@ -12,6 +12,10 @@ use PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase
 {
+    protected const MISSING_PATH = __DIR__ . '/no-such-path';
+
+    protected const UNCLOSED_GROUP = 'Compilation failed: missing closing parenthesis at offset 1';
+
     public function testOptionsWithAnExistingPathAndValidSettingsHaveNoProblem(): void
     {
         self::assertNull($this->options(__DIR__)->problem());
@@ -20,9 +24,7 @@ class OptionsTest extends TestCase
 
     public function testAPathThatIsNeitherAFileNorADirectoryIsNotFound(): void
     {
-        $path = __DIR__ . '/no-such-path';
-
-        self::assertSame("Path not found: {$path}", $this->options($path)->problem());
+        self::assertSame('Path not found: ' . self::MISSING_PATH, $this->options(self::MISSING_PATH)->problem());
     }
 
     public function testAnEmptyExcludedDirectoryIsInvalid(): void
@@ -36,11 +38,11 @@ class OptionsTest extends TestCase
     public function testAPatternThatDoesNotCompileIsInvalidUnderItsOwnFlag(): void
     {
         self::assertSame(
-            'Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 1',
+            'Invalid --include-pattern: ' . self::UNCLOSED_GROUP,
             $this->options(__DIR__, includePatterns: ['src', '('])->problem(),
         );
         self::assertSame(
-            'Invalid --exclude-pattern: Compilation failed: missing closing parenthesis at offset 1',
+            'Invalid --exclude-pattern: ' . self::UNCLOSED_GROUP,
             $this->options(__DIR__, excludePatterns: ['('])->problem(),
         );
     }
@@ -52,15 +54,26 @@ class OptionsTest extends TestCase
 
     public function testAMissingPathIsReportedBeforeEveryOtherProblem(): void
     {
-        $path = __DIR__ . '/no-such-path';
-        $options = $this->options($path, ['/'], ['('], ['('], '101');
+        $options = $this->options(
+            self::MISSING_PATH,
+            excludeDirs: ['/'],
+            includePatterns: ['('],
+            excludePatterns: ['('],
+            minimum: '101',
+        );
 
-        self::assertSame("Path not found: {$path}", $options->problem());
+        self::assertSame('Path not found: ' . self::MISSING_PATH, $options->problem());
     }
 
     public function testAnEmptyExcludedDirectoryIsReportedBeforeBadPatternsAndMinimum(): void
     {
-        $options = $this->options(__DIR__, ['/'], ['('], ['('], '101');
+        $options = $this->options(
+            __DIR__,
+            excludeDirs: ['/'],
+            includePatterns: ['('],
+            excludePatterns: ['('],
+            minimum: '101',
+        );
 
         self::assertSame('Invalid --exclude: directory name is empty', $options->problem());
     }
@@ -69,14 +82,14 @@ class OptionsTest extends TestCase
     {
         $options = $this->options(__DIR__, includePatterns: ['('], excludePatterns: ['['], minimum: '101');
 
-        self::assertSame('Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 1', $options->problem());
+        self::assertSame('Invalid --include-pattern: ' . self::UNCLOSED_GROUP, $options->problem());
     }
 
     public function testABadExcludePatternIsReportedBeforeABadMinimum(): void
     {
         $options = $this->options(__DIR__, excludePatterns: ['('], minimum: '101');
 
-        self::assertSame('Invalid --exclude-pattern: Compilation failed: missing closing parenthesis at offset 1', $options->problem());
+        self::assertSame('Invalid --exclude-pattern: ' . self::UNCLOSED_GROUP, $options->problem());
     }
 
     /**

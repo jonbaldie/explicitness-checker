@@ -69,29 +69,12 @@ class FileFilter
     }
 
     /**
-     * The reason the filter cannot be used, or null when it can: an excluded
-     * directory name with no path segment, then the first pattern whose regex
-     * does not compile, naming its flag. Every occurrence of a flag is
-     * checked, so a bad pattern is caught wherever it was given. Checked once
-     * before the file walk, so a bad pattern fails the run instead of making
-     * preg_match() warn per candidate file.
+     * The reason the filter cannot be used, or null when it can: an empty
+     * excluded directory first, then a pattern that does not compile.
      */
     public function error(): ?string
     {
-        foreach ($this->excludeDirs as $excludeDir) {
-            if (trim($excludeDir, '/\\') === '') {
-                return 'Invalid --exclude: directory name is empty';
-            }
-        }
-        $flags = ['--include-pattern' => $this->includePatterns, '--exclude-pattern' => $this->excludePatterns];
-        foreach ($flags as $flag => $patterns) {
-            $reason = $this->firstCompileError($patterns);
-            if ($reason !== null) {
-                return "Invalid {$flag}: {$reason}";
-            }
-        }
-
-        return null;
+        return $this->directoryError() ?? $this->patternError();
     }
 
     /**
@@ -105,6 +88,41 @@ class FileFilter
         }
 
         return !$this->matchesAny($this->excludePatterns, $filePath);
+    }
+
+    /**
+     * The reason an excluded directory cannot be used, or null when every
+     * directory name contains a path segment.
+     */
+    protected function directoryError(): ?string
+    {
+        foreach ($this->excludeDirs as $excludeDir) {
+            if (trim($excludeDir, '/\\') === '') {
+                return 'Invalid --exclude: directory name is empty';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The reason the patterns cannot be used, naming the flag whose regex does
+     * not compile, or null when every pattern given compiles. Every occurrence
+     * of a flag is checked, so a bad pattern is caught wherever it was given.
+     * Checked once before the file walk, so a bad pattern fails the run instead
+     * of making preg_match() warn per candidate file.
+     */
+    protected function patternError(): ?string
+    {
+        $flags = ['--include-pattern' => $this->includePatterns, '--exclude-pattern' => $this->excludePatterns];
+        foreach ($flags as $flag => $patterns) {
+            $reason = $this->firstCompileError($patterns);
+            if ($reason !== null) {
+                return "Invalid {$flag}: {$reason}";
+            }
+        }
+
+        return null;
     }
 
     /**
