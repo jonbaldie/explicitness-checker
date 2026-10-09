@@ -69,10 +69,32 @@ class FileFilter
     }
 
     /**
+     * The reason the filter cannot be used, or null when it can: an empty
+     * excluded directory first, then a pattern that does not compile.
+     */
+    public function error(): ?string
+    {
+        return $this->directoryError() ?? $this->patternError();
+    }
+
+    /**
+     * Whether the path matches one of the include patterns (when any were
+     * given) and none of the exclude patterns.
+     */
+    public function matchesPatterns(string $filePath): bool
+    {
+        if ($this->includePatterns !== [] && !$this->matchesAny($this->includePatterns, $filePath)) {
+            return false;
+        }
+
+        return !$this->matchesAny($this->excludePatterns, $filePath);
+    }
+
+    /**
      * The reason an excluded directory cannot be used, or null when every
      * directory name contains a path segment.
      */
-    public function directoryError(): ?string
+    protected function directoryError(): ?string
     {
         foreach ($this->excludeDirs as $excludeDir) {
             if (trim($excludeDir, '/\\') === '') {
@@ -90,7 +112,7 @@ class FileFilter
      * Checked once before the file walk, so a bad pattern fails the run instead
      * of making preg_match() warn per candidate file.
      */
-    public function patternError(): ?string
+    protected function patternError(): ?string
     {
         $flags = ['--include-pattern' => $this->includePatterns, '--exclude-pattern' => $this->excludePatterns];
         foreach ($flags as $flag => $patterns) {
@@ -101,19 +123,6 @@ class FileFilter
         }
 
         return null;
-    }
-
-    /**
-     * Whether the path matches one of the include patterns (when any were
-     * given) and none of the exclude patterns.
-     */
-    public function matchesPatterns(string $filePath): bool
-    {
-        if ($this->includePatterns !== [] && !$this->matchesAny($this->includePatterns, $filePath)) {
-            return false;
-        }
-
-        return !$this->matchesAny($this->excludePatterns, $filePath);
     }
 
     /**

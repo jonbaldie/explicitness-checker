@@ -41,33 +41,12 @@ class Application
         if ($options === null) {
             return $this->usageError(null);
         }
-        $problem = $this->problem($options);
+        $problem = $options->problem();
         if ($problem !== null) {
             return $this->usageError($problem);
         }
 
         return $this->check($options);
-    }
-
-    /**
-     * Why the options cannot be used: a path that is neither a file nor a
-     * directory, a filter value/pattern that is invalid, or an invalid
-     * --min-explicitness. Null when the analysis can go ahead.
-     */
-    protected function problem(Options $options): ?string
-    {
-        $path = $options->getPath();
-        if (!is_dir($path) && !is_file($path)) {
-            return "Path not found: {$path}";
-        }
-
-        $filter = $options->getFilter();
-        $directoryError = $filter->directoryError();
-        if ($directoryError !== null) {
-            return $directoryError;
-        }
-
-        return $filter->patternError() ?? $options->getMinimum()?->error();
     }
 
     /**

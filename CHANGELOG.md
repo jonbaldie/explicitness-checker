@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Internal refactoring moves the CLI's option validation into `Cli\Options::problem()`, which reports the first problem in the same order as before: a missing path, then an empty `--exclude`, then a bad pattern, then an invalid `--min-explicitness` (#104). `Cli\FileFilter::directoryError()` and `patternError()` are replaced by one `error()`. No change to CLI output or exit codes is intended
+
 ## [1.3.1] - 2026-10-06
 
 ### Added
