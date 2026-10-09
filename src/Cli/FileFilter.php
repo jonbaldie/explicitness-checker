@@ -69,29 +69,20 @@ class FileFilter
     }
 
     /**
-     * The reason an excluded directory cannot be used, or null when every
-     * directory name contains a path segment.
+     * The reason the filter cannot be used, or null when it can: an excluded
+     * directory name with no path segment, then the first pattern whose regex
+     * does not compile, naming its flag. Every occurrence of a flag is
+     * checked, so a bad pattern is caught wherever it was given. Checked once
+     * before the file walk, so a bad pattern fails the run instead of making
+     * preg_match() warn per candidate file.
      */
-    public function directoryError(): ?string
+    public function error(): ?string
     {
         foreach ($this->excludeDirs as $excludeDir) {
             if (trim($excludeDir, '/\\') === '') {
                 return 'Invalid --exclude: directory name is empty';
             }
         }
-
-        return null;
-    }
-
-    /**
-     * The reason the patterns cannot be used, naming the flag whose regex does
-     * not compile, or null when every pattern given compiles. Every occurrence
-     * of a flag is checked, so a bad pattern is caught wherever it was given.
-     * Checked once before the file walk, so a bad pattern fails the run instead
-     * of making preg_match() warn per candidate file.
-     */
-    public function patternError(): ?string
-    {
         $flags = ['--include-pattern' => $this->includePatterns, '--exclude-pattern' => $this->excludePatterns];
         foreach ($flags as $flag => $patterns) {
             $reason = $this->firstCompileError($patterns);
