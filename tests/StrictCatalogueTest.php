@@ -161,6 +161,60 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #138: session_id and session_name read session state unless given an
+     * argument other than literal null, by position or by name.
+     */
+    public function testReportsSessionIdAndName(): void
+    {
+        $read = static fn (string $name): array => [[['reads session state (' . $name . ')', Category::SESSION]], []];
+        $write = static fn (string $name): array => [[], [['writes to session state (' . $name . ')', Category::SESSION]]];
+        $this->assertFindings([
+            'session_id()' => $read('session_id'),
+            'session_id(null)' => $read('session_id'),
+            'session_id(id: null)' => $read('session_id'),
+            'session_id(id: NULL)' => $read('session_id'),
+            'session_id(\'abc\')' => $write('session_id'),
+            'session_id(id: \'abc\')' => $write('session_id'),
+            'session_id($a)' => $write('session_id'),
+            'session_id(id: $a)' => $write('session_id'),
+            '\\Session_Id(\'abc\')' => $write('Session_Id'),
+            'session_name()' => $read('session_name'),
+            'session_name(null)' => $read('session_name'),
+            'session_name(name: null)' => $read('session_name'),
+            'session_name(name: NULL)' => $read('session_name'),
+            'session_name(\'APP\')' => $write('session_name'),
+            'session_name(name: \'APP\')' => $write('session_name'),
+            'session_name($a)' => $write('session_name'),
+            'session_name(name: $a)' => $write('session_name'),
+            '\\Session_Name(\'APP\')' => $write('Session_Name'),
+        ]);
+    }
+
+    /**
+     * #138: http_response_code reads headers with no argument, literal null,
+     * or literal 0; any other argument writes headers.
+     */
+    public function testReportsHttpResponseCode(): void
+    {
+        $read = static fn (string $name): array => [[['reads HTTP headers (' . $name . ')', Category::HTTP_HEADERS]], []];
+        $write = static fn (string $name): array => [[], [['writes HTTP headers (' . $name . ')', Category::HTTP_HEADERS]]];
+        $this->assertFindings([
+            'http_response_code()' => $read('http_response_code'),
+            'http_response_code(null)' => $read('http_response_code'),
+            'http_response_code(response_code: null)' => $read('http_response_code'),
+            'http_response_code(response_code: NULL)' => $read('http_response_code'),
+            'http_response_code(0)' => $read('http_response_code'),
+            'http_response_code(response_code: 0)' => $read('http_response_code'),
+            'http_response_code(201)' => $write('http_response_code'),
+            'http_response_code(response_code: 201)' => $write('http_response_code'),
+            'http_response_code($a)' => $write('http_response_code'),
+            'http_response_code(response_code: $a)' => $write('http_response_code'),
+            '\\Http_Response_Code(201)' => $write('Http_Response_Code'),
+            '\\Http_Response_Code()' => $read('Http_Response_Code'),
+        ]);
+    }
+
+    /**
      * #84: none of the new entries is reported outside strict mode.
      */
     public function testNewEntriesAreNotReportedInDefaultMode(): void
@@ -170,6 +224,8 @@ class StrictCatalogueTest extends TestCase
             'checkdnsrr($a)', 'dns_check_record($a)', 'odbc_exec($a, $b)', 'sqlsrv_query($a, $b)',
             'oci_execute($a)', 'getallheaders()', 'apache_request_headers()', 'readline()', 'getopt($a)',
             'set_time_limit($a)', 'ignore_user_abort(true)', 'ignore_user_abort()',
+            'session_id()', 'session_id(\'abc\')', 'session_name()', 'session_name(\'APP\')',
+            'http_response_code()', 'http_response_code(201)', 'http_response_code(0)',
         ];
         foreach ($calls as $call) {
             self::assertSame([[], []], $this->findings($call, new Mode(false, false)), $call);
@@ -515,6 +571,13 @@ class StrictCatalogueTest extends TestCase
             "'bye' |> exit(...)" => $prints('exit'),
             '$a |> fopen(...)' => [[['reads from file (fopen)', Category::FILE]], []],
             '$a |> error_reporting(...)' => [[], [['writes runtime configuration (error_reporting)', Category::RUNTIME_CONFIG]]],
+            '$a |> session_id(...)' => [[], [['writes to session state (session_id)', Category::SESSION]]],
+            'null |> session_id(...)' => [[['reads session state (session_id)', Category::SESSION]], []],
+            '$a |> session_name(...)' => [[], [['writes to session state (session_name)', Category::SESSION]]],
+            'null |> session_name(...)' => [[['reads session state (session_name)', Category::SESSION]], []],
+            '$a |> http_response_code(...)' => [[], [['writes HTTP headers (http_response_code)', Category::HTTP_HEADERS]]],
+            '0 |> http_response_code(...)' => [[['reads HTTP headers (http_response_code)', Category::HTTP_HEADERS]], []],
+            'null |> http_response_code(...)' => [[['reads HTTP headers (http_response_code)', Category::HTTP_HEADERS]], []],
             '$a |> $b' => [[], []],
             '$a |> $b(...)' => [[], []],
             '$a |> strlen(...)' => [[], []],

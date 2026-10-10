@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++----------------------------------------------+------+--------------+-----------------------------------------+------------------------------------------+----------+
+| File                                         | Line | Function     | Implicit Inputs                         | Implicit Outputs                         | Severity |
++----------------------------------------------+------+--------------+-----------------------------------------+------------------------------------------+----------+
+| tests/Fixtures/session-and-response-code.php | 3    | get_id       | reads session state (session_id)        |                                          | Critical |
+| tests/Fixtures/session-and-response-code.php | 8    | set_id       |                                         | writes to session state (session_id)     | Critical |
+| tests/Fixtures/session-and-response-code.php | 13   | set_id_named |                                         | writes to session state (session_id)     | Critical |
+| tests/Fixtures/session-and-response-code.php | 18   | set_name     |                                         | writes to session state (session_name)   | Critical |
+| tests/Fixtures/session-and-response-code.php | 23   | code_get     | reads HTTP headers (http_response_code) |                                          | Critical |
+| tests/Fixtures/session-and-response-code.php | 28   | code_set     |                                         | writes HTTP headers (http_response_code) | Critical |
++----------------------------------------------+------+--------------+-----------------------------------------+------------------------------------------+----------+
+
+Summary:
+  Critical violations: 6 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

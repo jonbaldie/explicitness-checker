@@ -166,7 +166,6 @@ class BuiltinCatalogueDetector implements Detector
         'header' => [self::HEADERS],
         'setcookie' => [self::HEADERS],
         'setrawcookie' => [self::HEADERS],
-        'http_response_code' => [self::HEADERS],
         'getallheaders' => [self::HEADERS_READ],
         'apache_request_headers' => [self::HEADERS_READ],
         'error_log' => [self::ERROR_LOG],
@@ -177,8 +176,6 @@ class BuiltinCatalogueDetector implements Detector
         'session_destroy' => [self::SESSION_WRITE],
         'session_regenerate_id' => [self::SESSION_WRITE],
         'session_write_close' => [self::SESSION_WRITE],
-        'session_id' => [self::SESSION_READ],
-        'session_name' => [self::SESSION_READ],
         'curl_exec' => self::NETWORK,
         'curl_multi_exec' => self::NETWORK,
         'fsockopen' => self::NETWORK,
@@ -337,16 +334,28 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function callEntries(string $lowerName, CallArguments $arguments): array
     {
-        return match ($lowerName) {
+        return $this->dateEntries($lowerName, $arguments) ?? match ($lowerName) {
             'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
             'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
             'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
             'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-            'date_create', 'date_create_immutable' => $this->readsClock($arguments) ? [self::TIME] : [],
+            'session_id', 'session_name' => $arguments->omits(0, substr($lowerName, 8)) ? [self::SESSION_READ] : [self::SESSION_WRITE],
+            'http_response_code' => $arguments->omitsOrZero(0, 'response_code') ? [self::HEADERS_READ] : [self::HEADERS],
+            default => $this->catalogueEntries($lowerName),
+        };
+    }
+
+    /**
+     * @return list<array{string, bool, string}>|null
+     */
+    protected function dateEntries(string $lowerName, CallArguments $arguments): ?array
+    {
+        return match ($lowerName) {
+            'date_create', 'date_create_immutable' => $arguments->readsClock() ? [self::TIME] : [],
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp') ? [self::TIME] : [],
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp') ? [self::TIME] : [],
             'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS) ? [self::TIME] : [],
-            default => $this->catalogueEntries($lowerName),
+            default => null,
         };
     }
 
@@ -359,7 +368,7 @@ class BuiltinCatalogueDetector implements Detector
     protected function newEntries(string $lowerClass, CallArguments $arguments): array
     {
         return match ($lowerClass) {
-            'datetime', 'datetimeimmutable' => $this->readsClock($arguments) ? [self::TIME] : [],
+            'datetime', 'datetimeimmutable' => $arguments->readsClock() ? [self::TIME] : [],
             'random\randomizer' => $arguments->omits(0, 'engine') ? [self::RANDOM_READ] : [],
             default => [],
         };
@@ -401,18 +410,6 @@ class BuiltinCatalogueDetector implements Detector
         }
 
         return [self::FILE_READ];
-    }
-
-    /**
-     * A date is built from the clock when its datetime argument is absent,
-     * null, 'now' in any case, or '', which PHP also reads as now.
-     */
-    protected function readsClock(CallArguments $arguments): bool
-    {
-        $datetime = $arguments->string(0, 'datetime');
-
-        return $arguments->omits(0, 'datetime')
-            || ($datetime !== null && in_array(strtolower($datetime), ['now', ''], true));
     }
 
     /**

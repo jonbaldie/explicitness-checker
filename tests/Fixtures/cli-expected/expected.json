@@ -831,6 +831,14 @@
         "exitCode": 3,
         "stderr": ""
     },
+    "session-and-response-code.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "session-and-response-code.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
     "nested-anonymous-classes": {
         "exitCode": 2,
         "stderr": ""
