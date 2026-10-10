@@ -48,6 +48,10 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const NESTED_ANONYMOUS_FIXTURE = Process::ROOT . '/tests/Fixtures/nested-anonymous-classes.php';
 
+    protected const UNSET_REFERENCE_BINDING_FIXTURE = Process::ROOT . '/tests/Fixtures/unset-reference-binding.php';
+
+    protected const UNSET_SHARED_LOCATION_FIXTURE = Process::ROOT . '/tests/Fixtures/unset-shared-location.php';
+
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
 
     protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
@@ -382,6 +386,38 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     }
 
     /**
+     * #136: the PHPStan extension does not report unset() of a local reference
+     * binding, and still reports unset() of the shared location.
+     */
+    public function testUnsetOfReferenceBindingIsNotAWrite(): void
+    {
+        $this->analyse([self::UNSET_REFERENCE_BINDING_FIXTURE], []);
+    }
+
+    /**
+     * #136: unsetting an element, a property, a superglobal, or a `$GLOBALS`
+     * entry is still a write, including in a mixed unset.
+     */
+    public function testUnsetOfSharedLocationIsStillAWrite(): void
+    {
+        $this->props = true;
+        $this->assertErrorsAtPath(self::UNSET_SHARED_LOCATION_FIXTURE, [
+            [8, 'argumentMutation', 'unset_element wrote to argument $cart.'],
+            [13, 'argumentMutation', 'unset_property wrote to argument $product.'],
+            [18, 'superglobal', 'unset_superglobal_element wrote to superglobal $_GET.'],
+            [19, 'superglobal', 'unset_superglobal_element wrote to superglobal $_SESSION.'],
+            [24, 'superglobal', 'unset_superglobal wrote to superglobal $_GET.'],
+            [25, 'superglobal', 'unset_superglobal wrote to superglobal $_SESSION.'],
+            [30, 'globalsArray', 'unset_globals_entry wrote to $GLOBALS[\'cart\'].'],
+            [35, 'argumentMutation', 'unset_mixed wrote to argument $cart.'],
+            [41, 'superglobal', 'unset_mixed_global wrote to superglobal $_GET.'],
+            [48, 'objectProperty', 'Cached::clear wrote to object property $this->cached.'],
+            [55, 'globalsArray', 'unset_alias_element wrote to $GLOBALS[\'cart\'].'],
+            [60, 'superglobal', 'unset_globals_symbol wrote to superglobal $GLOBALS.'],
+        ]);
+    }
+
+    /**
      * #45: the PHPStan rule follows global channels through reference aliases,
      * including rebinds and read/write operators.
      */
@@ -395,12 +431,11 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [21, 'globalsArray', 'incrementAndDecrementThroughAliases wrote to $GLOBALS[\'up\'].'],
             [23, 'globalsArray', 'incrementAndDecrementThroughAliases read from $GLOBALS[\'down\'].'],
             [23, 'globalsArray', 'incrementAndDecrementThroughAliases wrote to $GLOBALS[\'down\'].'],
-            [29, 'globalsArray', 'unsetThroughAlias wrote to $GLOBALS[\'removed\'].'],
-            [36, 'globalsArray', 'rebindAlias wrote to $GLOBALS[\'second\'].'],
-            [42, 'globalsArray', 'dynamicGlobalKey wrote to $GLOBALS[$key].'],
-            [54, 'argumentMutation', 'parameterReference wrote to argument $value.'],
-            [59, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
-            [59, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
+            [37, 'globalsArray', 'rebindAlias wrote to $GLOBALS[\'second\'].'],
+            [43, 'globalsArray', 'dynamicGlobalKey wrote to $GLOBALS[$key].'],
+            [55, 'argumentMutation', 'parameterReference wrote to argument $value.'],
+            [60, 'superglobal', 'nonGlobalsReference read from superglobal $_SESSION.'],
+            [60, 'superglobal', 'nonGlobalsReference wrote to superglobal $_SESSION.'],
         ]);
     }
 

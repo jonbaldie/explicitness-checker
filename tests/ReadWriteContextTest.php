@@ -26,6 +26,10 @@ class ReadWriteContextTest extends TestCase
 
     protected const DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE = Process::ROOT . '/test-fixtures/read-write-context/static-class.php';
 
+    protected const UNSET_REFERENCE_BINDING_FIXTURE = Process::ROOT . '/tests/Fixtures/unset-reference-binding.php';
+
+    protected const UNSET_SHARED_LOCATION_FIXTURE = Process::ROOT . '/tests/Fixtures/unset-shared-location.php';
+
     /**
      * #5: the index of an assigned array element is read; only the array is written.
      */
@@ -75,14 +79,14 @@ class ReadWriteContextTest extends TestCase
     }
 
     /**
-     * #10: unset() writes to what it unsets.
+     * #10: unset() writes to the shared location it unsets.
+     * #136: unsetting a global import only drops the local symbol.
      */
     public function testUnsetIsAWrite(): void
     {
         self::assertSame(
             [
                 'logout' => [[], ['wrote to superglobal $_SESSION']],
-                'forgetGlobal' => [[], ['wrote to global variable $cache']],
                 'forgetGlobalsEntry' => [[], ["wrote to \$GLOBALS['registry']"]],
                 'Memo::clear' => [[], ['wrote to object property $this->cached']],
             ],
@@ -104,7 +108,6 @@ class ReadWriteContextTest extends TestCase
                     ["read from \$GLOBALS['up']", "read from \$GLOBALS['down']"],
                     ["wrote to \$GLOBALS['up']", "wrote to \$GLOBALS['down']"],
                 ],
-                'unsetThroughAlias' => [[], ["wrote to \$GLOBALS['removed']"]],
                 'rebindAlias' => [[], ["wrote to \$GLOBALS['second']"]],
                 'dynamicGlobalKey' => [[], ['wrote to $GLOBALS[$key]']],
                 'parameterReference' => [[], ['wrote to argument $value']],
@@ -163,6 +166,42 @@ class ReadWriteContextTest extends TestCase
                 ],
             ],
             $this->reportedRowsAtPath(self::REFERENCE_TARGET_FIXTURE),
+        );
+    }
+
+    /**
+     * #136: unset() of a by-reference parameter, global import, static variable,
+     * captured reference, or local `$GLOBALS` alias destroys only the local
+     * symbol. A file of those unsets has no findings and exits 0.
+     */
+    public function testUnsetOfReferenceBindingIsNotAWrite(): void
+    {
+        self::assertSame([], $this->reportedRowsAtPath(self::UNSET_REFERENCE_BINDING_FIXTURE, []));
+
+        [$exitCode, $stdout, $stderr] = Process::cli([self::UNSET_REFERENCE_BINDING_FIXTURE]);
+        self::assertSame([0, "No implicit inputs or outputs found.\n", ''], [$exitCode, $stdout, $stderr]);
+    }
+
+    /**
+     * #136: unsetting an element, a property, a superglobal, or a `$GLOBALS`
+     * entry is still a write. A mixed unset reports only those arguments.
+     */
+    public function testUnsetOfSharedLocationIsStillAWrite(): void
+    {
+        self::assertSame(
+            [
+                'unset_element' => [[], ['wrote to argument $cart']],
+                'unset_property' => [[], ['wrote to argument $product']],
+                'unset_superglobal_element' => [[], ['wrote to superglobal $_GET', 'wrote to superglobal $_SESSION']],
+                'unset_superglobal' => [[], ['wrote to superglobal $_GET', 'wrote to superglobal $_SESSION']],
+                'unset_globals_entry' => [[], ["wrote to \$GLOBALS['cart']"]],
+                'unset_mixed' => [[], ['wrote to argument $cart']],
+                'unset_mixed_global' => [[], ['wrote to superglobal $_GET']],
+                'Cached::clear' => [[], ['wrote to object property $this->cached']],
+                'unset_alias_element' => [[], ["wrote to \$GLOBALS['cart']"]],
+                'unset_globals_symbol' => [[], ['wrote to superglobal $GLOBALS']],
+            ],
+            $this->reportedRowsAtPath(self::UNSET_SHARED_LOCATION_FIXTURE),
         );
     }
 
