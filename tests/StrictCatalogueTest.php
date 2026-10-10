@@ -707,6 +707,70 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #140: a string callee, an immediate call of a first-class callable and
+     * call_user_func of a string literal each call the named function with
+     * the invocation's arguments, so each is reported as that direct call
+     * would be. A callable that is only created, and one held in a variable,
+     * are not calls of a catalogued function.
+     */
+    public function testClassifiesACallThroughALiteralCallableAsItsCall(): void
+    {
+        $unlinks = static fn (string $name): array => [[], [['writes to file system (' . $name . ')', Category::FILE_SYSTEM]]];
+        $readsConfig = [[['reads runtime configuration (error_reporting)', Category::RUNTIME_CONFIG]], []];
+        $writesConfig = [[], [['writes runtime configuration (error_reporting)', Category::RUNTIME_CONFIG]]];
+        $this->assertFindings([
+            '(unlink(...))($a)' => $unlinks('unlink'),
+            "('unlink')(\$a)" => $unlinks('unlink'),
+            "call_user_func('unlink', \$a)" => $unlinks('unlink'),
+            '(\\UNLINK(...))($a)' => $unlinks('UNLINK'),
+            '("UNLINK")($a)' => $unlinks('UNLINK'),
+            "('\\\\unlink')(\$a)" => $unlinks('unlink'),
+            "call_user_func('UNLINK', \$a)" => $unlinks('UNLINK'),
+            "\\Call_User_Func('\\\\unlink', \$a)" => $unlinks('unlink'),
+            "call_user_func(callback: 'unlink')" => $unlinks('unlink'),
+            "('file_get_contents')(\$a)" => [[['reads from file (file_get_contents)', Category::FILE]], []],
+            "call_user_func('fopen', \$a, 'w')" => [[], [['writes to file (fopen)', Category::FILE]]],
+            "call_user_func('fopen', \$a)" => [[['reads from file (fopen)', Category::FILE]], []],
+            "call_user_func('fopen', \$a, mode: 'w')" => [[], [['writes to file (fopen)', Category::FILE]]],
+            "call_user_func('error_reporting')" => $readsConfig,
+            "call_user_func('error_reporting', 0)" => $writesConfig,
+            "('error_reporting')()" => $readsConfig,
+            "('error_reporting')(0)" => $writesConfig,
+            '(error_reporting(...))()' => $readsConfig,
+            '(exit(...))(1)' => [[], [['terminates the program (exit)', Category::STANDARD_OUTPUT]]],
+            "(exit(...))('bye')" => [[], [['writes to standard output (exit)', Category::STANDARD_OUTPUT]]],
+            "('Die')('bye')" => [[], [['writes to standard output (die)', Category::STANDARD_OUTPUT]]],
+            "('mysqli_query')(\$a, \$b)" => [
+                [['reads from database (mysqli_query)', Category::DATABASE]],
+                [['writes to database (mysqli_query)', Category::DATABASE]],
+            ],
+            '($a)($b)' => [[], []],
+            '$a($b)' => [[], []],
+            'call_user_func($a, $b)' => [[], []],
+            "call_user_func(...\$a)" => [[], []],
+            "call_user_func(\$a, 'unlink')" => [[], []],
+            "call_user_func(...)" => [[], []],
+            "('unlink')(...)" => [[], []],
+            '(unlink(...))(...)' => [[], []],
+            "('strlen')(\$a)" => [[], []],
+            "('')(\$a)" => [[], []],
+            "array_map(unlink(...), \$a)" => [[], []],
+            "array_map('unlink', \$a)" => [[], []],
+        ]);
+    }
+
+    /**
+     * #140: calls through a literal callable are reported in strict mode
+     * only, as the direct calls are.
+     */
+    public function testLiteralCallablesAreNotReportedInDefaultMode(): void
+    {
+        foreach (['(unlink(...))($a)', "('unlink')(\$a)", "call_user_func('unlink', \$a)"] as $statement) {
+            self::assertSame([[], []], $this->findings($statement, new Mode(false, false)), $statement);
+        }
+    }
+
+    /**
      * PHP function names are case-insensitive and may be fully qualified.
      * The description keeps the name as written, less the leading "\".
      */

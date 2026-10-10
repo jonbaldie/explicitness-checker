@@ -831,6 +831,14 @@
         "exitCode": 3,
         "stderr": ""
     },
+    "literal-callables.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "literal-callables.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
     "session-and-response-code.strict": {
         "exitCode": 3,
         "stderr": ""

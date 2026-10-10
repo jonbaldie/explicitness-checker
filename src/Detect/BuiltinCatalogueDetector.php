@@ -16,9 +16,10 @@ use PhpParser\Node\Stmt;
  * case-insensitively as PHP function names are (leading "\" ignored); the
  * language constructs echo, print, exit, die, include, require and backticks;
  * a PHP 8.5 pipe into a first-class callable, which is the call it makes with
- * the piped value as the only argument; and creating an object that reads the
- * clock or the default random engine, matched by its resolved class name in
- * any case.
+ * the piped value as the only argument; a call through a literal callable
+ * (see LiteralCallable), which is the call it names; and creating an object
+ * that reads the clock or the default random engine, matched by its resolved
+ * class name in any case.
  *
  * Every rule that depends on a call's arguments reads them through
  * CallArguments, so a parameter is found by position or by name.
@@ -261,11 +262,18 @@ class BuiltinCatalogueDetector implements Detector
      * The name a node's findings are described by, and those findings, or
      * null for a node the catalogue does not cover.
      *
+     * A call through a literal callable is the direct call it names. It is
+     * classified before calls by name, so call_user_func('name') is not
+     * taken for a call of call_user_func.
+     *
      * @return array{string, list<array{string, bool, string}>}|null
      */
     protected function classify(Node $node): ?array
     {
-        return $this->classifyConstruct($node) ?? $this->classifyNamedInvocation($node) ?? $this->classifyPipe($node);
+        return $this->classifyConstruct($node)
+            ?? $this->classifyNamedInvocation((new LiteralCallable($node))->directCall())
+            ?? $this->classifyNamedInvocation($node)
+            ?? $this->classifyPipe($node);
     }
 
     /**
@@ -317,7 +325,7 @@ class BuiltinCatalogueDetector implements Detector
      *
      * @return array{string, list<array{string, bool, string}>}|null
      */
-    protected function classifyNamedInvocation(Node $node): ?array
+    protected function classifyNamedInvocation(?Node $node): ?array
     {
         if ($node instanceof Expr\New_ && $node->class instanceof Node\Name) {
             $class = $node->class->toString();
