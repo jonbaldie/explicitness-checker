@@ -201,7 +201,7 @@
 [verbose]   Implicit outputs for logout: wrote to superglobal $_SESSION
 [verbose] Analyzing function/method: forgetGlobal (line 10)
 [verbose]   Declared globals in forgetGlobal: cache
-[verbose]   Implicit outputs for forgetGlobal: wrote to global variable $cache
+[verbose]   No implicit inputs/outputs detected for forgetGlobal
 [verbose] Analyzing function/method: forgetGlobalsEntry (line 16)
 [verbose]   Implicit outputs for forgetGlobalsEntry: wrote to $GLOBALS['registry']
 [verbose] Analyzing function/method: Memo::clear (line 26)
@@ -368,7 +368,6 @@ Results:
 | test-fixtures/read-write-context/static-class.php         | 24   | DynamicClassProbe::writeThroughGlobals             | read from $GLOBALS['className']                                                                                                                              | wrote to static property ...::$value                                                                                                                                                     | Serious  |
 | test-fixtures/read-write-context/static-class.php         | 29   | DynamicClassProbe::readThroughParam                | read from static property ...::$value                                                                                                                        |                                                                                                                                                                                          | Serious  |
 | test-fixtures/read-write-context/unset.php                | 5    | logout                                             |                                                                                                                                                              | wrote to superglobal $_SESSION                                                                                                                                                           | Serious  |
-| test-fixtures/read-write-context/unset.php                | 10   | forgetGlobal                                       |                                                                                                                                                              | wrote to global variable $cache                                                                                                                                                          | Serious  |
 | test-fixtures/read-write-context/unset.php                | 16   | forgetGlobalsEntry                                 |                                                                                                                                                              | wrote to $GLOBALS['registry']                                                                                                                                                            | Serious  |
 | test-fixtures/read-write-context/unset.php                | 26   | Memo::clear                                        |                                                                                                                                                              | wrote to object property $this->cached                                                                                                                                                   | Serious  |
 | test-fixtures/repeated-input.php                          | 8    | repeats_inputs                                     | read from superglobal $_GET                                                                                                                                  | wrote to global variable $counter                                                                                                                                                        | Serious  |
@@ -415,7 +414,7 @@ Results:
 
 Summary:
   Critical violations: 21 (exit code 3)
-  Serious violations: 64 (exit code 2)
+  Serious violations: 63 (exit code 2)
   Minor violations: 4 (exit code 1)
   Exit code: 3
 

@@ -6,9 +6,9 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
-use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
 use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Superglobals;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -20,18 +20,6 @@ use PhpParser\Node\Expr;
  */
 class VariableDetector implements Detector
 {
-    protected const SUPERGLOBALS = [
-        '_GET' => true,
-        '_POST' => true,
-        '_REQUEST' => true,
-        '_SERVER' => true,
-        '_FILES' => true,
-        '_COOKIE' => true,
-        '_ENV' => true,
-        '_SESSION' => true,
-        GlobalsArray::NAME => true,
-    ];
-
     /**
      * What each implicit binding is reported as.
      */
@@ -96,7 +84,7 @@ class VariableDetector implements Detector
             return;
         }
 
-        if ($kind === null && isset(self::SUPERGLOBALS[$name])) {
+        if ($kind === null && Superglobals::includes($name)) {
             $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node, $name);
         }
     }

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `unset()` of a bare by-reference parameter, `global` import, static variable, by-reference closure capture, or local alias of a `$GLOBALS` entry is no longer reported as a write. PHP only destroys that local symbol (#136). `unset()` of an element, a property, a bare superglobal, or a `$GLOBALS['key']` entry is still a write, including when one `unset` mixes both kinds
 - `--strict` reports a PHP 8.5 pipe into a first-class callable as the call it makes, with the piped value as the only argument (#135). `$path |> unlink(...)` reports `writes to file system (unlink)`, `$path |> file_get_contents(...) |> strlen(...)` reports `reads from file (file_get_contents)`, and `$code |> exit(...)` reports `terminates the program (exit)`, as the direct calls do. A first-class callable that is only created is still not reported
 
 ### Changed

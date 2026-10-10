@@ -23,6 +23,7 @@ function incrementAndDecrementThroughAliases(): void
     --$down;
 }
 
+// #136: unsetting the alias drops the local symbol, not the global entry.
 function unsetThroughAlias(): void
 {
     $alias = &$GLOBALS['removed'];
