@@ -67,6 +67,10 @@ return $cases + [
     'session-and-response-code.strict' => ['--strict', 'tests/Fixtures/session-and-response-code.php'],
     'session-and-response-code.default' => ['tests/Fixtures/session-and-response-code.php'],
 
+    // #139: HTTP header and session siblings in strict mode.
+    'http-headers-and-session.strict' => ['--strict', 'tests/Fixtures/http-headers-and-session.php'],
+    'http-headers-and-session.default' => ['tests/Fixtures/http-headers-and-session.php'],
+
     // #47: nested anonymous classes keep their named enclosing class in
     // method and property-hook names.
     'nested-anonymous-classes' => ['tests/Fixtures/nested-anonymous-classes.php'],
