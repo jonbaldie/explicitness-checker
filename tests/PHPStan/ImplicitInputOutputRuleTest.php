@@ -54,6 +54,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
 
+    protected const DYNAMIC_STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-static-call.php';
+
     protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
 
     protected const DYNAMIC_THIS_PROPERTY_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-this-property.php';
@@ -708,6 +710,15 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     {
         $this->assertErrorsAtPath(self::STATIC_CALL_FIXTURE, [
             [4, 'staticCall', 'accesses_static_helper read from static method SomeClass::staticMethod().'],
+        ]);
+    }
+
+    public function testDynamicStaticCallsInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::DYNAMIC_STATIC_CALL_FIXTURE, [
+            [5, 'staticCall', 'dynamic read from static method ...::now().'],
+            [10, 'staticCall', 'parenthesized read from static method ...::now().'],
+            [17, 'staticCall', 'dynamic_method read from static method Clock::...().'],
         ]);
     }
 

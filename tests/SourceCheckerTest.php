@@ -152,9 +152,9 @@ class SourceCheckerTest extends TestCase
     /**
      * A static call with no arguments can only get its data from outside the
      * function's arguments. Calls that pass arguments, calls on the current
-     * class (self::, parent::, static::), calls whose class or method is
-     * named by an argument, and first-class callables (`Str::make(...)`) are
-     * not reported.
+     * class (self::, parent::, static::), and first-class callables
+     * (`Str::make(...)`) are not reported. Calls with dynamic classes or
+     * methods are reported with `...` placeholders.
      */
     public function testReportsArgumentlessStaticCallsAsImplicitInputsInDefaultMode(): void
     {
@@ -179,12 +179,99 @@ class SourceCheckerTest extends TestCase
                     'read from static method Other\Clock::NOW()',
                 ], []],
                 ['App\Child::m', 8, [], []],
-                ['App\dynamic', 10, [], []],
+                ['App\dynamic', 10, [
+                    'read from static method ...::make()',
+                    'read from static method App\SomeClass::...()',
+                ], []],
             ],
             $this->summaries($results),
         );
         self::assertSame(Category::STATIC_CALL, $results[0]->getInputs()[0]->getCategory());
         self::assertSame(4, $results[0]->getInputs()[0]->getLine());
+    }
+
+    public function testStaticCallsWithExpressionClassOrMethodName(): void
+    {
+        $source = <<<'PHP'
+            <?php
+
+            function literal(): int
+            {
+                return Clock::now();
+            }
+
+            function dynamic(string $class): int
+            {
+                return $class::now();
+            }
+
+            function parenthesized(string $class): int
+            {
+                return ($class)::now();
+            }
+
+            function dynamic_method(): int
+            {
+                $name = 'now';
+
+                return Clock::{$name}();
+            }
+
+            function dynamic_both(string $class): int
+            {
+                $name = 'now';
+
+                return $class::{$name}();
+            }
+
+            function ignored_static_calls(string $class): void
+            {
+                $class::now(1);
+                self::now();
+                parent::now();
+                static::now();
+                $name = 'now';
+                self::{$name}();
+                Clock::now(...);
+                $class::now(...);
+            }
+
+            function global_with_dynamic_static_call(): int
+            {
+                global $class;
+
+                return $class::now();
+            }
+
+            class Clock
+            {
+                public static function now(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['literal', 3, ['read from static method Clock::now()'], []],
+                ['dynamic', 8, ['read from static method ...::now()'], []],
+                ['parenthesized', 13, ['read from static method ...::now()'], []],
+                ['dynamic_method', 18, ['read from static method Clock::...()'], []],
+                ['dynamic_both', 25, ['read from static method ...::...()'], []],
+                ['ignored_static_calls', 32, [], []],
+                ['global_with_dynamic_static_call', 44, [
+                    'read from static method ...::now()',
+                    'read from global variable $class',
+                ], []],
+                ['Clock::now', 53, [], []],
+            ],
+            $this->summaries($results),
+        );
+
+        $strictResults = (new SourceChecker())->check($source, new Mode(true, false));
+        self::assertSame($this->summaries($results), $this->summaries($strictResults));
     }
 
     public function testClassifiesExitAndDieByArgument(): void

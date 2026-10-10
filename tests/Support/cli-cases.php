@@ -74,6 +74,8 @@ return $cases + [
     // A static call with no arguments gets its data from outside the function's
     // arguments, so it is an implicit input in default mode.
     'static-call.default' => ['tests/Fixtures/static-call.php'],
+    // #137: dynamic static calls are reported as implicit inputs.
+    'dynamic-static-call.default' => ['tests/Fixtures/dynamic-static-call.php'],
 
     // #81: dynamic global accesses are pinned in default mode.
     'dynamic-global.default' => ['tests/Fixtures/dynamic-global.php'],

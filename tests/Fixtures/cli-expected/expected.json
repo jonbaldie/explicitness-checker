@@ -843,6 +843,10 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "dynamic-static-call.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "dynamic-global.default": {
         "exitCode": 2,
         "stderr": ""
