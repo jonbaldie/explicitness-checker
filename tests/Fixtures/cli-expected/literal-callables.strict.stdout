@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++--------------------------------------+------+----------------------+-------------------------------------+----------------------------------+----------+
+| File                                 | Line | Function             | Implicit Inputs                     | Implicit Outputs                 | Severity |
++--------------------------------------+------+----------------------+-------------------------------------+----------------------------------+----------+
+| tests/Fixtures/literal-callables.php | 3    | iife                 |                                     | writes to file system (unlink)   | Critical |
+| tests/Fixtures/literal-callables.php | 8    | string_call          |                                     | writes to file system (unlink)   | Critical |
+| tests/Fixtures/literal-callables.php | 13   | via_call_user_func   |                                     | writes to file system (unlink)   | Critical |
+| tests/Fixtures/literal-callables.php | 18   | string_read          | reads from file (file_get_contents) |                                  | Critical |
+| tests/Fixtures/literal-callables.php | 23   | call_user_func_fopen |                                     | writes to file (fopen)           | Critical |
+| tests/Fixtures/literal-callables.php | 28   | iife_exit_message    |                                     | writes to standard output (exit) | Minor    |
++--------------------------------------+------+----------------------+-------------------------------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 5 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 1 (exit code 1)
+  Exit code: 3
+

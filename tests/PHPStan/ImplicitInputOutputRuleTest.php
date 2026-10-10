@@ -72,6 +72,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const HTTP_HEADERS_AND_SESSION_FIXTURE = Process::ROOT . '/tests/Fixtures/http-headers-and-session.php';
 
+    protected const LITERAL_CALLABLES_FIXTURE = Process::ROOT . '/tests/Fixtures/literal-callables.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -755,6 +757,29 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testHttpHeadersAndSessionAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::HTTP_HEADERS_AND_SESSION_FIXTURE, []);
+    }
+
+    /**
+     * #140: a literal callable invoked in place is reported as the call it
+     * names, with the same texts the CLI reports.
+     */
+    public function testLiteralCallablesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::LITERAL_CALLABLES_FIXTURE, [
+            [5, 'fileSystem', 'iife writes to file system (unlink).'],
+            [10, 'fileSystem', 'string_call writes to file system (unlink).'],
+            [15, 'fileSystem', 'via_call_user_func writes to file system (unlink).'],
+            [20, 'file', 'string_read reads from file (file_get_contents).'],
+            [25, 'file', 'call_user_func_fopen writes to file (fopen).'],
+            [30, 'standardOutput', 'iife_exit_message writes to standard output (exit).'],
+        ]);
+    }
+
+    public function testLiteralCallablesAreNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::LITERAL_CALLABLES_FIXTURE, []);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void

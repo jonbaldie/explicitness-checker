@@ -62,6 +62,9 @@ return $cases + [
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
     // #135: a pipe into a first-class callable performs the call it names.
     'pipes.strict' => ['--strict', 'tests/Fixtures/pipes.php'],
+    // #140: a literal callable invoked in place performs the call it names.
+    'literal-callables.strict' => ['--strict', 'tests/Fixtures/literal-callables.php'],
+    'literal-callables.default' => ['tests/Fixtures/literal-callables.php'],
 
     // #138: session_id, session_name and http_response_code direction from arguments.
     'session-and-response-code.strict' => ['--strict', 'tests/Fixtures/session-and-response-code.php'],

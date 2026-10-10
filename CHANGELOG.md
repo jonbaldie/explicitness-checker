@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `--strict` reports a catalogued built-in invoked through a literal callable as the call it names, with the invocation's arguments (#140). `(unlink(...))($path)`, `('unlink')($path)` and `call_user_func('unlink', $path)` report `writes to file system (unlink)`, as `unlink($path)` does, and argument-dependent rules apply: `call_user_func('fopen', $path, 'w')` is a file write and `(exit(...))('bye')` writes to standard output. A callable held in a variable, a callable that is only created, and a callback passed to another function are still not reported
 - `--strict` reports missing HTTP header and session siblings (#139): `header_remove` and `header_register_callback` write HTTP headers; `headers_list`, `headers_sent` and `apache_response_headers` read HTTP headers; `session_abort` and `session_reset` write session state; `session_status` and `session_create_id` read session state; `session_save_path`, `session_module_name`, `session_cache_limiter` and `session_cache_expire` read session state when called with no argument or literal `null`, and write session state otherwise
 - `--strict` classifies `session_id`, `session_name` and `http_response_code` as reads or writes from their arguments (#138). `session_id()` and `session_name()` with no argument or literal `null` are reads, and any other argument is a write to session state. `http_response_code()` with no argument, literal `null` or literal `0` is a read, and any other argument writes HTTP headers
 
