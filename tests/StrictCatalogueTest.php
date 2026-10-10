@@ -497,6 +497,40 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #135: a PHP 8.5 pipe into a first-class callable calls it with the
+     * piped value as its only argument, so each segment is reported as that
+     * call would be. A callable that is only created, and a pipe into
+     * anything else, are not calls of a catalogued function.
+     */
+    public function testClassifiesAPipeIntoAFirstClassCallableAsItsCall(): void
+    {
+        $prints = static fn (string $name): array => [[], [['writes to standard output (' . $name . ')', Category::STANDARD_OUTPUT]]];
+        $ends = static fn (string $name): array => [[], [['terminates the program (' . $name . ')', Category::STANDARD_OUTPUT]]];
+        $this->assertFindings([
+            '$a |> unlink(...)' => [[], [['writes to file system (unlink)', Category::FILE_SYSTEM]]],
+            '$a |> \\UNLINK(...)' => [[], [['writes to file system (UNLINK)', Category::FILE_SYSTEM]]],
+            '$a |> file_get_contents(...) |> strlen(...)' => [[['reads from file (file_get_contents)', Category::FILE]], []],
+            '$a |> exit(...)' => $ends('exit'),
+            '$a |> \\Die(...)' => $ends('die'),
+            "'bye' |> exit(...)" => $prints('exit'),
+            '$a |> fopen(...)' => [[['reads from file (fopen)', Category::FILE]], []],
+            '$a |> error_reporting(...)' => [[], [['writes runtime configuration (error_reporting)', Category::RUNTIME_CONFIG]]],
+            '$a |> $b' => [[], []],
+            '$a |> $b(...)' => [[], []],
+            '$a |> strlen(...)' => [[], []],
+            'unlink(...)' => [[], []],
+        ]);
+    }
+
+    /**
+     * #135: pipes are reported in strict mode only, as the direct calls are.
+     */
+    public function testPipesAreNotReportedInDefaultMode(): void
+    {
+        self::assertSame([[], []], $this->findings('$a |> unlink(...)', new Mode(false, false)));
+    }
+
+    /**
      * PHP function names are case-insensitive and may be fully qualified.
      * The description keeps the name as written, less the leading "\".
      */

@@ -60,6 +60,8 @@ return $cases + [
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
+    // #135: a pipe into a first-class callable performs the call it names.
+    'pipes.strict' => ['--strict', 'tests/Fixtures/pipes.php'],
 
     // #47: nested anonymous classes keep their named enclosing class in
     // method and property-hook names.

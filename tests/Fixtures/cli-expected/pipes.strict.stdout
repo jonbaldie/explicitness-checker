@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++--------------------------+------+----------------------+-------------------------------------+------------------------------------------------+----------+
+| File                     | Line | Function             | Implicit Inputs                     | Implicit Outputs                               | Severity |
++--------------------------+------+----------------------+-------------------------------------+------------------------------------------------+----------+
+| tests/Fixtures/pipes.php | 3    | pipe_unlink          |                                     | writes to file system (unlink)                 | Critical |
+| tests/Fixtures/pipes.php | 8    | pipe_read            | reads from file (file_get_contents) |                                                | Critical |
+| tests/Fixtures/pipes.php | 13   | pipe_exit            |                                     | terminates the program (exit)                  | Minor    |
+| tests/Fixtures/pipes.php | 18   | pipe_exit_message    |                                     | writes to standard output (exit)               | Minor    |
+| tests/Fixtures/pipes.php | 23   | pipe_fopen           | reads from file (fopen)             |                                                | Critical |
+| tests/Fixtures/pipes.php | 28   | pipe_error_reporting |                                     | writes runtime configuration (error_reporting) | Critical |
++--------------------------+------+----------------------+-------------------------------------+------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 4 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 2 (exit code 1)
+  Exit code: 3
+

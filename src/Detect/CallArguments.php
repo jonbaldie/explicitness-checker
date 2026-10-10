@@ -9,13 +9,14 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
 
 /**
- * What the arguments of a call, `new` expression or exit construct say, from
- * literals only. A parameter is found by position or by name; the exit
- * construct's one optional expression is its first positional argument.
+ * What the arguments of a call, `new` expression, exit construct or pipe say,
+ * from literals only. A parameter is found by position or by name; the exit
+ * construct's one optional expression, and the value a pipe passes, is its
+ * first positional argument.
  */
 class CallArguments
 {
-    public function __construct(protected Expr\FuncCall|Expr\New_|Expr\Exit_ $node)
+    public function __construct(protected Expr\FuncCall|Expr\New_|Expr\Exit_|Expr\BinaryOp\Pipe $node)
     {
     }
 
@@ -33,6 +34,22 @@ class CallArguments
         $value = $this->value($position, $name);
 
         return $value === null || $this->isConstant($value, 'null');
+    }
+
+    /**
+     * At least one of the parameters, named in positional order, is omitted.
+     *
+     * @param list<string> $names
+     */
+    public function omitsAny(array $names): bool
+    {
+        foreach ($names as $position => $name) {
+            if ($this->omits($position, $name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function isTrue(int $position, string $name): bool
@@ -72,6 +89,9 @@ class CallArguments
      */
     protected function args(): array
     {
+        if ($this->node instanceof Expr\BinaryOp\Pipe) {
+            return [new Node\Arg($this->node->left)];
+        }
         if (!$this->node instanceof Expr\Exit_) {
             return $this->node->args;
         }

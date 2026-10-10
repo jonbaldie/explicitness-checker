@@ -15,8 +15,10 @@ use PhpParser\Node\Stmt;
  * state. These are calls to known impure functions, matched
  * case-insensitively as PHP function names are (leading "\" ignored); the
  * language constructs echo, print, exit, die, include, require and backticks;
- * and creating an object that reads the clock or the default random engine,
- * matched by its resolved class name in any case.
+ * a PHP 8.5 pipe into a first-class callable, which is the call it makes with
+ * the piped value as the only argument; and creating an object that reads the
+ * clock or the default random engine, matched by its resolved class name in
+ * any case.
  *
  * Every rule that depends on a call's arguments reads them through
  * CallArguments, so a parameter is found by position or by name.
@@ -78,7 +80,8 @@ class BuiltinCatalogueDetector implements Detector
     ];
 
     /**
-     * mktime's parameters, in order.
+     * mktime's parameters, in order. It fills any that are missing or null
+     * from the current time.
      */
     protected const DATE_FIELDS = ['hour', 'minute', 'second', 'month', 'day', 'year'];
 
@@ -244,7 +247,26 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function classify(Node $node): ?array
     {
-        return $this->classifyConstruct($node) ?? $this->classifyNamedInvocation($node);
+        return $this->classifyConstruct($node) ?? $this->classifyNamedInvocation($node) ?? $this->classifyPipe($node);
+    }
+
+    /**
+     * `$value |> name(...)` calls name with $value. A first-class callable
+     * that is only created calls nothing, so classifyNamedInvocation skips it.
+     *
+     * @return array{string, list<array{string, bool, string}>}|null
+     */
+    protected function classifyPipe(Node $node): ?array
+    {
+        if (!$node instanceof Expr\BinaryOp\Pipe) {
+            return null;
+        }
+        $callable = $node->right;
+        if ($callable instanceof Expr\FuncCall && $callable->name instanceof Node\Name && $callable->isFirstClassCallable()) {
+            return $this->classifyFunction($callable->name->toString(), new CallArguments($node));
+        }
+
+        return null;
     }
 
     /**
@@ -323,7 +345,7 @@ class BuiltinCatalogueDetector implements Detector
             'date_create', 'date_create_immutable' => $this->readsClock($arguments) ? [self::TIME] : [],
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp') ? [self::TIME] : [],
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp') ? [self::TIME] : [],
-            'mktime', 'gmmktime' => $this->omitsDateField($arguments) ? [self::TIME] : [],
+            'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS) ? [self::TIME] : [],
             default => $this->catalogueEntries($lowerName),
         };
     }
@@ -391,21 +413,6 @@ class BuiltinCatalogueDetector implements Detector
 
         return $arguments->omits(0, 'datetime')
             || ($datetime !== null && in_array(strtolower($datetime), ['now', ''], true));
-    }
-
-    /**
-     * mktime fills any of its six date and time fields that are missing or
-     * null from the current time.
-     */
-    protected function omitsDateField(CallArguments $arguments): bool
-    {
-        foreach (self::DATE_FIELDS as $position => $name) {
-            if ($arguments->omits($position, $name)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
