@@ -827,6 +827,10 @@
         "exitCode": 0,
         "stderr": ""
     },
+    "pipes.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
     "nested-anonymous-classes": {
         "exitCode": 2,
         "stderr": ""

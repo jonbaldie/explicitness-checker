@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `--strict` reports a PHP 8.5 pipe into a first-class callable as the call it makes, with the piped value as the only argument (#135). `$path |> unlink(...)` reports `writes to file system (unlink)`, `$path |> file_get_contents(...) |> strlen(...)` reports `reads from file (file_get_contents)`, and `$code |> exit(...)` reports `terminates the program (exit)`, as the direct calls do. A first-class callable that is only created is still not reported
+
 ### Changed
 
 - Internal refactoring moves the CLI's option validation into `Cli\Options::problem()`, which reports the first problem in the same order as before: a missing path, then an empty `--exclude`, then a bad pattern, then an invalid `--min-explicitness` (#104). `Cli\FileFilter::directoryError()` and `patternError()` are replaced by one `error()`. No change to CLI output or exit codes is intended
