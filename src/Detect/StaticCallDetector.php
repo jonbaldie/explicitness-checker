@@ -10,9 +10,10 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Default mode: `ClassName::method()` calls with no arguments, whose result
- * can only come from outside the function's arguments. Calls on the current
- * class (self::, parent::, static::) are not reported.
+ * Default mode: static method calls with no arguments, whose result can only
+ * come from outside the function's arguments. Dynamic classes and methods are
+ * shown as "...". Calls on the current class (self::, parent::, static::) are
+ * not reported.
  */
 class StaticCallDetector implements Detector
 {
@@ -21,14 +22,15 @@ class StaticCallDetector implements Detector
         if (
             !$node instanceof Expr\StaticCall
             || $node->args !== []
-            || !$node->class instanceof Node\Name
-            || $node->class->isSpecialClassName()
-            || !$node->name instanceof Node\Identifier
+            || ($node->class instanceof Node\Name && $node->class->isSpecialClassName())
         ) {
             return;
         }
 
-        $subject = $node->class->toString() . '::' . $node->name->toString() . '()';
+        $class = $node->class instanceof Node\Name ? $node->class->toString() : '...';
+        $method = $node->name instanceof Node\Identifier ? $node->name->toString() : '...';
+
+        $subject = $class . '::' . $method . '()';
         $findings->input('read from static method ' . $subject, Category::STATIC_CALL, $node);
     }
 }
