@@ -839,6 +839,14 @@
         "exitCode": 0,
         "stderr": ""
     },
+    "http-headers-and-session.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "http-headers-and-session.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
     "nested-anonymous-classes": {
         "exitCode": 2,
         "stderr": ""

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `--strict` reports missing HTTP header and session siblings (#139): `header_remove` and `header_register_callback` write HTTP headers; `headers_list`, `headers_sent` and `apache_response_headers` read HTTP headers; `session_abort` and `session_reset` write session state; `session_status` and `session_create_id` read session state; `session_save_path`, `session_module_name`, `session_cache_limiter` and `session_cache_expire` read session state when called with no argument or literal `null`, and write session state otherwise
 - `--strict` classifies `session_id`, `session_name` and `http_response_code` as reads or writes from their arguments (#138). `session_id()` and `session_name()` with no argument or literal `null` are reads, and any other argument is a write to session state. `http_response_code()` with no argument, literal `null` or literal `0` is a read, and any other argument writes HTTP headers
 
 - No-argument static calls whose class name or method name is an expression are now reported as implicit inputs, with `...` as the placeholder for dynamic parts, matching static property placeholders (#137). Calls that pass arguments, calls on `self`, `parent` or `static`, and first-class callables stay unreported

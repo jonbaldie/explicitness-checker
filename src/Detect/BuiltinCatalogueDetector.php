@@ -86,6 +86,18 @@ class BuiltinCatalogueDetector implements Detector
     protected const DATE_FIELDS = ['hour', 'minute', 'second', 'month', 'day', 'year'];
 
     /**
+     * Session getter/setter => its parameter name.
+     */
+    protected const SESSION_PARAMETERS = [
+        'session_id' => 'id',
+        'session_name' => 'name',
+        'session_save_path' => 'path',
+        'session_module_name' => 'module',
+        'session_cache_limiter' => 'value',
+        'session_cache_expire' => 'value',
+    ];
+
+    /**
      * Name prefix => the findings a call to any function with that prefix
      * reports, for the families too large to list.
      */
@@ -164,10 +176,15 @@ class BuiltinCatalogueDetector implements Detector
         'tmpfile' => [self::FILE_SYSTEM_WRITE],
         'tempnam' => [self::FILE_SYSTEM_WRITE],
         'header' => [self::HEADERS],
+        'header_remove' => [self::HEADERS],
+        'header_register_callback' => [self::HEADERS],
         'setcookie' => [self::HEADERS],
         'setrawcookie' => [self::HEADERS],
         'getallheaders' => [self::HEADERS_READ],
         'apache_request_headers' => [self::HEADERS_READ],
+        'headers_list' => [self::HEADERS_READ],
+        'headers_sent' => [self::HEADERS_READ],
+        'apache_response_headers' => [self::HEADERS_READ],
         'error_log' => [self::ERROR_LOG],
         'trigger_error' => [self::ERROR_LOG],
         'user_error' => [self::ERROR_LOG],
@@ -176,6 +193,10 @@ class BuiltinCatalogueDetector implements Detector
         'session_destroy' => [self::SESSION_WRITE],
         'session_regenerate_id' => [self::SESSION_WRITE],
         'session_write_close' => [self::SESSION_WRITE],
+        'session_abort' => [self::SESSION_WRITE],
+        'session_reset' => [self::SESSION_WRITE],
+        'session_status' => [self::SESSION_READ],
+        'session_create_id' => [self::SESSION_READ],
         'curl_exec' => self::NETWORK,
         'curl_multi_exec' => self::NETWORK,
         'fsockopen' => self::NETWORK,
@@ -334,15 +355,29 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function callEntries(string $lowerName, CallArguments $arguments): array
     {
-        return $this->dateEntries($lowerName, $arguments) ?? match ($lowerName) {
-            'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
-            'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
-            'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-            'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-            'session_id', 'session_name' => $arguments->omits(0, substr($lowerName, 8)) ? [self::SESSION_READ] : [self::SESSION_WRITE],
-            'http_response_code' => $arguments->omitsOrZero(0, 'response_code') ? [self::HEADERS_READ] : [self::HEADERS],
-            default => $this->catalogueEntries($lowerName),
-        };
+        return $this->dateEntries($lowerName, $arguments)
+            ?? $this->sessionEntries($lowerName, $arguments)
+            ?? match ($lowerName) {
+                'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
+                'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
+                'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
+                'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
+                'http_response_code' => $arguments->omitsOrZero(0, 'response_code') ? [self::HEADERS_READ] : [self::HEADERS],
+                default => $this->catalogueEntries($lowerName),
+            };
+    }
+
+    /**
+     * @return list<array{string, bool, string}>|null
+     */
+    protected function sessionEntries(string $lowerName, CallArguments $arguments): ?array
+    {
+        $parameter = self::SESSION_PARAMETERS[$lowerName] ?? null;
+        if ($parameter === null) {
+            return null;
+        }
+
+        return $arguments->omits(0, $parameter) ? [self::SESSION_READ] : [self::SESSION_WRITE];
     }
 
     /**
@@ -350,13 +385,15 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function dateEntries(string $lowerName, CallArguments $arguments): ?array
     {
-        return match ($lowerName) {
-            'date_create', 'date_create_immutable' => $arguments->readsClock() ? [self::TIME] : [],
-            'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp') ? [self::TIME] : [],
-            'getdate', 'localtime' => $arguments->omits(0, 'timestamp') ? [self::TIME] : [],
-            'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS) ? [self::TIME] : [],
+        $readsClock = match ($lowerName) {
+            'date_create', 'date_create_immutable' => $arguments->readsClock(),
+            'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp'),
+            'getdate', 'localtime' => $arguments->omits(0, 'timestamp'),
+            'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS),
             default => null,
         };
+
+        return $readsClock === null ? null : ($readsClock ? [self::TIME] : []);
     }
 
     /**

@@ -70,6 +70,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const SESSION_AND_RESPONSE_CODE_FIXTURE = Process::ROOT . '/tests/Fixtures/session-and-response-code.php';
 
+    protected const HTTP_HEADERS_AND_SESSION_FIXTURE = Process::ROOT . '/tests/Fixtures/http-headers-and-session.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -725,6 +727,34 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testSessionAndResponseCodeAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::SESSION_AND_RESPONSE_CODE_FIXTURE, []);
+    }
+
+    public function testHttpHeadersAndSessionInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::HTTP_HEADERS_AND_SESSION_FIXTURE, [
+            [5, 'httpHeaders', 'remove writes HTTP headers (header_remove).'],
+            [10, 'httpHeaders', 'remove_named writes HTTP headers (header_remove).'],
+            [15, 'httpHeaders', 'list_headers reads HTTP headers (headers_list).'],
+            [20, 'httpHeaders', 'sent reads HTTP headers (headers_sent).'],
+            [25, 'httpHeaders', 'apache reads HTTP headers (apache_response_headers).'],
+            [30, 'httpHeaders', 'register writes HTTP headers (header_register_callback).'],
+            [35, 'session', 'save_path writes to session state (session_save_path).'],
+            [40, 'session', 'save_path_read reads session state (session_save_path).'],
+            [45, 'session', 'module writes to session state (session_module_name).'],
+            [50, 'session', 'limiter writes to session state (session_cache_limiter).'],
+            [55, 'session', 'expire writes to session state (session_cache_expire).'],
+            [60, 'session', 'abort writes to session state (session_abort).'],
+            [65, 'session', 'reset writes to session state (session_reset).'],
+            [70, 'session', 'status reads session state (session_status).'],
+            [75, 'session', 'create_id reads session state (session_create_id).'],
+        ]);
+    }
+
+    public function testHttpHeadersAndSessionAreNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::HTTP_HEADERS_AND_SESSION_FIXTURE, []);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void

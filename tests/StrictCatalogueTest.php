@@ -215,6 +215,98 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
+     * #139: header_remove and header_register_callback write headers; headers_list,
+     * headers_sent and apache_response_headers read them.
+     */
+    public function testReportsHttpHeaderSiblings(): void
+    {
+        $read = static fn (string $name): array => [[['reads HTTP headers (' . $name . ')', Category::HTTP_HEADERS]], []];
+        $write = static fn (string $name): array => [[], [['writes HTTP headers (' . $name . ')', Category::HTTP_HEADERS]]];
+        $this->assertFindings([
+            'header_remove()' => $write('header_remove'),
+            'header_remove(\'X-Probe\')' => $write('header_remove'),
+            'header_remove(name: \'X-Probe\')' => $write('header_remove'),
+            'header_remove(null)' => $write('header_remove'),
+            'header_remove(name: null)' => $write('header_remove'),
+            'header_remove(name: NULL)' => $write('header_remove'),
+            'Header_Remove()' => $write('Header_Remove'),
+            '\\Header_Remove()' => $write('Header_Remove'),
+            'header_register_callback($a)' => $write('header_register_callback'),
+            'headers_list()' => $read('headers_list'),
+            '\\headers_list()' => $read('headers_list'),
+            'headers_sent()' => $read('headers_sent'),
+            'headers_sent($a, $b)' => $read('headers_sent'),
+            'apache_response_headers()' => $read('apache_response_headers'),
+        ]);
+    }
+
+    /**
+     * #139: session_abort and session_reset write session state; session_status
+     * and session_create_id read it.
+     */
+    public function testReportsSessionSiblings(): void
+    {
+        $read = static fn (string $name): array => [[['reads session state (' . $name . ')', Category::SESSION]], []];
+        $write = static fn (string $name): array => [[], [['writes to session state (' . $name . ')', Category::SESSION]]];
+        $this->assertFindings([
+            'session_abort()' => $write('session_abort'),
+            'session_reset()' => $write('session_reset'),
+            'session_status()' => $read('session_status'),
+            'session_create_id()' => $read('session_create_id'),
+            'session_create_id(\'prefix\')' => $read('session_create_id'),
+            'session_create_id(prefix: \'prefix\')' => $read('session_create_id'),
+            'session_create_id(prefix: $a)' => $read('session_create_id'),
+        ]);
+    }
+
+    /**
+     * #139: session_save_path, session_module_name, session_cache_limiter, and
+     * session_cache_expire read session state when called with no argument or
+     * literal null, and write session state otherwise.
+     */
+    public function testReportsSessionGetterSetters(): void
+    {
+        $read = static fn (string $name): array => [[['reads session state (' . $name . ')', Category::SESSION]], []];
+        $write = static fn (string $name): array => [[], [['writes to session state (' . $name . ')', Category::SESSION]]];
+        $this->assertFindings([
+            'session_save_path()' => $read('session_save_path'),
+            'session_save_path(null)' => $read('session_save_path'),
+            'session_save_path(path: null)' => $read('session_save_path'),
+            'session_save_path(path: NULL)' => $read('session_save_path'),
+            'session_save_path(\'/tmp\')' => $write('session_save_path'),
+            'session_save_path(path: \'/tmp\')' => $write('session_save_path'),
+            'session_save_path($a)' => $write('session_save_path'),
+            'session_save_path(path: $a)' => $write('session_save_path'),
+            '\\Session_Save_Path(\'/tmp\')' => $write('Session_Save_Path'),
+            'session_module_name()' => $read('session_module_name'),
+            'session_module_name(null)' => $read('session_module_name'),
+            'session_module_name(module: null)' => $read('session_module_name'),
+            'session_module_name(module: NULL)' => $read('session_module_name'),
+            'session_module_name(\'files\')' => $write('session_module_name'),
+            'session_module_name(module: \'files\')' => $write('session_module_name'),
+            'session_module_name($a)' => $write('session_module_name'),
+            'session_module_name(module: $a)' => $write('session_module_name'),
+            'session_cache_limiter()' => $read('session_cache_limiter'),
+            'session_cache_limiter(null)' => $read('session_cache_limiter'),
+            'session_cache_limiter(value: null)' => $read('session_cache_limiter'),
+            'session_cache_limiter(value: NULL)' => $read('session_cache_limiter'),
+            'session_cache_limiter(\'nocache\')' => $write('session_cache_limiter'),
+            'session_cache_limiter(value: \'nocache\')' => $write('session_cache_limiter'),
+            'session_cache_limiter($a)' => $write('session_cache_limiter'),
+            'session_cache_limiter(value: $a)' => $write('session_cache_limiter'),
+            'session_cache_expire()' => $read('session_cache_expire'),
+            'session_cache_expire(null)' => $read('session_cache_expire'),
+            'session_cache_expire(value: null)' => $read('session_cache_expire'),
+            'session_cache_expire(value: NULL)' => $read('session_cache_expire'),
+            'session_cache_expire(10)' => $write('session_cache_expire'),
+            'session_cache_expire(value: 10)' => $write('session_cache_expire'),
+            'session_cache_expire($a)' => $write('session_cache_expire'),
+            'session_cache_expire(value: $a)' => $write('session_cache_expire'),
+        ]);
+    }
+
+
+    /**
      * #84: none of the new entries is reported outside strict mode.
      */
     public function testNewEntriesAreNotReportedInDefaultMode(): void
@@ -226,6 +318,13 @@ class StrictCatalogueTest extends TestCase
             'set_time_limit($a)', 'ignore_user_abort(true)', 'ignore_user_abort()',
             'session_id()', 'session_id(\'abc\')', 'session_name()', 'session_name(\'APP\')',
             'http_response_code()', 'http_response_code(201)', 'http_response_code(0)',
+            'header_remove()', 'header_remove(\'X-Probe\')', 'header_register_callback($a)',
+            'headers_list()', 'headers_sent()', 'apache_response_headers()',
+            'session_abort()', 'session_reset()', 'session_status()', 'session_create_id()',
+            'session_save_path()', 'session_save_path(\'/tmp\')', 'session_save_path(null)',
+            'session_module_name()', 'session_module_name(\'files\')',
+            'session_cache_limiter()', 'session_cache_limiter(\'nocache\')',
+            'session_cache_expire()', 'session_cache_expire(10)',
         ];
         foreach ($calls as $call) {
             self::assertSame([[], []], $this->findings($call, new Mode(false, false)), $call);
@@ -578,6 +677,20 @@ class StrictCatalogueTest extends TestCase
             '$a |> http_response_code(...)' => [[], [['writes HTTP headers (http_response_code)', Category::HTTP_HEADERS]]],
             '0 |> http_response_code(...)' => [[['reads HTTP headers (http_response_code)', Category::HTTP_HEADERS]], []],
             'null |> http_response_code(...)' => [[['reads HTTP headers (http_response_code)', Category::HTTP_HEADERS]], []],
+            '$a |> session_save_path(...)' => [[], [['writes to session state (session_save_path)', Category::SESSION]]],
+            'null |> session_save_path(...)' => [[['reads session state (session_save_path)', Category::SESSION]], []],
+            '$a |> session_module_name(...)' => [[], [['writes to session state (session_module_name)', Category::SESSION]]],
+            'null |> session_module_name(...)' => [[['reads session state (session_module_name)', Category::SESSION]], []],
+            '$a |> session_cache_limiter(...)' => [[], [['writes to session state (session_cache_limiter)', Category::SESSION]]],
+            'null |> session_cache_limiter(...)' => [[['reads session state (session_cache_limiter)', Category::SESSION]], []],
+            '$a |> session_cache_expire(...)' => [[], [['writes to session state (session_cache_expire)', Category::SESSION]]],
+            'null |> session_cache_expire(...)' => [[['reads session state (session_cache_expire)', Category::SESSION]], []],
+            '$a |> header_remove(...)' => [[], [['writes HTTP headers (header_remove)', Category::HTTP_HEADERS]]],
+            'null |> header_remove(...)' => [[], [['writes HTTP headers (header_remove)', Category::HTTP_HEADERS]]],
+            '$a |> headers_list(...)' => [[['reads HTTP headers (headers_list)', Category::HTTP_HEADERS]], []],
+            '$a |> session_abort(...)' => [[], [['writes to session state (session_abort)', Category::SESSION]]],
+            '$a |> session_status(...)' => [[['reads session state (session_status)', Category::SESSION]], []],
+            '$a |> session_create_id(...)' => [[['reads session state (session_create_id)', Category::SESSION]], []],
             '$a |> $b' => [[], []],
             '$a |> $b(...)' => [[], []],
             '$a |> strlen(...)' => [[], []],

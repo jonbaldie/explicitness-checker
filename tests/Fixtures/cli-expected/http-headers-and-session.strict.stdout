@@ -1,0 +1,30 @@
+Analyzing...
+
+Results:
+
++---------------------------------------------+------+----------------+----------------------------------------------+-------------------------------------------------+----------+
+| File                                        | Line | Function       | Implicit Inputs                              | Implicit Outputs                                | Severity |
++---------------------------------------------+------+----------------+----------------------------------------------+-------------------------------------------------+----------+
+| tests/Fixtures/http-headers-and-session.php | 3    | remove         |                                              | writes HTTP headers (header_remove)             | Critical |
+| tests/Fixtures/http-headers-and-session.php | 8    | remove_named   |                                              | writes HTTP headers (header_remove)             | Critical |
+| tests/Fixtures/http-headers-and-session.php | 13   | list_headers   | reads HTTP headers (headers_list)            |                                                 | Critical |
+| tests/Fixtures/http-headers-and-session.php | 18   | sent           | reads HTTP headers (headers_sent)            |                                                 | Critical |
+| tests/Fixtures/http-headers-and-session.php | 23   | apache         | reads HTTP headers (apache_response_headers) |                                                 | Critical |
+| tests/Fixtures/http-headers-and-session.php | 28   | register       |                                              | writes HTTP headers (header_register_callback)  | Critical |
+| tests/Fixtures/http-headers-and-session.php | 33   | save_path      |                                              | writes to session state (session_save_path)     | Critical |
+| tests/Fixtures/http-headers-and-session.php | 38   | save_path_read | reads session state (session_save_path)      |                                                 | Critical |
+| tests/Fixtures/http-headers-and-session.php | 43   | module         |                                              | writes to session state (session_module_name)   | Critical |
+| tests/Fixtures/http-headers-and-session.php | 48   | limiter        |                                              | writes to session state (session_cache_limiter) | Critical |
+| tests/Fixtures/http-headers-and-session.php | 53   | expire         |                                              | writes to session state (session_cache_expire)  | Critical |
+| tests/Fixtures/http-headers-and-session.php | 58   | abort          |                                              | writes to session state (session_abort)         | Critical |
+| tests/Fixtures/http-headers-and-session.php | 63   | reset          |                                              | writes to session state (session_reset)         | Critical |
+| tests/Fixtures/http-headers-and-session.php | 68   | status         | reads session state (session_status)         |                                                 | Critical |
+| tests/Fixtures/http-headers-and-session.php | 73   | create_id      | reads session state (session_create_id)      |                                                 | Critical |
++---------------------------------------------+------+----------------+----------------------------------------------+-------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 15 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
