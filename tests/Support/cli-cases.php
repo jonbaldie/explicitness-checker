@@ -63,6 +63,10 @@ return $cases + [
     // #135: a pipe into a first-class callable performs the call it names.
     'pipes.strict' => ['--strict', 'tests/Fixtures/pipes.php'],
 
+    // #138: session_id, session_name and http_response_code direction from arguments.
+    'session-and-response-code.strict' => ['--strict', 'tests/Fixtures/session-and-response-code.php'],
+    'session-and-response-code.default' => ['tests/Fixtures/session-and-response-code.php'],
+
     // #47: nested anonymous classes keep their named enclosing class in
     // method and property-hook names.
     'nested-anonymous-classes' => ['tests/Fixtures/nested-anonymous-classes.php'],

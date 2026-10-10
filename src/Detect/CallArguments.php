@@ -37,6 +37,19 @@ class CallArguments
     }
 
     /**
+     * The parameter is left out, passed the literal null, or passed the
+     * literal 0.
+     */
+    public function omitsOrZero(int $position, string $name): bool
+    {
+        $value = $this->value($position, $name);
+
+        return $value === null
+            || $this->isConstant($value, 'null')
+            || ($value instanceof Scalar\Int_ && $value->value === 0);
+    }
+
+    /**
      * At least one of the parameters, named in positional order, is omitted.
      *
      * @param list<string> $names
@@ -55,6 +68,18 @@ class CallArguments
     public function isTrue(int $position, string $name): bool
     {
         return $this->isConstant($this->value($position, $name), 'true');
+    }
+
+    /**
+     * A date is built from the clock when its datetime argument is absent,
+     * null, 'now' in any case, or '', which PHP also reads as now.
+     */
+    public function readsClock(int $position = 0, string $name = 'datetime'): bool
+    {
+        $datetime = $this->string($position, $name);
+
+        return $this->omits($position, $name)
+            || ($datetime !== null && in_array(strtolower($datetime), ['now', ''], true));
     }
 
     /**

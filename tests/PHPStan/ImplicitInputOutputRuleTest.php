@@ -68,6 +68,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const STRICT_CATALOGUE_ADDITIONS_FIXTURE = Process::ROOT . '/tests/Fixtures/strict-catalogue-additions.php';
 
+    protected const SESSION_AND_RESPONSE_CODE_FIXTURE = Process::ROOT . '/tests/Fixtures/session-and-response-code.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -704,6 +706,25 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);
+    }
+
+    public function testSessionAndResponseCodeInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::SESSION_AND_RESPONSE_CODE_FIXTURE, [
+            [5, 'session', 'get_id reads session state (session_id).'],
+            [10, 'session', 'set_id writes to session state (session_id).'],
+            [15, 'session', 'set_id_named writes to session state (session_id).'],
+            [20, 'session', 'set_name writes to session state (session_name).'],
+            [25, 'httpHeaders', 'code_get reads HTTP headers (http_response_code).'],
+            [30, 'httpHeaders', 'code_set writes HTTP headers (http_response_code).'],
+        ]);
+    }
+
+    public function testSessionAndResponseCodeAreNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::SESSION_AND_RESPONSE_CODE_FIXTURE, []);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void
