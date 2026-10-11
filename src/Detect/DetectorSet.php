@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
+use JonBaldie\ExplicitnessChecker\Scope\EffectiveTargets;
 use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
 
 /**
@@ -18,11 +19,12 @@ class DetectorSet
      */
     public function select(Bindings $bindings, Mode $mode, ReferenceAliases $aliases): array
     {
+        $targets = new EffectiveTargets($bindings, $aliases);
         $detectors = [
-            new VariableDetector($bindings, $aliases),
+            new VariableDetector($bindings, $targets),
             new GlobalsArrayDetector(),
             new StaticCallDetector(),
-            new ArgumentMutationDetector($bindings),
+            new ArgumentMutationDetector($targets),
             new StaticPropertyDetector(),
         ];
         if ($mode->isStrict()) {

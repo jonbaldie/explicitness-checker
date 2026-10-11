@@ -425,6 +425,18 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testReboundParametersHaveOnlyGlobalsIdentifiers(): void
+    {
+        foreach ([false, true] as $strict) {
+            $this->strict = $strict;
+            $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/rebound-parameters.php', [
+                [7, 'globalsArray', 'reboundScalar wrote to $GLOBALS[\'counter\'].'],
+                [13, 'globalsArray', 'reboundObject read from $GLOBALS[\'obj\'].'],
+                [13, 'globalsArray', 'reboundObject wrote to $GLOBALS[\'obj\'].'],
+            ]);
+        }
+    }
+
     /**
      * #45: the PHPStan rule follows global channels through reference aliases,
      * including rebinds and read/write operators.
