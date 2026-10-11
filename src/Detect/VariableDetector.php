@@ -7,7 +7,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
-use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Scope\EffectiveTargets;
 use JonBaldie\ExplicitnessChecker\Superglobals;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
@@ -29,33 +29,17 @@ class VariableDetector implements Detector
         Bindings::CAPTURED_REFERENCE => ['captured reference $', Category::CAPTURED_REFERENCE],
     ];
 
-    public function __construct(protected Bindings $bindings, protected ReferenceAliases $aliases)
+    public function __construct(protected Bindings $bindings, protected EffectiveTargets $targets)
     {
     }
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
-        if ($this->detectAlias($node, $isWrite, $findings)) {
-            return;
-        }
-
         if ($this->detectDynamicGlobal($node, $isWrite, $findings)) {
             return;
         }
 
         $this->detectNamedVariable($node, $isWrite, $findings);
-    }
-
-    protected function detectAlias(Node $node, bool $isWrite, FindingCollector $findings): bool
-    {
-        $aliasTarget = $this->aliases->targetOf($node);
-        if ($aliasTarget === null) {
-            return false;
-        }
-
-        $findings->access($isWrite, $aliasTarget, Category::GLOBALS_ARRAY, $node);
-
-        return true;
     }
 
     protected function detectDynamicGlobal(Node $node, bool $isWrite, FindingCollector $findings): bool
@@ -76,7 +60,14 @@ class VariableDetector implements Detector
             return;
         }
 
-        $kind = $this->bindings->kindOf($name);
+        $target = $this->targets->targetOf($node);
+        if ($target['subject'] !== null) {
+            $findings->access($isWrite, $target['subject'], Category::GLOBALS_ARRAY, $node);
+
+            return;
+        }
+
+        $kind = $target['kind'];
         if ($kind !== null && isset(self::DESCRIPTIONS[$kind])) {
             [$prefix, $category] = self::DESCRIPTIONS[$kind];
             $findings->access($isWrite, $prefix . $name, $category, $node, $name);

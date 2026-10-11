@@ -121,6 +121,95 @@ class SourceCheckerTest extends TestCase
         );
     }
 
+    /** @dataProvider reboundParameterKinds */
+    public function testReboundParametersReportGlobalsRatherThanArgumentMutation(int $index, string $key): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function scalar(int &$value): void {
+                $value = &$GLOBALS['counter'];
+                $value = 7;
+            }
+            function property(object $value): void {
+                $value = &$GLOBALS['obj'];
+                $value->n = 7;
+            }
+            PHP;
+
+        foreach ([false, true] as $strict) {
+            $results = (new SourceChecker())->check($source, new Mode($strict, false));
+            $outputs = $results[$index]->getOutputs();
+            self::assertSame(
+                ["wrote to \$GLOBALS['" . $key . "']"],
+                array_map(static fn (Finding $finding): string => $finding->getDescription(), $outputs),
+            );
+            self::assertSame(
+                [Category::GLOBALS_ARRAY],
+                array_map(static fn (Finding $finding): string => $finding->getCategory(), $outputs),
+            );
+            self::assertSame([], $results[0]->getInputs());
+            self::assertSame("read from \$GLOBALS['obj']", $results[1]->getInputs()[0]->getDescription());
+            self::assertSame(Category::GLOBALS_ARRAY, $results[1]->getInputs()[0]->getCategory());
+        }
+    }
+
+    public function testParameterClassificationReturnsWhenGlobalsAliasIsUnset(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function scalar(int &$value): void {
+                $value = &$GLOBALS['counter'];
+                unset($value);
+                $value = 7;
+            }
+            function property(object $value): void {
+                $value = &$GLOBALS['obj'];
+                unset($value);
+                $value->n = 7;
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+        foreach ($results as $index => $result) {
+            self::assertSame([], $result->getInputs());
+            self::assertCount(1, $result->getOutputs());
+            $finding = $result->getOutputs()[0];
+            self::assertSame('wrote to argument $value', $finding->getDescription());
+            self::assertSame(Category::ARGUMENT_MUTATION, $finding->getCategory());
+            self::assertSame($index === 0 ? 5 : 10, $finding->getLine());
+        }
+    }
+
+    public function testReboundParameterPropertyChainsUseTheCurrentGlobalsTarget(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function chained(array $value): void {
+                $value = &$GLOBALS['first'];
+                $value['child']->nested->n = 7;
+                $value = &$GLOBALS['second'];
+                $value['child']->nested->n = 8;
+            }
+            PHP;
+        $result = (new SourceChecker())->check($source, new Mode(false, false))[0];
+        self::assertSame(
+            ["read from \$GLOBALS['first']", "read from \$GLOBALS['second']"],
+            array_map(static fn (Finding $finding): string => $finding->getDescription(), $result->getInputs()),
+        );
+        self::assertSame(
+            ["wrote to \$GLOBALS['first']", "wrote to \$GLOBALS['second']"],
+            array_map(static fn (Finding $finding): string => $finding->getDescription(), $result->getOutputs()),
+        );
+        foreach ($result->getFindings() as $finding) {
+            self::assertSame(Category::GLOBALS_ARRAY, $finding->getCategory());
+        }
+    }
+
+    /** @return list<array{int, string}> */
+    public static function reboundParameterKinds(): array
+    {
+        return [[0, 'counter'], [1, 'obj']];
+    }
+
     public function testFindingsNotAboutANamedVariableHaveNoVariableName(): void
     {
         $source = <<<'PHP'

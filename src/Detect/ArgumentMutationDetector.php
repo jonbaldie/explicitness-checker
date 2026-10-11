@@ -7,6 +7,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
+use JonBaldie\ExplicitnessChecker\Scope\EffectiveTargets;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -16,12 +17,12 @@ use PhpParser\Node\Expr;
  * by-reference parameter, and any write to a property reached from a
  * parameter, which is a handle on an object the caller shares. Both are
  * described by the root parameter. A parameter rebound by `global` or
- * `static` is no longer the caller's argument. Reads of arguments are never
- * implicit.
+ * `static`, or a known GLOBALS reference alias, is no longer the caller's
+ * argument. Reads of arguments are never implicit.
  */
 class ArgumentMutationDetector implements Detector
 {
-    public function __construct(protected Bindings $bindings)
+    public function __construct(protected EffectiveTargets $targets)
     {
     }
 
@@ -32,15 +33,17 @@ class ArgumentMutationDetector implements Detector
         }
 
         $name = VariableName::of($node);
-        if ($name !== null && $this->bindings->kindOf($name) === Bindings::BY_REFERENCE_PARAMETER) {
+        if ($name !== null && $this->targets->targetOf($node)['kind'] === Bindings::BY_REFERENCE_PARAMETER) {
             $findings->output('wrote to argument $' . $name, Category::ARGUMENT_MUTATION, $node, $name);
 
             return;
         }
 
         if ($node instanceof Expr\PropertyFetch) {
-            $root = $this->rootOf($node);
-            if ($root !== null && $this->bindings->isParameter($root)) {
+            $rootNode = $this->rootOf($node);
+            $root = VariableName::of($rootNode);
+            $kind = $this->targets->targetOf($rootNode)['kind'];
+            if ($root !== null && ($kind === Bindings::PARAMETER || $kind === Bindings::BY_REFERENCE_PARAMETER)) {
                 $findings->output('wrote to argument $' . $root, Category::ARGUMENT_MUTATION, $node, $root);
             }
         }
@@ -49,12 +52,12 @@ class ArgumentMutationDetector implements Detector
     /**
      * The variable at the end of a chain of property and element fetches.
      */
-    protected function rootOf(Expr $node): ?string
+    protected function rootOf(Expr $node): Expr
     {
         while ($node instanceof Expr\PropertyFetch || $node instanceof Expr\ArrayDimFetch) {
             $node = $node->var;
         }
 
-        return VariableName::of($node);
+        return $node;
     }
 }
