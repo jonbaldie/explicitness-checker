@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\LiteralCallable;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 
@@ -11,8 +12,8 @@ use PhpParser\Node\Expr;
  * `sort($items)`: an argument a built-in takes by reference is read, then
  * written. Which positions are by reference comes from ByReferenceParameters,
  * by default reflected on the running PHP once per function, so it depends on
- * the extensions loaded. User-defined functions, undefined functions and calls
- * with unpacked arguments get no marking.
+ * the extensions loaded. User-defined functions, undefined functions, calls
+ * with unpacked arguments and non-reference-forwarding wrappers get no marking.
  */
 class ByReferenceCallRule implements ChildAccessRule
 {
@@ -27,14 +28,16 @@ class ByReferenceCallRule implements ChildAccessRule
     {
         if (
             !$node instanceof Expr\FuncCall
-            || !$node->name instanceof Node\Name
-            || !$this->byReference->isBuiltin($node->name->toString())
             || $this->hasUnpackedArgument($node)
         ) {
             return null;
         }
 
-        $function = $node->name->toString();
+        $function = (new LiteralCallable($node))->referenceForwardingFunction();
+        if ($function === null || !$this->byReference->isBuiltin($function)) {
+            return null;
+        }
+
         $children = [[$node->name, $isWrite]];
         foreach ($node->args as $position => $arg) {
             if ($arg instanceof Node\Arg && $this->byReference->isPassedByReference($function, $position, $arg->name?->toString())) {

@@ -74,6 +74,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const LITERAL_CALLABLES_FIXTURE = Process::ROOT . '/tests/Fixtures/literal-callables.php';
 
+    protected const BY_REFERENCE_LITERAL_CALLABLES_FIXTURE = Process::ROOT . '/tests/Fixtures/by-reference-literal-callables.php';
+
     /**
      * What default mode reports on bad-examples.php, with identifiers.
      */
@@ -792,6 +794,33 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testLiteralCallablesAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::LITERAL_CALLABLES_FIXTURE, []);
+    }
+
+    /**
+     * #149: literal callables invoking by-reference built-ins report argument mutations in default mode.
+     */
+    public function testByReferenceLiteralCallablesInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::BY_REFERENCE_LITERAL_CALLABLES_FIXTURE, [
+            [5, 'argumentMutation', 'sort_literal_string wrote to argument $items.'],
+            [10, 'argumentMutation', 'sort_immediate_first_class wrote to argument $items.'],
+            [25, 'argumentMutation', 'shuffle_literal_string wrote to argument $items.'],
+        ]);
+    }
+
+    /**
+     * #149: in strict mode, by-reference literal callables report both strict catalogue findings and argument mutations.
+     */
+    public function testByReferenceLiteralCallablesInStrictMode(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::BY_REFERENCE_LITERAL_CALLABLES_FIXTURE, [
+            [5, 'argumentMutation', 'sort_literal_string wrote to argument $items.'],
+            [10, 'argumentMutation', 'sort_immediate_first_class wrote to argument $items.'],
+            [25, 'random', 'shuffle_literal_string reads from random number generator (shuffle).'],
+            [25, 'argumentMutation', 'shuffle_literal_string wrote to argument $items.'],
+        ]);
     }
 
     public function testArgumentlessStaticCallsInDefaultMode(): void

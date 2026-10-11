@@ -648,6 +648,50 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #149: literal callables and immediate first-class callables invoking
+     * by-reference built-ins must report argument mutations in default mode,
+     * while call_user_func passes by value so it does not mutate arguments.
+     */
+    public function testReportsByReferenceLiteralCallablesAsWrites(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function sort_string(array &$items): void { 'sort'($items); }
+            function sort_first_class(array &$items): void { (sort(...))($items); }
+            function sort_named_arg(array &$items): void { 'sort'(array: $items); }
+            function sort_call_user_func(array &$items): void { call_user_func('sort', $items); }
+            function sort_callable_creation(): mixed { return sort(...); }
+            function shuffle_string(array &$items): void { 'shuffle'($items); }
+            PHP;
+
+        $defaultResults = (new SourceChecker())->check($source, new Mode(false, false));
+        self::assertSame(
+            [
+                ['sort_string', 2, [], ['wrote to argument $items']],
+                ['sort_first_class', 3, [], ['wrote to argument $items']],
+                ['sort_named_arg', 4, [], ['wrote to argument $items']],
+                ['sort_call_user_func', 5, [], []],
+                ['sort_callable_creation', 6, [], []],
+                ['shuffle_string', 7, [], ['wrote to argument $items']],
+            ],
+            $this->summaries($defaultResults),
+        );
+
+        $strictResults = (new SourceChecker())->check($source, new Mode(true, false));
+        self::assertSame(
+            [
+                ['sort_string', 2, [], ['wrote to argument $items']],
+                ['sort_first_class', 3, [], ['wrote to argument $items']],
+                ['sort_named_arg', 4, [], ['wrote to argument $items']],
+                ['sort_call_user_func', 5, [], []],
+                ['sort_callable_creation', 6, [], []],
+                ['shuffle_string', 7, ['reads from random number generator (shuffle)'], ['wrote to argument $items']],
+            ],
+            $this->summaries($strictResults),
+        );
+    }
+
+    /**
      * #72: the by-reference write is reported by whichever detector owns the
      * variable, so the rule is the same whatever the variable kind, and a
      * property reached from an argument is a write to that argument.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JonBaldie\ExplicitnessChecker\Detect;
+namespace JonBaldie\ExplicitnessChecker;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -43,6 +43,42 @@ class LiteralCallable
         ));
 
         return new Expr\FuncCall(new Node\Name($name), $args, $this->node->getAttributes());
+    }
+
+    /**
+     * The statically known function name the node invokes, whether called
+     * directly by name, through a string callee, or through an immediate
+     * first-class callable. Null when the node calls no statically named
+     * function, or when it calls one through call_user_func, which passes
+     * arguments by value rather than forwarding references.
+     */
+    public function referenceForwardingFunction(): ?string
+    {
+        if (!$this->node instanceof Expr\FuncCall || $this->node->isFirstClassCallable()) {
+            return null;
+        }
+        if ($this->node->name instanceof Node\Name) {
+            if ($this->callback($this->node) !== null) {
+                return null;
+            }
+
+            return $this->node->name->toString();
+        }
+
+        $directCall = $this->directCall();
+        if ($directCall !== null && $directCall->name instanceof Node\Name) {
+            return $directCall->name->toString();
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether the call is call_user_func.
+     */
+    public function isCallUserFunc(): bool
+    {
+        return $this->node instanceof Expr\FuncCall && $this->callback($this->node) !== null;
     }
 
     /**
