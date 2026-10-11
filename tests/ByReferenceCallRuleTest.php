@@ -35,6 +35,43 @@ class ByReferenceCallRuleTest extends TestCase
     }
 
     /**
+     * #149: String callees and immediate first-class callables are recognized,
+     * returning the callee node and argument nodes.
+     */
+    public function testMarksByReferenceArgumentsOfLiteralCallables(): void
+    {
+        $rule = new ByReferenceCallRule(new SyntheticByReferenceParameters(['fill' => [[1], ['out']]]));
+
+        $stringCall = $this->call("'fill'(\$a, \$b, \$c, out: \$d);");
+        [$a, $b, $c, $d] = $stringCall->args;
+        self::assertSame(
+            [[$stringCall->name, false], [$a, false], [$b, false], [$b, true], [$c, false], [$d, false], [$d, true]],
+            $rule->children($stringCall, false),
+        );
+
+        $fccCall = $this->call("(fill(...))(\$a, \$b, \$c, out: \$d);");
+        [$a, $b, $c, $d] = $fccCall->args;
+        self::assertSame(
+            [[$fccCall->name, false], [$a, false], [$b, false], [$b, true], [$c, false], [$d, false], [$d, true]],
+            $rule->children($fccCall, false),
+        );
+    }
+
+    /**
+     * #149: call_user_func passes by value so it does not forward references.
+     * Callable creation alone and unpacked arguments also remain unclaimed.
+     */
+    public function testLeavesNonForwardingFormsUnclaimed(): void
+    {
+        $rule = new ByReferenceCallRule(new SyntheticByReferenceParameters(['fill' => [[1], ['out']]]));
+
+        self::assertNull($rule->children($this->call("call_user_func('fill', \$a, \$b);"), false));
+        self::assertNull($rule->children($this->call("fill(...);"), false));
+        self::assertNull($rule->children($this->call("'fill'(...\$args);"), false));
+        self::assertNull($rule->children($this->call("(\$fn)(\$a);"), false));
+    }
+
+    /**
      * A function the lookup doesn't know as a built-in isn't claimed, even
      * where the running PHP defines it by reference.
      */
