@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-10-11
+
 ### Fixed
 
+- Directly invoking a reference-forwarding built-in through a literal string callee (`('sort')($items)`) or an immediate first-class callable invocation (`(sort(...))($items)`) reports argument mutation in default mode, as a direct call does (#149). Callable creation alone and `call_user_func` remain unmarked
+- Mutating a parameter rebound by reference to a `$GLOBALS` entry reports only the `$GLOBALS` mutation instead of also reporting a write to the original parameter or object argument (#148). Both detectors now resolve effective targets through shared alias state
 - `--strict` reports a catalogued built-in invoked through a literal callable as the call it names, with the invocation's arguments (#140). `(unlink(...))($path)`, `('unlink')($path)` and `call_user_func('unlink', $path)` report `writes to file system (unlink)`, as `unlink($path)` does, and argument-dependent rules apply: `call_user_func('fopen', $path, 'w')` is a file write and `(exit(...))('bye')` writes to standard output. A callable held in a variable, a callable that is only created, and a callback passed to another function are still not reported
 - `--strict` reports missing HTTP header and session siblings (#139): `header_remove` and `header_register_callback` write HTTP headers; `headers_list`, `headers_sent` and `apache_response_headers` read HTTP headers; `session_abort` and `session_reset` write session state; `session_status` and `session_create_id` read session state; `session_save_path`, `session_module_name`, `session_cache_limiter` and `session_cache_expire` read session state when called with no argument or literal `null`, and write session state otherwise
 - `--strict` classifies `session_id`, `session_name` and `http_response_code` as reads or writes from their arguments (#138). `session_id()` and `session_name()` with no argument or literal `null` are reads, and any other argument is a write to session state. `http_response_code()` with no argument, literal `null` or literal `0` is a read, and any other argument writes HTTP headers
-
 - No-argument static calls whose class name or method name is an expression are now reported as implicit inputs, with `...` as the placeholder for dynamic parts, matching static property placeholders (#137). Calls that pass arguments, calls on `self`, `parent` or `static`, and first-class callables stay unreported
 - `unset()` of a bare by-reference parameter, `global` import, static variable, by-reference closure capture, or local alias of a `$GLOBALS` entry is no longer reported as a write. PHP only destroys that local symbol (#136). `unset()` of an element, a property, a bare superglobal, or a `$GLOBALS['key']` entry is still a write, including when one `unset` mixes both kinds
 - `--strict` reports a PHP 8.5 pipe into a first-class callable as the call it makes, with the piped value as the only argument (#135). `$path |> unlink(...)` reports `writes to file system (unlink)`, `$path |> file_get_contents(...) |> strlen(...)` reports `reads from file (file_get_contents)`, and `$code |> exit(...)` reports `terminates the program (exit)`, as the direct calls do. A first-class callable that is only created is still not reported
@@ -131,7 +134,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.2...v1.2.3
