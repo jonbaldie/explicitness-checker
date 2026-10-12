@@ -57,6 +57,9 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'clock-reads.strict' => ['--strict', 'tests/Fixtures/clock-reads.php'],
+    'clock-reads.default' => ['tests/Fixtures/clock-reads.php'],
+    'clock-reads.minimum' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/clock-reads.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],

@@ -280,6 +280,7 @@ class BuiltinCatalogueDetector implements Detector
     protected function classify(Node $node): ?array
     {
         return $this->classifyConstruct($node)
+            ?? DateFormatCall::classify($node)
             ?? $this->classifyNamedInvocation((new LiteralCallable($node))->directCall())
             ?? $this->classifyNamedInvocation($node)
             ?? $this->classifyPipe($node);
@@ -406,13 +407,19 @@ class BuiltinCatalogueDetector implements Detector
     {
         $readsClock = match ($lowerName) {
             'date_create', 'date_create_immutable' => $arguments->readsClock(),
+            'strtotime' => $arguments->strtotimeReadsClock(),
+            'date_create_from_format', 'date_create_immutable_from_format' => $arguments->formatReadsClock(),
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp'),
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp'),
             'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS),
             default => null,
         };
 
-        return $readsClock === null ? null : ($readsClock ? [self::TIME] : []);
+        return match ($readsClock) {
+            null => null,
+            true => [self::TIME],
+            false => [],
+        };
     }
 
     /**

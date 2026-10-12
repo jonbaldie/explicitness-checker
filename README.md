@@ -94,12 +94,14 @@ Run the checker on `app`:
 
 ### Flags
 
+Clock inference uses successful parsing metadata, not sampled current times. Invalid literals produce no proven clock read. For a literal format with non-literal input, a fixed UTC sample exercises its directives; formats that cannot parse that sample remain outside this inference. This is a bounded syntactic check, not a whole-language purity proof.
+
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
-  - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
+  - System time (`time`, `hrtime`, `new DateTime()`, etc.). Literal date strings are checked through PHP's parsed calendar fields: relative or partial dates read the clock; complete fixed dates and fixed-anchor arithmetic do not. `strtotime` also reports non-literal dates unless a non-null base timestamp is supplied. Format parsing reports fields left to now, respects reset directives and escaping, and leaves non-literal formats outside its inference
   - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
   - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
