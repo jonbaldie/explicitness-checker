@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-12
+
 ### Added
 
 - Default mode reports writes through `$this->property` outside constructor bodies (#157). Reads and constructor initialization remain opt-in through props. This can add Serious rows, lower explicitness percentages and raise a clean run to exit 2. Internal state now flows through immutable snapshots while directory discovery streams its unchecked outcomes, preserving the stronger default self-check
 - CLI-only `--transitive` propagates direct input/output findings through a bounded selected-file function and lexical-class call graph, with Serious immediate-callee `callsAction` findings (#158). Default analysis and PHPStan behavior remain unchanged
 - Default mode reports namespace-resolved Laravel facade calls with arguments as possible static reads and writes (#156). This can add Serious rows, lower explicitness percentages, and raise a clean run to exit 2
 - Strict clock findings cover relative and partial date literals, implicit-base `strtotime`, and date format parsing with fields left to the clock (#161)
-
 - A no-argument call to a function that is not a built-in is reported as both a possible read and a possible write (`may read via function auth()` and `may write via function auth()`), category `functionCall`, Serious, in default mode as well as with `--strict` and `--props` (#155). The name is the resolved spelling, so `namespace\time()` inside `namespace App` is `App\time` and `use function Other\time` is `Other\time`. `time()` and `strlen()` stay out. Strict catalogue findings are unchanged and are not repeated under `functionCall`. A pure helper such as `collect()` is reported. Helpers with arguments stay unreported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2. An internal that is neither in the catalogue nor loaded in the checker process can be reported as `functionCall`
+- CLI supports `-h` and `--help` flags, displaying usage synopsis and option descriptions to standard output and exiting 0 (#153)
 
 ### Fixed
 
@@ -157,7 +159,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.2.3...v1.3.0
