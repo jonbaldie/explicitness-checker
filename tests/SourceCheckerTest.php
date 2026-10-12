@@ -395,10 +395,6 @@ class SourceCheckerTest extends TestCase
         self::assertSame($this->summaries($results), $this->summaries($props));
     }
 
-    /**
-     * A direct empty call is a possible read and a possible write in every
-     * mode. time() stays a strict time finding. strlen() stays quiet.
-     */
     public function testReportsArgumentlessFunctionCallsInEveryMode(): void
     {
         $source = <<<'PHP'
@@ -594,8 +590,7 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
-     * \exit() and \die() parse as function calls. This rule stays quiet.
-     * Strict mode still reports that they terminate the program.
+     * `\exit()` and `\die()` parse as function calls.
      */
     public function testQualifiedExitAndDieProduceNoFunctionCallFinding(): void
     {
@@ -630,9 +625,7 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
-     * Unqualified time() and strlen() inside a namespace stay the global
-     * built-ins. namespace\time() is App\time. Auth() keeps its case.
-     * TIME() stays a strict time finding.
+     * Unqualified `time()` and `strlen()` inside a namespace stay the global built-ins. `namespace\time()` is `App\time`.
      */
     public function testNamespacedCallsUseTheResolvedSpelling(): void
     {

@@ -66,12 +66,6 @@ class GlobalsArrayTest extends TestCase
         );
     }
 
-    /**
-     * Walk runs detectors, so Detect must not depend on Walk. The exception is
-     * ReportableFunctionCall, which asks ByReferenceParameters whether a name
-     * is internal. The reflector stays in Walk. Walk asks GlobalsArray, not a
-     * detector, what a `$GLOBALS` fetch is.
-     */
     public function testDetectAndWalkDependOnEachOtherInOneDirectionOnly(): void
     {
         self::assertSame(['ReportableFunctionCall.php'], $this->filesNaming('Detect', 'ExplicitnessChecker\\Walk\\'));

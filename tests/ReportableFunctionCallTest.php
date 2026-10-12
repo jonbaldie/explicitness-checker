@@ -14,20 +14,9 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
     use PhpParser\ParserFactory;
     use PHPUnit\Framework\TestCase;
 
-    /**
-     * spelling() is the only exclusion decision. The catalogue arm is visible
-     * when reflection never claims a built-in. The real reflector excludes
-     * internals the running PHP can see, and still reports a function this
-     * process defined.
-     */
     class ReportableFunctionCallTest extends TestCase
     {
-        /**
-         * A catalogue claim stays quiet even though isBuiltin is false.
-         * strlen() is not a claim, so the same reflector returns its spelling.
-         *
-         * @dataProvider catalogueArm
-         */
+        /** @dataProvider catalogueArm */
         public function testCatalogueArmWhenReflectionClaimsNothing(string $source, ?string $expected): void
         {
             $reportable = new ReportableFunctionCall(new SyntheticByReferenceParameters([]));
@@ -35,9 +24,6 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             self::assertSame($expected, $reportable->spelling($this->expression($source)));
         }
 
-        /**
-         * @return list<array{string, string|null}>
-         */
         public static function catalogueArm(): array
         {
             return [
@@ -63,14 +49,7 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             ];
         }
 
-        /**
-         * Loaded internals stay quiet. An unknown name, and a user-defined
-         * function already loaded in this process, are reported. A user
-         * function whose name starts with ob_ stays quiet because the prefix
-         * is a catalogue claim checked before reflection.
-         *
-         * @dataProvider runningPhp
-         */
+        /** @dataProvider runningPhp */
         public function testRunningPhpExcludesInternalsAndReportsUserFunctions(string $source, ?string $expected): void
         {
             $reportable = new ReportableFunctionCall();
@@ -78,9 +57,6 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             self::assertSame($expected, $reportable->spelling($this->expression($source)));
         }
 
-        /**
-         * @return list<array{string, string|null}>
-         */
         public static function runningPhp(): array
         {
             return [
@@ -95,8 +71,7 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
         }
 
         /**
-         * An argument, an unpack, a first-class callable, or a callee that is
-         * not a name stays quiet. Bare exit and die are constructs, not calls.
+         * Bare exit and die are constructs, not calls.
          *
          * @dataProvider quietShapes
          */
@@ -107,9 +82,6 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             self::assertNull($reportable->spelling($this->expression($source)));
         }
 
-        /**
-         * @return list<array{string}>
-         */
         public static function quietShapes(): array
         {
             return [
@@ -126,20 +98,12 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             ];
         }
 
-        /**
-         * The entry list comes from the same classify path as detect(), so
-         * argument-dependent names and prefixes count, and unknown names do not.
-         *
-         * @dataProvider emptyCallClaims
-         */
+        /** @dataProvider emptyCallClaims */
         public function testWouldReportEmptyCallWhenTheCatalogueHasEntries(string $name, bool $claimed): void
         {
             self::assertSame($claimed, (new BuiltinCatalogueDetector())->wouldReportEmptyCall($name));
         }
 
-        /**
-         * @return list<array{string, bool}>
-         */
         public static function emptyCallClaims(): array
         {
             return [

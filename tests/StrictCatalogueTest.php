@@ -562,11 +562,6 @@ class StrictCatalogueTest extends TestCase
         ]);
     }
 
-    /**
-     * ob_ names write to standard output. my_ob_start does not start with
-     * that prefix, so the catalogue stays quiet and the empty call is reported
-     * as a function call.
-     */
     public function testReportsOutputBufferingAsStandardOutput(): void
     {
         $stdout = static fn (string $name): array => [[], [['writes to standard output (' . $name . ')', Category::STANDARD_OUTPUT]]];

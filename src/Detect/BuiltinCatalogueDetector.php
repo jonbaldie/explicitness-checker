@@ -242,11 +242,6 @@ class BuiltinCatalogueDetector implements Detector
         'getopt' => [self::SUPERGLOBAL_READ],
     ];
 
-    /**
-     * Whether an empty call of this resolved name is one the strict catalogue
-     * would already report. Classifies a synthetic empty call and does not
-     * record findings.
-     */
     public function wouldReportEmptyCall(string $resolvedName): bool
     {
         $entries = $this->classify(new Expr\FuncCall(new Name($resolvedName), []))[1] ?? [];

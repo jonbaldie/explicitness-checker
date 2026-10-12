@@ -9,25 +9,6 @@ use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 
-/**
- * The spelling of a direct, named, zero-argument call that default mode
- * should report, or null when this rule stays quiet.
- *
- * Quiet covers every other node shape, a callee that is not a Name, a
- * non-empty argument list (arguments, unpack, and first-class `...`),
- * a name the strict catalogue would already report for an empty call,
- * and a name the running PHP reports as internal.
- *
- * A user-defined function loaded in this process is reported. An unknown
- * name is reported. The checker does not include the analysed file.
- *
- * Pass Name::toString() through unchanged. The full spelling is the
- * catalogue key and the reflection key. 'App\time' is not the built-in
- * 'time'. Case folding stays inside the catalogue and inside isBuiltin.
- *
- * Detectors call this method. They do not combine wouldReportEmptyCall
- * with ByReferenceParameters::isBuiltin themselves.
- */
 final class ReportableFunctionCall
 {
     protected ByReferenceParameters $loaded;
