@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- RunSummary aggregates discovered and per-file results, including empty runs; CLI output and exit-code policy remain unchanged (#133)
+
 - A no-argument static call is reported as both a possible read and a possible write (`may read via static method Class::method()` and `may write via static method Class::method()`), because the checker cannot tell the direction (#154). An existing row gains an output. The functions reported, the severity, the explicit counts, and the exit code stay the same. Calls with arguments, calls on `self`, `parent`, or `static`, and first-class callables stay unreported
 
 ## [1.3.2] - 2026-10-11
