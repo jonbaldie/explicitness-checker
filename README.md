@@ -74,7 +74,7 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
+- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. The checker cannot tell whether that call reads or writes, so the row lists a possible read and a possible write. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -154,7 +154,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
 - **Serious** (Exit code 2): Shared state access
   - Global variables (`global`, `$GLOBALS`)
   - Superglobals (`$_GET`, `$_POST`, `$_SESSION`, etc.)
-  - Static method calls with no arguments (`ClassName::method()`)
+  - Static method calls with no arguments (`ClassName::method()`), as a possible read and a possible write
   - Static properties (`ClassName::$property`)
   - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
@@ -273,7 +273,7 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Global variable (`global $x`) | `explicitness.globalVariable` | default |
 | Superglobal (`$_GET`, `$_ENV`, etc.; `filter_input` with `strict`) | `explicitness.superglobal` | default |
 | `$GLOBALS` array | `explicitness.globalsArray` | default |
-| Static method call with no arguments (`ClassName::method()`, not `self::`, `parent::` or `static::`) | `explicitness.staticCall` | default |
+| Static method call with no arguments (`ClassName::method()`, not `self::`, `parent::` or `static::`), as a possible read and a possible write | `explicitness.staticCall` | default |
 | Static property (`ClassName::$property`) | `explicitness.staticProperty` | default |
 | Write through a by-reference parameter or an object argument's property | `explicitness.argumentMutation` | default |
 | `static` variable (`static $x`) | `explicitness.staticVariable` | default |
