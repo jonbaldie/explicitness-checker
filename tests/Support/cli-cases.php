@@ -82,10 +82,9 @@ return $cases + [
     // in any casing must be detected in strict mode.
     'case-insensitive-functions.strict' => ['--strict', 'tests/Fixtures/case-insensitive-functions.php'],
 
-    // A static call with no arguments gets its data from outside the function's
-    // arguments, so it is an implicit input in default mode.
+    // A no-argument static call may read or write, so default mode reports both.
     'static-call.default' => ['tests/Fixtures/static-call.php'],
-    // #137: dynamic static calls are reported as implicit inputs.
+    // #137: dynamic static calls use "..." for the dynamic class or method.
     'dynamic-static-call.default' => ['tests/Fixtures/dynamic-static-call.php'],
 
     // #81: dynamic global accesses are pinned in default mode.

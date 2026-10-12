@@ -86,7 +86,7 @@ class OverdueReminders
 }
 ```
 
-Checking all of `app` reports the shell. That is where the input belongs:
+Checking all of `app` reports the shell. That is where the static call belongs:
 
 ```console
 $ ./vendor/bin/explicitness-checker app
@@ -94,11 +94,11 @@ Analyzing...
 
 Results:
 
-+-----------------------------------------------+------+---------------------------------------------------+-----------------------------------------------------+------------------+----------+
-| File                                          | Line | Function                                          | Implicit Inputs                                     | Implicit Outputs | Severity |
-+-----------------------------------------------+------+---------------------------------------------------+-----------------------------------------------------+------------------+----------+
-| app/Console/Commands/SendOverdueReminders.php | 14   | App\Console\Commands\SendOverdueReminders::handle | read from static method App\Models\Invoice::query() |                  | Serious  |
-+-----------------------------------------------+------+---------------------------------------------------+-----------------------------------------------------+------------------+----------+
++-----------------------------------------------+------+---------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------+----------+
+| File                                          | Line | Function                                          | Implicit Inputs                                        | Implicit Outputs                                        | Severity |
++-----------------------------------------------+------+---------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------+----------+
+| app/Console/Commands/SendOverdueReminders.php | 14   | App\Console\Commands\SendOverdueReminders::handle | may read via static method App\Models\Invoice::query() | may write via static method App\Models\Invoice::query() | Serious  |
++-----------------------------------------------+------+---------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------+----------+
 ...
 ```
 
@@ -123,7 +123,7 @@ The same exempting run now catches it and exits with code 2:
 ```console
 $ ./vendor/bin/explicitness-checker --exclude=app/Console app
 ...
-| app/Billing/OverdueReminders.php | 14   | App\Billing\OverdueReminders::due | read from static method Illuminate\Support\Carbon::now() |                  | Serious  |
+| app/Billing/OverdueReminders.php | 14   | App\Billing\OverdueReminders::due | may read via static method Illuminate\Support\Carbon::now() | may write via static method Illuminate\Support\Carbon::now() | Serious  |
 ```
 
 ## Symfony worked example
@@ -193,12 +193,12 @@ class TrialExpiry
 }
 ```
 
-With `--strict --props`, the checker reports both of the shell's inputs on one row, and the run exits with code 2:
+With `--strict --props`, the checker reports the shell's property read and the static call on one row, and the run exits with code 2:
 
 ```console
 $ ./vendor/bin/explicitness-checker --strict --props src
 ...
-| src/Command/ExpireTrialsCommand.php | 21   | App\Command\ExpireTrialsCommand::execute | read from object property $this->accounts; read from static method Symfony\Component\Clock\Clock::get() |                  | Serious  |
+| src/Command/ExpireTrialsCommand.php | 21   | App\Command\ExpireTrialsCommand::execute | read from object property $this->accounts; may read via static method Symfony\Component\Clock\Clock::get() | may write via static method Symfony\Component\Clock\Clock::get() | Serious  |
 ```
 
 Exclude the shell. This run exits with code 0:

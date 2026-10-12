@@ -2,13 +2,13 @@ Analyzing...
 
 Results:
 
-+----------------------------------------+------+----------------+--------------------------------------+------------------+----------+
-| File                                   | Line | Function       | Implicit Inputs                      | Implicit Outputs | Severity |
-+----------------------------------------+------+----------------+--------------------------------------+------------------+----------+
-| tests/Fixtures/dynamic-static-call.php | 3    | dynamic        | read from static method ...::now()   |                  | Serious  |
-| tests/Fixtures/dynamic-static-call.php | 8    | parenthesized  | read from static method ...::now()   |                  | Serious  |
-| tests/Fixtures/dynamic-static-call.php | 13   | dynamic_method | read from static method Clock::...() |                  | Serious  |
-+----------------------------------------+------+----------------+--------------------------------------+------------------+----------+
++----------------------------------------+------+----------------+-----------------------------------------+------------------------------------------+----------+
+| File                                   | Line | Function       | Implicit Inputs                         | Implicit Outputs                         | Severity |
++----------------------------------------+------+----------------+-----------------------------------------+------------------------------------------+----------+
+| tests/Fixtures/dynamic-static-call.php | 3    | dynamic        | may read via static method ...::now()   | may write via static method ...::now()   | Serious  |
+| tests/Fixtures/dynamic-static-call.php | 8    | parenthesized  | may read via static method ...::now()   | may write via static method ...::now()   | Serious  |
+| tests/Fixtures/dynamic-static-call.php | 13   | dynamic_method | may read via static method Clock::...() | may write via static method Clock::...() | Serious  |
++----------------------------------------+------+----------------+-----------------------------------------+------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)

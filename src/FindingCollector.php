@@ -11,8 +11,8 @@ use PhpParser\Node;
  * each description in the order it was found, inputs and outputs together.
  *
  * One map serves both directions: every description names its direction
- * ("read from …" or "wrote to …", "reads …" or "writes …"), so an input and an
- * output never share one.
+ * ("read from …" or "wrote to …", "reads …" or "writes …", "may read …" or
+ * "may write …"), so an input and an output never share one.
  */
 class FindingCollector
 {

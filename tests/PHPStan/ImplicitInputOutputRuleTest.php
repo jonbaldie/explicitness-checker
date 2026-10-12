@@ -826,16 +826,20 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     public function testArgumentlessStaticCallsInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STATIC_CALL_FIXTURE, [
-            [4, 'staticCall', 'accesses_static_helper read from static method SomeClass::staticMethod().'],
+            [4, 'staticCall', 'accesses_static_helper may read via static method SomeClass::staticMethod().'],
+            [4, 'staticCall', 'accesses_static_helper may write via static method SomeClass::staticMethod().'],
         ]);
     }
 
     public function testDynamicStaticCallsInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::DYNAMIC_STATIC_CALL_FIXTURE, [
-            [5, 'staticCall', 'dynamic read from static method ...::now().'],
-            [10, 'staticCall', 'parenthesized read from static method ...::now().'],
-            [17, 'staticCall', 'dynamic_method read from static method Clock::...().'],
+            [5, 'staticCall', 'dynamic may read via static method ...::now().'],
+            [5, 'staticCall', 'dynamic may write via static method ...::now().'],
+            [10, 'staticCall', 'parenthesized may read via static method ...::now().'],
+            [10, 'staticCall', 'parenthesized may write via static method ...::now().'],
+            [17, 'staticCall', 'dynamic_method may read via static method Clock::...().'],
+            [17, 'staticCall', 'dynamic_method may write via static method Clock::...().'],
         ]);
     }
 

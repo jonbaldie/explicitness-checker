@@ -239,11 +239,10 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
-     * A static call with no arguments can only get its data from outside the
-     * function's arguments. Calls that pass arguments, calls on the current
-     * class (self::, parent::, static::), and first-class callables
-     * (`Str::make(...)`) are not reported. Calls with dynamic classes or
-     * methods are reported with `...` placeholders.
+     * A static call with no arguments may read or write, so both are reported.
+     * Calls that pass arguments, calls on the current class (self::, parent::,
+     * static::), and first-class callables (`Str::make(...)`) are not reported.
+     * Calls with dynamic classes or methods are reported with `...` placeholders.
      */
     public function testReportsArgumentlessStaticCallsAsImplicitInputsInDefaultMode(): void
     {
@@ -264,14 +263,20 @@ class SourceCheckerTest extends TestCase
         self::assertSame(
             [
                 ['App\accesses_static_helper', 3, [
-                    'read from static method App\SomeClass::staticMethod()',
-                    'read from static method Other\Clock::NOW()',
-                ], []],
+                    'may read via static method App\SomeClass::staticMethod()',
+                    'may read via static method Other\Clock::NOW()',
+                ], [
+                    'may write via static method App\SomeClass::staticMethod()',
+                    'may write via static method Other\Clock::NOW()',
+                ]],
                 ['App\Child::m', 8, [], []],
                 ['App\dynamic', 10, [
-                    'read from static method ...::make()',
-                    'read from static method App\SomeClass::...()',
-                ], []],
+                    'may read via static method ...::make()',
+                    'may read via static method App\SomeClass::...()',
+                ], [
+                    'may write via static method ...::make()',
+                    'may write via static method App\SomeClass::...()',
+                ]],
             ],
             $this->summaries($results),
         );
@@ -344,16 +349,16 @@ class SourceCheckerTest extends TestCase
 
         self::assertSame(
             [
-                ['literal', 3, ['read from static method Clock::now()'], []],
-                ['dynamic', 8, ['read from static method ...::now()'], []],
-                ['parenthesized', 13, ['read from static method ...::now()'], []],
-                ['dynamic_method', 18, ['read from static method Clock::...()'], []],
-                ['dynamic_both', 25, ['read from static method ...::...()'], []],
+                ['literal', 3, ['may read via static method Clock::now()'], ['may write via static method Clock::now()']],
+                ['dynamic', 8, ['may read via static method ...::now()'], ['may write via static method ...::now()']],
+                ['parenthesized', 13, ['may read via static method ...::now()'], ['may write via static method ...::now()']],
+                ['dynamic_method', 18, ['may read via static method Clock::...()'], ['may write via static method Clock::...()']],
+                ['dynamic_both', 25, ['may read via static method ...::...()'], ['may write via static method ...::...()']],
                 ['ignored_static_calls', 32, [], []],
                 ['global_with_dynamic_static_call', 44, [
-                    'read from static method ...::now()',
+                    'may read via static method ...::now()',
                     'read from global variable $class',
-                ], []],
+                ], ['may write via static method ...::now()']],
                 ['Clock::now', 53, [], []],
             ],
             $this->summaries($results),
