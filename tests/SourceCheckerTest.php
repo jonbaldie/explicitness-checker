@@ -363,6 +363,42 @@ class SourceCheckerTest extends TestCase
         self::assertSame($this->summaries($results), $this->summaries($strictResults));
     }
 
+    /**
+     * A no-argument static call may read or write. The checker reports both,
+     * and a repeated call keeps the first line of each direction.
+     */
+    public function testArgumentlessStaticCallReportsPossibleReadAndWrite(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function flush_cache(): void
+            {
+                Cache::flush();
+                Cache::flush();
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [[
+                'flush_cache',
+                2,
+                ['may read via static method Cache::flush()'],
+                ['may write via static method Cache::flush()'],
+            ]],
+            $this->summaries($results),
+        );
+        self::assertSame(4, $results[0]->getInputs()[0]->getLine());
+        self::assertSame(4, $results[0]->getOutputs()[0]->getLine());
+        self::assertSame(Category::STATIC_CALL, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::STATIC_CALL, $results[0]->getOutputs()[0]->getCategory());
+
+        $strict = (new SourceChecker())->check($source, new Mode(true, false));
+        $props = (new SourceChecker())->check($source, new Mode(false, true));
+        self::assertSame($this->summaries($results), $this->summaries($strict));
+        self::assertSame($this->summaries($results), $this->summaries($props));
+    }
+
     public function testClassifiesExitAndDieByArgument(): void
     {
         $source = <<<'PHP'
