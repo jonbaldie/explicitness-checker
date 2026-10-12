@@ -89,11 +89,12 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 ### Flags
 
+- `--help` or `-h`: Show this help message and exit
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
