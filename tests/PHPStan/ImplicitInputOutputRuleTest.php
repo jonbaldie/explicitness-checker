@@ -723,6 +723,38 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testDirectProcessStateInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/process-state.php', [
+            [4, 'runtimeConfig', 'state_0 reads runtime configuration (json_last_error).'],
+            [8, 'runtimeConfig', 'state_1 reads runtime configuration (json_last_error_msg).'],
+            [12, 'runtimeConfig', 'state_2 reads runtime configuration (preg_last_error).'],
+            [16, 'runtimeConfig', 'state_3 reads runtime configuration (preg_last_error_msg).'],
+            [20, 'runtimeConfig', 'state_4 reads runtime configuration (error_get_last).'],
+            [24, 'runtimeConfig', 'state_5 reads runtime configuration (libxml_get_errors).'],
+            [28, 'runtimeConfig', 'state_6 reads runtime configuration (libxml_get_last_error).'],
+            [32, 'runtimeConfig', 'state_7 reads runtime configuration (getcwd).'],
+            [36, 'runtimeConfig', 'state_8 writes runtime configuration (error_clear_last).'],
+            [40, 'runtimeConfig', 'state_9 writes runtime configuration (libxml_clear_errors).'],
+            [44, 'runtimeConfig', 'state_10 writes runtime configuration (chdir).'],
+            [48, 'runtimeConfig', 'state_11 reads runtime configuration (libxml_use_internal_errors).'],
+            [52, 'runtimeConfig', 'state_12 reads runtime configuration (libxml_use_internal_errors).'],
+            [56, 'runtimeConfig', 'state_13 writes runtime configuration (libxml_use_internal_errors).'],
+            [60, 'runtimeConfig', 'state_14 reads runtime configuration (mb_internal_encoding).'],
+            [64, 'runtimeConfig', 'state_15 reads runtime configuration (mb_internal_encoding).'],
+            [68, 'runtimeConfig', 'state_16 writes runtime configuration (mb_internal_encoding).'],
+            [72, 'runtimeConfig', 'state_17 reads runtime configuration (umask).'],
+            [76, 'runtimeConfig', 'state_18 reads runtime configuration (umask).'],
+            [80, 'runtimeConfig', 'state_19 writes runtime configuration (umask).'],
+        ]);
+    }
+
+    public function testDirectProcessStateInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/process-state.php', []);
+    }
+
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);

@@ -1102,5 +1102,13 @@
     "strict-catalogue-additions.default": {
         "exitCode": 0,
         "stderr": ""
+    },
+    "process-state.strict": {
+        "stderr": "",
+        "exitCode": 3
+    },
+    "process-state.default": {
+        "stderr": "",
+        "exitCode": 0
     }
 }
