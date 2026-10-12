@@ -89,13 +89,14 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 ### Flags
 
 Randomness findings identify construction sites. A caller-provided Randomizer engine remains explicit; the checker does not prove that passed engines are seeded or deterministic. Inline secure and unseeded engine constructions are reported separately.
 
+- `--help` or `-h`: Show this help message and exit
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
@@ -103,7 +104,8 @@ Randomness findings identify construction sites. A caller-provided Randomizer en
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
   - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
   - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` with an omitted/null engine, `new Random\Engine\Secure()`, and seedable Random engines with an omitted/null seed, etc.)
-  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
+  - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
+  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 

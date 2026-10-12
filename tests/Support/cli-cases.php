@@ -59,6 +59,8 @@ foreach ($targets as $targetName => $target) {
 return $cases + [
     'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
     'random-engines.default' => ['tests/Fixtures/random-engines.php'],
+    'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
+    'process-state.default' => ['tests/Fixtures/process-state.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
@@ -205,6 +207,13 @@ return $cases + [
     'unknown-option-missing-path' => ['--stict'],
     'unknown-option-before-invalid-pattern' => ['--include-pattern=src/(', '--stict', 'test-fixtures'],
     'known-option-value-with-dash' => ['--exclude-pattern', '-nothing', '--strict', 'tests/Fixtures/cli/minor-only.php'],
+
+    // #153: --help and -h print help and exit 0.
+    'help-long' => ['--help'],
+    'help-short' => ['-h'],
+    'help-with-path' => ['--help', 'tests/Fixtures/cli/minor-only.php'],
+    'help-short-with-path' => ['-h', 'tests/Fixtures/cli/minor-only.php'],
+    'help-with-invalid-pattern' => ['--include-pattern=(', '--help'],
 
     // Same-basename files must stay distinct in the File column (#24).
     'same-basename' => ['tests/Fixtures/same-basename'],

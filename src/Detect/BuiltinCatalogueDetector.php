@@ -235,6 +235,17 @@ class BuiltinCatalogueDetector implements Detector
         'define' => [self::CONFIG_WRITE],
         'register_shutdown_function' => [self::CONFIG_WRITE],
         'set_time_limit' => [self::CONFIG_WRITE],
+        'json_last_error' => [self::CONFIG_READ],
+        'json_last_error_msg' => [self::CONFIG_READ],
+        'preg_last_error' => [self::CONFIG_READ],
+        'preg_last_error_msg' => [self::CONFIG_READ],
+        'error_get_last' => [self::CONFIG_READ],
+        'libxml_get_errors' => [self::CONFIG_READ],
+        'libxml_get_last_error' => [self::CONFIG_READ],
+        'getcwd' => [self::CONFIG_READ],
+        'error_clear_last' => [self::CONFIG_WRITE],
+        'libxml_clear_errors' => [self::CONFIG_WRITE],
+        'chdir' => [self::CONFIG_WRITE],
         'ini_get' => [self::CONFIG_READ],
         'date_default_timezone_get' => [self::CONFIG_READ],
         'filter_input' => [self::SUPERGLOBAL_READ],
@@ -247,6 +258,13 @@ class BuiltinCatalogueDetector implements Detector
         'random\engine\mt19937' => 'seed',
         'random\engine\xoshiro256starstar' => 'seed',
         'random\engine\pcgoneseq128xslrr64' => 'seed',
+    ];
+
+    protected const CONFIG_PARAMETERS = [
+        'ignore_user_abort' => 'enable',
+        'libxml_use_internal_errors' => 'use_errors',
+        'mb_internal_encoding' => 'encoding',
+        'umask' => 'mask',
     ];
 
     public function wouldReportEmptyCall(string $resolvedName): bool
@@ -387,7 +405,8 @@ class BuiltinCatalogueDetector implements Detector
                 'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
                 'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
                 'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-                'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
+                'ignore_user_abort', 'libxml_use_internal_errors', 'mb_internal_encoding', 'umask'
+                    => $arguments->omits(0, self::CONFIG_PARAMETERS[$lowerName]) ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
                 'http_response_code' => $arguments->omitsOrZero(0, 'response_code') ? [self::HEADERS_READ] : [self::HEADERS],
                 default => $this->catalogueEntries($lowerName),
             };

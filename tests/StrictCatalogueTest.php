@@ -18,6 +18,68 @@ use PHPUnit\Framework\TestCase;
  */
 class StrictCatalogueTest extends TestCase
 {
+    public function testReportsDirectProcessStateAccessors(): void
+    {
+        $read = static fn (string $name): array => [[['reads runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]], []];
+        $write = static fn (string $name): array => [[], [['writes runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]]];
+        $this->assertFindings([
+            'json_last_error()' => $read('json_last_error'),
+            'json_last_error_msg()' => $read('json_last_error_msg'),
+            'preg_last_error()' => $read('preg_last_error'),
+            'preg_last_error_msg()' => $read('preg_last_error_msg'),
+            'error_get_last()' => $read('error_get_last'),
+            'libxml_get_errors()' => $read('libxml_get_errors'),
+            'libxml_get_last_error()' => $read('libxml_get_last_error'),
+            'getcwd()' => $read('getcwd'),
+            'error_clear_last()' => $write('error_clear_last'),
+            'libxml_clear_errors()' => $write('libxml_clear_errors'),
+            'chdir($a)' => $write('chdir'),
+            'libxml_use_internal_errors()' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(null)' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(use_errors: NULL)' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(false)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(true)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors($a)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(use_errors: $a)' => $write('libxml_use_internal_errors'),
+            'mb_internal_encoding()' => $read('mb_internal_encoding'),
+            'mb_internal_encoding(null)' => $read('mb_internal_encoding'),
+            'mb_internal_encoding(encoding: NULL)' => $read('mb_internal_encoding'),
+            'mb_internal_encoding("UTF-8")' => $write('mb_internal_encoding'),
+            'mb_internal_encoding($a)' => $write('mb_internal_encoding'),
+            'mb_internal_encoding(encoding: $a)' => $write('mb_internal_encoding'),
+            'umask()' => $read('umask'),
+            'umask(null)' => $read('umask'),
+            'umask(mask: NULL)' => $read('umask'),
+            'umask(0)' => $write('umask'),
+            'umask($a)' => $write('umask'),
+            'umask(mask: $a)' => $write('umask'),
+            'json_last_error(...)' => [[], []],
+            '("json_last_error")()' => $read('json_last_error'),
+            'libxml_use_internal_errors(); libxml_use_internal_errors(false)' => [
+                [['reads runtime configuration (libxml_use_internal_errors)', Category::RUNTIME_CONFIG]],
+                [['writes runtime configuration (libxml_use_internal_errors)', Category::RUNTIME_CONFIG]],
+            ],
+            '\\JSON_Last_Error()' => $read('JSON_Last_Error'),
+        ]);
+    }
+
+    public function testProcessStateNamesRespectNamespaces(): void
+    {
+        $source = '<?php namespace App; use function Other\\json_last_error as foreign_error;
+            function local($a) { json_last_error(); }
+            function imported($a) { foreign_error(); }
+            function qualified($a) { \\Other\\json_last_error(); }';
+        self::assertSame([
+            [['reads runtime configuration (json_last_error)', Category::RUNTIME_CONFIG]], [],
+        ], $this->findingsIn($source, 0));
+        $helper = [
+            [['may read via function Other\\json_last_error()', Category::FUNCTION_CALL]],
+            [['may write via function Other\\json_last_error()', Category::FUNCTION_CALL]],
+        ];
+        self::assertSame($helper, $this->findingsIn($source, 1));
+        self::assertSame($helper, $this->findingsIn($source, 2));
+    }
+
     public function testReportsNetworkAccess(): void
     {
         $this->assertFindings([
