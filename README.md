@@ -89,21 +89,25 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 ### Flags
 
 Clock inference uses successful parsing metadata, not sampled current times. Invalid literals produce no proven clock read. For a literal format with non-literal input, a fixed UTC sample exercises its directives; formats that cannot parse that sample remain outside this inference. This is a bounded syntactic check, not a whole-language purity proof.
 
+Randomness findings identify construction sites. A caller-provided Randomizer engine remains explicit; the checker does not prove that passed engines are seeded or deterministic. Inline secure and unseeded engine constructions are reported separately.
+
+- `--help` or `-h`: Show this help message and exit
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
   - System time (`time`, `hrtime`, `new DateTime()`, etc.). Literal date strings are checked through PHP's parsed calendar fields: relative or partial dates read the clock; complete fixed dates and fixed-anchor arithmetic do not. `strtotime` also reports non-literal dates unless a non-null base timestamp is supplied. Format parsing reports fields left to now, respects reset directives and escaping, and leaves non-literal formats outside its inference
-  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
-  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
+  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` with an omitted/null engine, `new Random\Engine\Secure()`, and seedable Random engines with an omitted/null seed, etc.)
+  - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
+  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 
@@ -159,7 +163,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Static method calls with no arguments (`ClassName::method()`), as a possible read and a possible write
   - Function calls with no arguments (`auth()`, `now()`, `request()`), as a possible read and a possible write. A call the strict catalogue already recognises, including `time()`, `date()`, `session_id()`, and the `mysqli_` / `ob_` families, stays out of this category even when that extension is not loaded. Other loaded internals, such as `strlen()`, stay out too. `collect()` is still reported.
   - Static properties (`ClassName::$property`)
-  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
+  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`, or `foreach ($carts as $cart) { $cart->items = []; }`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
   - Instance properties (`$this->property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
@@ -171,6 +175,8 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Session functions (`session_start`, `session_id`) (*strict*)
   - Error logging (`error_log`, `trigger_error`, `syslog`) (*strict*)
   - Network, databases, external processes, email, `include`/`require` and runtime configuration (*strict*)
+
+**Object handles through locals.** Assignment, foreach values, destructuring and alias chains retain the root argument: `$first = $carts[0]; $first->items = [];` reports `wrote to argument $carts`. A straight-line fresh or unrelated local rebinding, or `unset($first)`, clears that local's origin. Conditional rebinding conservatively retains possible roots. Arrays still copy by value: `$copy = $carts; $copy[] = 1;` is clean, but `$copy[0]->items = [];` writes a shared object. A shallow clone's top-level writes are clean (`$copy = clone $cart; $copy->items = [];`), while nested object writes (`$copy->parent->items = [];` or `$copy->items[0]->x = 1;`) are reported. This is bounded syntactic provenance for ordinary objects and arrays, not full heap analysis: return-value aliases, magic getters, custom clone behavior and reference-containing structures are not inferred. By-value closure and arrow captures do not inherit these local origins.
 
 **By-reference built-ins.** A built-in that takes an argument by reference, such as `sort`, `array_push` or `preg_match`'s `$matches`, writes to it. Passing it a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture is reported as a write. Iterating by reference (`foreach ($cart as &$line)`) and binding a reference (`$r = &$cart`, `[&$first] = $cart`) count the same way. The checker asks the PHP that runs it which parameters are by reference, so the result depends on the extensions loaded there: a call to a function from an extension that isn't loaded isn't reported, and two machines with different extensions can report different results for the same code. User-defined functions, and calls that unpack their arguments (`sort(...$lists)`), are never treated as by-reference.
 

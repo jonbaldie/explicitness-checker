@@ -750,6 +750,64 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/clock-reads.php', []);
     }
 
+    public function testRandomEnginesInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', [
+            [10, 'random', 'secure reads from random number generator (Random\\Engine\\Secure).'],
+            [15, 'random', 'nested_secure reads from random number generator (Random\\Engine\\Secure).'],
+            [21, 'random', 'nested_mt reads from random number generator (Random\\Engine\\Mt19937).'],
+            [38, 'random', 'mode_only reads from random number generator (Random\\Engine\\Mt19937).'],
+            [42, 'random', 'case_secure reads from random number generator (random\\engine\\secure).'],
+            [50, 'random', 'mt19937_0 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [54, 'random', 'mt19937_1 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [58, 'random', 'mt19937_2 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [78, 'random', 'xoshiro256starstar_0 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [82, 'random', 'xoshiro256starstar_1 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [86, 'random', 'xoshiro256starstar_2 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [106, 'random', 'pcgoneseq128xslrr64_0 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+            [110, 'random', 'pcgoneseq128xslrr64_1 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+            [114, 'random', 'pcgoneseq128xslrr64_2 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+        ]);
+    }
+
+    public function testRandomEnginesInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', []);
+    }
+
+    public function testDirectProcessStateInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/process-state.php', [
+            [4, 'runtimeConfig', 'state_0 reads runtime configuration (json_last_error).'],
+            [8, 'runtimeConfig', 'state_1 reads runtime configuration (json_last_error_msg).'],
+            [12, 'runtimeConfig', 'state_2 reads runtime configuration (preg_last_error).'],
+            [16, 'runtimeConfig', 'state_3 reads runtime configuration (preg_last_error_msg).'],
+            [20, 'runtimeConfig', 'state_4 reads runtime configuration (error_get_last).'],
+            [24, 'runtimeConfig', 'state_5 reads runtime configuration (libxml_get_errors).'],
+            [28, 'runtimeConfig', 'state_6 reads runtime configuration (libxml_get_last_error).'],
+            [32, 'runtimeConfig', 'state_7 reads runtime configuration (getcwd).'],
+            [36, 'runtimeConfig', 'state_8 writes runtime configuration (error_clear_last).'],
+            [40, 'runtimeConfig', 'state_9 writes runtime configuration (libxml_clear_errors).'],
+            [44, 'runtimeConfig', 'state_10 writes runtime configuration (chdir).'],
+            [48, 'runtimeConfig', 'state_11 reads runtime configuration (libxml_use_internal_errors).'],
+            [52, 'runtimeConfig', 'state_12 reads runtime configuration (libxml_use_internal_errors).'],
+            [56, 'runtimeConfig', 'state_13 writes runtime configuration (libxml_use_internal_errors).'],
+            [60, 'runtimeConfig', 'state_14 reads runtime configuration (mb_internal_encoding).'],
+            [64, 'runtimeConfig', 'state_15 reads runtime configuration (mb_internal_encoding).'],
+            [68, 'runtimeConfig', 'state_16 writes runtime configuration (mb_internal_encoding).'],
+            [72, 'runtimeConfig', 'state_17 reads runtime configuration (umask).'],
+            [76, 'runtimeConfig', 'state_18 reads runtime configuration (umask).'],
+            [80, 'runtimeConfig', 'state_19 writes runtime configuration (umask).'],
+        ]);
+    }
+
+    public function testDirectProcessStateInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/process-state.php', []);
+    }
+
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);
@@ -1040,6 +1098,26 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         self::assertSame($this->cliMessages($fixture, $cliFlags), $ruleMessages);
     }
 
+    public function testCallerOriginsReportRootArgumentsAtThePropertyWrite(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/argument-origins.php', [
+            [9, 'argumentMutation', 'origin_direct wrote to argument $carts.'],
+            [10, 'argumentMutation', 'origin_local wrote to argument $carts.'],
+            [11, 'argumentMutation', 'origin_foreach wrote to argument $carts.'],
+            [12, 'argumentMutation', 'origin_keyed_foreach wrote to argument $carts.'],
+            [13, 'argumentMutation', 'origin_destructure wrote to argument $carts.'],
+            [14, 'argumentMutation', 'origin_list wrote to argument $carts.'],
+            [15, 'argumentMutation', 'origin_keyed wrote to argument $carts.'],
+            [16, 'argumentMutation', 'origin_nested wrote to argument $carts.'],
+            [17, 'argumentMutation', 'origin_alias wrote to argument $cart.'],
+            [18, 'argumentMutation', 'origin_chain wrote to argument $cart.'],
+            [19, 'argumentMutation', 'origin_clone wrote to argument $cart.'],
+            [20, 'argumentMutation', 'origin_clone_array wrote to argument $cart.'],
+            [21, 'argumentMutation', 'origin_join wrote to argument $cart.'],
+            [21, 'argumentMutation', 'origin_join wrote to argument $other.'],
+        ]);
+    }
+
     /**
      * #159: CLI and PHPStan agree on a fresh shallow copy of a by-value parameter.
      */
@@ -1050,8 +1128,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [29, 'argumentMutation', 'write_on_rhs wrote to argument $cart.'],
             [45, 'argumentMutation', 'after_branch wrote to argument $cart.'],
             [59, 'argumentMutation', 'by_reference wrote to argument $cart.'],
-            [66, 'argumentMutation', 'from_other wrote to argument $cart.'],
-            [72, 'argumentMutation', 'from_element wrote to argument $cart.'],
+            [66, 'argumentMutation', 'from_other wrote to argument $other.'],
+            [72, 'argumentMutation', 'from_element wrote to argument $carts.'],
             [78, 'argumentMutation', 'from_call wrote to argument $cart.'],
             [84, 'argumentMutation', 'shallow_parent wrote to argument $cart.'],
             [90, 'argumentMutation', 'shallow_element wrote to argument $cart.'],

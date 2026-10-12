@@ -1,0 +1,35 @@
+Analyzing...
+
+Results:
+
++----------------------------------+------+----------+----------------------------------------------------------+-----------------------------------------------------------+----------+
+| File                             | Line | Function | Implicit Inputs                                          | Implicit Outputs                                          | Severity |
++----------------------------------+------+----------+----------------------------------------------------------+-----------------------------------------------------------+----------+
+| tests/Fixtures/process-state.php | 3    | state_0  | reads runtime configuration (json_last_error)            |                                                           | Critical |
+| tests/Fixtures/process-state.php | 7    | state_1  | reads runtime configuration (json_last_error_msg)        |                                                           | Critical |
+| tests/Fixtures/process-state.php | 11   | state_2  | reads runtime configuration (preg_last_error)            |                                                           | Critical |
+| tests/Fixtures/process-state.php | 15   | state_3  | reads runtime configuration (preg_last_error_msg)        |                                                           | Critical |
+| tests/Fixtures/process-state.php | 19   | state_4  | reads runtime configuration (error_get_last)             |                                                           | Critical |
+| tests/Fixtures/process-state.php | 23   | state_5  | reads runtime configuration (libxml_get_errors)          |                                                           | Critical |
+| tests/Fixtures/process-state.php | 27   | state_6  | reads runtime configuration (libxml_get_last_error)      |                                                           | Critical |
+| tests/Fixtures/process-state.php | 31   | state_7  | reads runtime configuration (getcwd)                     |                                                           | Critical |
+| tests/Fixtures/process-state.php | 35   | state_8  |                                                          | writes runtime configuration (error_clear_last)           | Critical |
+| tests/Fixtures/process-state.php | 39   | state_9  |                                                          | writes runtime configuration (libxml_clear_errors)        | Critical |
+| tests/Fixtures/process-state.php | 43   | state_10 |                                                          | writes runtime configuration (chdir)                      | Critical |
+| tests/Fixtures/process-state.php | 47   | state_11 | reads runtime configuration (libxml_use_internal_errors) |                                                           | Critical |
+| tests/Fixtures/process-state.php | 51   | state_12 | reads runtime configuration (libxml_use_internal_errors) |                                                           | Critical |
+| tests/Fixtures/process-state.php | 55   | state_13 |                                                          | writes runtime configuration (libxml_use_internal_errors) | Critical |
+| tests/Fixtures/process-state.php | 59   | state_14 | reads runtime configuration (mb_internal_encoding)       |                                                           | Critical |
+| tests/Fixtures/process-state.php | 63   | state_15 | reads runtime configuration (mb_internal_encoding)       |                                                           | Critical |
+| tests/Fixtures/process-state.php | 67   | state_16 |                                                          | writes runtime configuration (mb_internal_encoding)       | Critical |
+| tests/Fixtures/process-state.php | 71   | state_17 | reads runtime configuration (umask)                      |                                                           | Critical |
+| tests/Fixtures/process-state.php | 75   | state_18 | reads runtime configuration (umask)                      |                                                           | Critical |
+| tests/Fixtures/process-state.php | 79   | state_19 |                                                          | writes runtime configuration (umask)                      | Critical |
++----------------------------------+------+----------+----------------------------------------------------------+-----------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 20 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
