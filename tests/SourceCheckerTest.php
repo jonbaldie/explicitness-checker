@@ -1487,6 +1487,69 @@ class SourceCheckerTest extends TestCase
 
 
     /**
+     * #159: a straight-line by-value rebinding to clone or new is a fresh
+     * shallow copy. Later writes to that object's own properties are explicit.
+     * A nested object, a join, a by-reference parameter, and any other
+     * rebinding stay writes the caller can observe.
+     */
+    public function testFreshShallowCopyOfAByValueParameterIsNotTheCallersObject(): void
+    {
+        $source = (string) file_get_contents(__DIR__ . '/Fixtures/fresh-shallow-rebind.php');
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['clone_append', 3, [], []],
+                ['new_append', 9, [], []],
+                ['separate_local', 15, [], []],
+                ['write_before', 21, [], ['wrote to argument $cart']],
+                ['write_on_rhs', 27, [], ['wrote to argument $cart']],
+                ['same_arm', 32, [], []],
+                ['after_branch', 40, [], ['wrote to argument $cart']],
+                ['after_unconditional', 48, [], []],
+                ['by_reference', 57, [], ['wrote to argument $cart']],
+                ['from_other', 63, [], ['wrote to argument $cart']],
+                ['from_element', 69, [], ['wrote to argument $cart']],
+                ['from_call', 75, [], ['wrote to argument $cart']],
+                ['shallow_parent', 81, [], ['wrote to argument $cart']],
+                ['shallow_element', 87, [], ['wrote to argument $cart']],
+                ['own_unset_and_sort', 93, [], []],
+                ['global_wins', 100, ['read from global variable $cart'], ['wrote to global variable $cart']],
+                ['alias_wins', 107, ["read from \$GLOBALS['obj']"], ["wrote to \$GLOBALS['obj']"]],
+                ['after_loop', 114, [], ['wrote to argument $cart']],
+                ['logical_and', 122, [], ['wrote to argument $cart']],
+                ['logical_and_left', 128, [], []],
+                ['coalesce_assign', 134, [], ['wrote to argument $cart']],
+                ['for_init', 141, [], []],
+            ],
+            $this->summaries($results),
+        );
+
+        $byName = [];
+        foreach ($results as $result) {
+            $byName[$result->getName()] = $result;
+        }
+
+        $before = $byName['write_before']->getOutputs()[0];
+        self::assertSame(Category::ARGUMENT_MUTATION, $before->getCategory());
+        self::assertTrue($before->isOutput());
+        self::assertSame('cart', $before->getVariable());
+        self::assertSame(23, $before->getLine());
+
+        $byReference = $byName['by_reference']->getOutputs()[0];
+        self::assertSame(Category::ARGUMENT_MUTATION, $byReference->getCategory());
+        self::assertTrue($byReference->isOutput());
+        self::assertSame('cart', $byReference->getVariable());
+        self::assertSame(59, $byReference->getLine());
+
+        $shallow = $byName['shallow_parent']->getOutputs()[0];
+        self::assertSame(Category::ARGUMENT_MUTATION, $shallow->getCategory());
+        self::assertTrue($shallow->isOutput());
+        self::assertSame('cart', $shallow->getVariable());
+        self::assertSame(84, $shallow->getLine());
+    }
+
+    /**
      * @param list<\JonBaldie\ExplicitnessChecker\FunctionResult> $results
      *
      * @return list<array{string, int, list<string>, list<string>}>

@@ -1014,6 +1014,31 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
     }
 
     /**
+     * #159: CLI and PHPStan agree on a fresh shallow copy of a by-value parameter.
+     */
+    public function testFreshShallowCopyAgreesWithTheCli(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/fresh-shallow-rebind.php', [
+            [23, 'argumentMutation', 'write_before wrote to argument $cart.'],
+            [29, 'argumentMutation', 'write_on_rhs wrote to argument $cart.'],
+            [45, 'argumentMutation', 'after_branch wrote to argument $cart.'],
+            [59, 'argumentMutation', 'by_reference wrote to argument $cart.'],
+            [66, 'argumentMutation', 'from_other wrote to argument $cart.'],
+            [72, 'argumentMutation', 'from_element wrote to argument $cart.'],
+            [78, 'argumentMutation', 'from_call wrote to argument $cart.'],
+            [84, 'argumentMutation', 'shallow_parent wrote to argument $cart.'],
+            [90, 'argumentMutation', 'shallow_element wrote to argument $cart.'],
+            [102, 'globalVariable', 'global_wins read from global variable $cart.'],
+            [102, 'globalVariable', 'global_wins wrote to global variable $cart.'],
+            [111, 'globalsArray', 'alias_wins read from $GLOBALS[\'obj\'].'],
+            [111, 'globalsArray', 'alias_wins wrote to $GLOBALS[\'obj\'].'],
+            [119, 'argumentMutation', 'after_loop wrote to argument $cart.'],
+            [125, 'argumentMutation', 'logical_and wrote to argument $cart.'],
+            [138, 'argumentMutation', 'coalesce_assign wrote to argument $cart.'],
+        ]);
+    }
+
+    /**
      * Checks the fixture as the CLI does and turns each report row into the
      * messages the rule should report for it: `<function> <description>.`, sorted.
      *

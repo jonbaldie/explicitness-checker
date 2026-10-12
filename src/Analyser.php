@@ -6,7 +6,7 @@ namespace JonBaldie\ExplicitnessChecker;
 
 use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
 use JonBaldie\ExplicitnessChecker\Scope\BindingsCollector;
-use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
 use PhpParser\Node;
@@ -36,12 +36,12 @@ class Analyser
         $bindings = (new BindingsCollector())->collect($node);
 
         $findings = new FindingCollector();
-        $aliases = new ReferenceAliases();
+        $denotation = new Denotation($bindings);
         $walker = new BodyWalker(
-            (new DetectorSet())->select($bindings, $mode, $aliases),
+            (new DetectorSet())->select($bindings, $mode, $denotation),
             $this->rules,
             $findings,
-            $aliases,
+            $denotation,
         );
         foreach ($node->getStmts() ?? [] as $stmt) {
             $walker->walk($stmt, false);
