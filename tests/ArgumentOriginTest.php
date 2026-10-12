@@ -81,6 +81,9 @@ class ArgumentOriginTest extends TestCase
         yield 'loop replacement' => ['$local = $param; while ($flag) { $local = new stdClass(); } $local->x = 1;', ['param']];
         yield 'short circuit' => ['$local = $param; $flag && ($local = new stdClass()); $local->x = 1;', ['param']];
         yield 'ternary arms' => ['$flag ? ($local = $param) : ($local = $other); $local->x = 1;', ['param', 'other']];
+        yield 'switch fallthrough' => ['switch ($flag) { case 0: $local = $param; case 1: $local->x = 1; }', ['param']];
+        yield 'try finally' => ['try { $local = $param; } finally { $local->x = 1; }', ['param']];
+        yield 'catch possible prior assignment' => ['try { $local = $param; } catch (Exception $error) { $local->x = 1; }', ['param']];
         yield 'nested branches' => ['if ($flag) { if ($flag) { $local = $param; } else { $local = $other; } } $local->x = 1;', ['param', 'other']];
         yield 'alias snapshot' => ['$local = $param; $param = clone $param; $local->x = 1;', ['param']];
         yield 'local snapshot' => ['$first = $param; $local = $first; $first = new stdClass(); $local->x = 1;', ['param']];

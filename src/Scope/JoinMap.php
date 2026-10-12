@@ -22,8 +22,11 @@ class JoinMap
 
     protected const EACH = 'each';
 
+    protected const CASCADE = 'cascade';
+
     /**
-     * Subnode name to prefix, group, or each. The only list of conditional nodes.
+     * Subnode name to prefix, group, independent each, or possible cascade.
+     * The only list of conditional nodes.
      *
      * @var array<string, array<string, string>>
      */
@@ -33,8 +36,8 @@ class JoinMap
         'PhpParser\Node\Stmt\Do_' => ['stmts' => self::GROUP, 'cond' => self::PREFIX],
         'PhpParser\Node\Stmt\For_' => ['init' => self::PREFIX, 'cond' => self::EACH, 'loop' => self::EACH, 'stmts' => self::GROUP],
         'PhpParser\Node\Stmt\Foreach_' => ['expr' => self::PREFIX, 'keyVar' => self::GROUP, 'valueVar' => self::GROUP, 'stmts' => self::GROUP],
-        'PhpParser\Node\Stmt\Switch_' => ['cond' => self::PREFIX, 'cases' => self::EACH],
-        'PhpParser\Node\Stmt\TryCatch' => ['stmts' => self::GROUP, 'catches' => self::EACH, 'finally' => self::EACH],
+        'PhpParser\Node\Stmt\Switch_' => ['cond' => self::PREFIX, 'cases' => self::CASCADE],
+        'PhpParser\Node\Stmt\TryCatch' => ['stmts' => self::GROUP, 'catches' => self::CASCADE, 'finally' => self::CASCADE],
         'PhpParser\Node\Expr\Ternary' => ['cond' => self::PREFIX, 'if' => self::EACH, 'else' => self::EACH],
         'PhpParser\Node\Expr\BinaryOp\BooleanAnd' => ['left' => self::PREFIX, 'right' => self::EACH],
         'PhpParser\Node\Expr\BinaryOp\BooleanOr' => ['left' => self::PREFIX, 'right' => self::EACH],
@@ -154,7 +157,7 @@ class JoinMap
     {
         $slot = $this->slot($parent, $child);
         $id = spl_object_id($parent);
-        if ($slot === self::PREFIX || $slot === self::EACH) {
+        if ($slot !== self::GROUP) {
             if (isset($this->groupOpen[$id])) {
                 unset($this->groupOpen[$id]);
                 $this->closeJoin();
@@ -168,7 +171,11 @@ class JoinMap
 
             return;
         }
-        if ($slot !== self::EACH) {
+        if ($slot === self::CASCADE) {
+            // Fallthrough and exceptions can reach the next arm with earlier bindings.
+            $this->roots = self::merge($this->roots, $this->outcomes[$id] ?? []);
+        }
+        if ($slot !== self::EACH && $slot !== self::CASCADE) {
             return;
         }
 
