@@ -1197,6 +1197,206 @@ class SourceCheckerTest extends TestCase
     }
 
     /**
+     * #160: a local that holds a caller's object is the same output as a
+     * write on the parameter. The finding is the property write, and it
+     * names the root parameter. A copied array, a top-level clone, a fresh
+     * object, and a read stay quiet. #159 is the same fact on the parameter
+     * name.
+     */
+    public function testReportsPropertyWritesThroughLocalsBoundToAnArgument(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function via_local(array $carts): void {
+                $first = $carts[0];
+                $first->items = [];
+            }
+            function via_foreach(array $carts): void {
+                foreach ($carts as $cart) {
+                    $cart->items = [];
+                }
+            }
+            function via_foreach_key(array $carts): void {
+                foreach ($carts as $key => $cart) {
+                    $cart->items = [];
+                }
+            }
+            function via_destructure(array $carts): void {
+                [$first] = $carts;
+                $first->items = [];
+            }
+            function via_keyed(array $carts): void {
+                ['item' => $first] = ['item' => $carts[0]];
+                $first->items = [];
+            }
+            function via_nested_list(array $carts): void {
+                [[$first]] = $carts;
+                $first->items = [];
+            }
+            function via_alias(object $cart): void {
+                $same = $cart;
+                $same->items = [];
+            }
+            function via_chain(object $cart): void {
+                $a = $cart;
+                $b = $a;
+                $b->x = 1;
+            }
+            function shallow_nested(object $cart): void {
+                $copy = clone $cart;
+                $copy->parent->items = [];
+            }
+            function clone_array_object(object $cart): void {
+                $copy = clone $cart;
+                $copy->items[0]->x = 1;
+            }
+            function top_level_clone(object $cart): void {
+                $copy = clone $cart;
+                $copy->a = 1;
+            }
+            function copied_array(array $items): void {
+                $local = $items;
+                $local[] = 1;
+            }
+            function contained_object(array $items): void {
+                $local = $items;
+                $local[0]->x = 1;
+            }
+            function array_literal(object $param): void {
+                $box = [$param];
+                $box[0]->x = 1;
+            }
+            function fresh_rebind(object $cart): void {
+                $local = $cart;
+                $local = new stdClass();
+                $local->x = 1;
+            }
+            function unset_local(object $cart): void {
+                $local = $cart;
+                unset($local);
+                $local = new stdClass();
+                $local->x = 1;
+            }
+            function alias_keeps_origin(object $param): void {
+                $alias = $param;
+                $param = clone $param;
+                $alias->x = 1;
+            }
+            function one_arm_keeps_origin(object $cart, bool $flag): void {
+                $local = $cart;
+                if ($flag) {
+                    $local = new stdClass();
+                }
+                $local->x = 1;
+            }
+            function both_roots(object $a, object $b, bool $flag): void {
+                if ($flag) {
+                    $local = $a;
+                } else {
+                    $local = $b;
+                }
+                $local->x = 1;
+            }
+            function foreach_may_not_run(object $cart): void {
+                $local = $cart;
+                foreach ([] as $ignored) {
+                    $local = new stdClass();
+                }
+                $local->x = 1;
+            }
+            function read_only(object $cart): int {
+                $same = $cart;
+                return $same->n;
+            }
+            function unused_alias(object $cart): void {
+                $same = $cart;
+            }
+            function key_is_not_alias(array $carts): void {
+                foreach ($carts as $index => $cart) {
+                    $index->nope = 1;
+                }
+            }
+            function direct(object $cart): void {
+                $cart->items = [];
+            }
+            function parameter_clone(object $cart): void {
+                $cart = clone $cart;
+                $cart->a = 1;
+            }
+            function parameter_clone_nested(object $cart): void {
+                $cart = clone $cart;
+                $cart->parent->items = [];
+            }
+            function parameter_new(object $cart): void {
+                $cart = new stdClass();
+                $cart->x = 1;
+            }
+            function ref_property(object $param): void {
+                $alias = &$param;
+                $alias->x = 1;
+            }
+            function ref_rebind(object $param): void {
+                $alias = &$param;
+                $alias = new stdClass();
+                $param->x = 1;
+            }
+            function closure_capture(object $cart): void {
+                $inner = function () use ($cart): void {
+                    $cart->items = [];
+                };
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [
+                ['via_local', 2, [], ['wrote to argument $carts']],
+                ['via_foreach', 6, [], ['wrote to argument $carts']],
+                ['via_foreach_key', 11, [], ['wrote to argument $carts']],
+                ['via_destructure', 16, [], ['wrote to argument $carts']],
+                ['via_keyed', 20, [], ['wrote to argument $carts']],
+                ['via_nested_list', 24, [], ['wrote to argument $carts']],
+                ['via_alias', 28, [], ['wrote to argument $cart']],
+                ['via_chain', 32, [], ['wrote to argument $cart']],
+                ['shallow_nested', 37, [], ['wrote to argument $cart']],
+                ['clone_array_object', 41, [], ['wrote to argument $cart']],
+                ['top_level_clone', 45, [], []],
+                ['copied_array', 49, [], []],
+                ['contained_object', 53, [], ['wrote to argument $items']],
+                ['array_literal', 57, [], ['wrote to argument $param']],
+                ['fresh_rebind', 61, [], []],
+                ['unset_local', 66, [], []],
+                ['alias_keeps_origin', 72, [], ['wrote to argument $param']],
+                ['one_arm_keeps_origin', 77, [], ['wrote to argument $cart']],
+                ['both_roots', 84, [], ['wrote to argument $a', 'wrote to argument $b']],
+                ['foreach_may_not_run', 92, [], ['wrote to argument $cart']],
+                ['read_only', 99, [], []],
+                ['unused_alias', 103, [], []],
+                ['key_is_not_alias', 106, [], []],
+                ['direct', 111, [], ['wrote to argument $cart']],
+                ['parameter_clone', 114, [], []],
+                ['parameter_clone_nested', 118, [], ['wrote to argument $cart']],
+                ['parameter_new', 122, [], []],
+                ['ref_property', 126, [], ['wrote to argument $param']],
+                ['ref_rebind', 130, [], []],
+                ['closure_capture', 135, [], []],
+                ['{closure}', 136, [], []],
+            ],
+            $this->summaries($results),
+        );
+        $local = $results[0]->getOutputs()[0];
+        self::assertSame(Category::ARGUMENT_MUTATION, $local->getCategory());
+        self::assertSame('carts', $local->getVariable());
+        self::assertSame(4, $local->getLine());
+        self::assertTrue($local->isOutput());
+        $roots = $results[18]->getOutputs();
+        self::assertSame('a', $roots[0]->getVariable());
+        self::assertSame('b', $roots[1]->getVariable());
+        self::assertSame(90, $roots[0]->getLine());
+        self::assertSame(90, $roots[1]->getLine());
+    }
+
+    /**
      * #72: a static variable survives between calls, so reading or writing it
      * makes the result depend on earlier calls. The declaration itself is
      * neither, but its initial value is read.
