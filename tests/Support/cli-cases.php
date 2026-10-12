@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
+    'process-state.default' => ['tests/Fixtures/process-state.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
