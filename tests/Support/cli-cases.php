@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
+    'random-engines.default' => ['tests/Fixtures/random-engines.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],

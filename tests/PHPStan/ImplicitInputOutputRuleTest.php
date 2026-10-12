@@ -723,6 +723,32 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testRandomEnginesInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', [
+            [10, 'random', 'secure reads from random number generator (Random\\Engine\\Secure).'],
+            [15, 'random', 'nested_secure reads from random number generator (Random\\Engine\\Secure).'],
+            [21, 'random', 'nested_mt reads from random number generator (Random\\Engine\\Mt19937).'],
+            [38, 'random', 'mode_only reads from random number generator (Random\\Engine\\Mt19937).'],
+            [42, 'random', 'case_secure reads from random number generator (random\\engine\\secure).'],
+            [50, 'random', 'mt19937_0 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [54, 'random', 'mt19937_1 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [58, 'random', 'mt19937_2 reads from random number generator (Random\\Engine\\Mt19937).'],
+            [78, 'random', 'xoshiro256starstar_0 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [82, 'random', 'xoshiro256starstar_1 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [86, 'random', 'xoshiro256starstar_2 reads from random number generator (Random\\Engine\\Xoshiro256StarStar).'],
+            [106, 'random', 'pcgoneseq128xslrr64_0 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+            [110, 'random', 'pcgoneseq128xslrr64_1 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+            [114, 'random', 'pcgoneseq128xslrr64_2 reads from random number generator (Random\\Engine\\PcgOneseq128XslRr64).'],
+        ]);
+    }
+
+    public function testRandomEnginesInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', []);
+    }
+
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);

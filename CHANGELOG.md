@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Strict mode reports secure Random engine constructions and seedable engines with omitted or literal-null seeds, including engines nested in Randomizer (#162)
+
 - A by-value parameter rebound with `clone` or `new` denotes a fresh shallow copy of that parameter, so a later write to the copy's own property is no longer reported as argument mutation. A nested object reached from the copy, a write after a branch or other rebind, and a by-reference parameter stay caller-visible (#159)
 
 ### Changed

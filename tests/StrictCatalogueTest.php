@@ -513,9 +513,33 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
-     * A Randomizer built with an explicit engine is seeded by its caller; one
+     * A Randomizer built with an explicit engine leaves that choice to its caller; one
      * given null uses the default engine.
      */
+    public function testReportsUnseededRandomEngines(): void
+    {
+        $random = static fn (string $name): array => [[['reads from random number generator (' . $name . ')', Category::RANDOM]], []];
+        $this->assertFindings([
+            'new \\Random\\Engine\\Secure()' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Secure())' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937())' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937(42))' => [[], []],
+            'new \\Random\\Engine\\Mt19937(mode: $a)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(mode: $a, seed: 0)' => [[], []],
+            'new \\random\\engine\\secure()' => $random('random\\engine\\secure'),
+            'new \\App\\Random\\Engine\\Secure()' => [[], []],
+        ]);
+        foreach (['Mt19937', 'Xoshiro256StarStar', 'PcgOneseq128XslRr64'] as $engine) {
+            $class = 'Random\\Engine\\' . $engine;
+            foreach (['', 'null', 'seed: NULL'] as $seed) {
+                self::assertSame($random($class), $this->findings('new \\' . $class . '(' . $seed . ')'));
+            }
+            foreach (['0', '42', '$a', 'seed: $a'] as $seed) {
+                self::assertSame([[], []], $this->findings('new \\' . $class . '(' . $seed . ')'));
+            }
+        }
+    }
+
     public function testReportsRandomness(): void
     {
         $random = static fn (string $name): array => [[['reads from random number generator (' . $name . ')', Category::RANDOM]], []];

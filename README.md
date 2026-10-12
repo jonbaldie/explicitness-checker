@@ -94,13 +94,15 @@ Run the checker on `app`:
 
 ### Flags
 
+Randomness findings identify construction sites. A caller-provided Randomizer engine remains explicit; the checker does not prove that passed engines are seeded or deterministic. Inline secure and unseeded engine constructions are reported separately.
+
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
   - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
-  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
+  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` with an omitted/null engine, `new Random\Engine\Secure()`, and seedable Random engines with an omitted/null seed, etc.)
   - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
