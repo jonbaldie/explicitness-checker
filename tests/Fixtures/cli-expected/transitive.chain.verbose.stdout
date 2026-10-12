@@ -1,0 +1,35 @@
+[verbose] Starting analysis for path: tests/Fixtures/transitive/chain
+[verbose] Scanning directory recursively: tests/Fixtures/transitive/chain
+[verbose] Excluding directories: vendor
+[verbose] Found 3 PHP file(s).
+[verbose] Parsing file: tests/Fixtures/transitive/chain/a.php
+[verbose] Analyzing function/method: Demo\a (line 3)
+[verbose]   Parameters for Demo\a: x
+[verbose]   Implicit inputs for Demo\a: calls action Demo\b() (line 3): implicit input
+[verbose] Parsing file: tests/Fixtures/transitive/chain/b.php
+[verbose] Analyzing function/method: Demo\b (line 3)
+[verbose]   Parameters for Demo\b: x
+[verbose]   Implicit inputs for Demo\b: calls action Demo\c() (line 3): implicit input
+[verbose] Parsing file: tests/Fixtures/transitive/chain/c.php
+[verbose] Analyzing function/method: Demo\c (line 3)
+[verbose]   Declared globals in Demo\c: shared
+[verbose]   Parameters for Demo\c: x
+[verbose]   Implicit inputs for Demo\c: read from global variable $shared
+Analyzing...
+
+Results:
+
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+| File                                  | Line | Function | Implicit Inputs                                | Implicit Outputs | Severity |
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+| tests/Fixtures/transitive/chain/a.php | 3    | Demo\a   | calls action Demo\b() (line 3): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/chain/b.php | 3    | Demo\b   | calls action Demo\c() (line 3): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/chain/c.php | 3    | Demo\c   | read from global variable $shared              |                  | Serious  |
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

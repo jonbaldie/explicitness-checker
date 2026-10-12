@@ -1,0 +1,24 @@
+Analyzing...
+
+Results:
+
++---------------------------------+------+----------------+--------------------------------------------------------------------+---------------------------------------------------------------------+----------+
+| File                            | Line | Function       | Implicit Inputs                                                    | Implicit Outputs                                                    | Severity |
++---------------------------------+------+----------------+--------------------------------------------------------------------+---------------------------------------------------------------------+----------+
+| tests/Fixtures/facade-calls.php | 8    | cache_get      | may read via static method Illuminate\Support\Facades\Cache::get() | may write via static method Illuminate\Support\Facades\Cache::get() | Serious  |
+| tests/Fixtures/facade-calls.php | 12   | cache_put      | may read via static method Illuminate\Support\Facades\Cache::put() | may write via static method Illuminate\Support\Facades\Cache::put() | Serious  |
+| tests/Fixtures/facade-calls.php | 16   | db_table       | may read via static method Illuminate\Support\Facades\DB::table()  | may write via static method Illuminate\Support\Facades\DB::table()  | Serious  |
+| tests/Fixtures/facade-calls.php | 20   | log_info       | may read via static method Illuminate\Support\Facades\Log::info()  | may write via static method Illuminate\Support\Facades\Log::info()  | Serious  |
+| tests/Fixtures/facade-calls.php | 24   | auth_user      | may read via static method Illuminate\Support\Facades\Auth::user() | may write via static method Illuminate\Support\Facades\Auth::user() | Serious  |
+| tests/Fixtures/facade-calls.php | 28   | realtime       | may read via static method Facades\App\Services\Pricing::quote()   | may write via static method Facades\App\Services\Pricing::quote()   | Serious  |
+| tests/Fixtures/facade-calls.php | 32   | unpacked       | may read via static method Illuminate\Support\Facades\Cache::get() | may write via static method Illuminate\Support\Facades\Cache::get() | Serious  |
+| tests/Fixtures/facade-calls.php | 36   | mixed_case     | may read via static method iLlUmInAtE\Support\Facades\Cache::get() | may write via static method iLlUmInAtE\Support\Facades\Cache::get() | Serious  |
+| tests/Fixtures/facade-calls.php | 40   | dynamic_method | may read via static method Illuminate\Support\Facades\Cache::...() | may write via static method Illuminate\Support\Facades\Cache::...() | Serious  |
++---------------------------------+------+----------------+--------------------------------------------------------------------+---------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 9 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

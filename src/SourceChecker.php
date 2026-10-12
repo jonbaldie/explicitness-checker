@@ -59,7 +59,30 @@ use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
     /** @return array{list<FunctionResult>, ReflectedByReferenceParameters} */
     public function checkWithCache(string $source, Mode $mode): array
     {
-        $ast = $this->resolveNames((array) $this->parser->parse($source));
+        return $this->checkAstWithCache($this->parse($source), $mode);
+    }
+
+    /** @return array<Node> resolved AST
+     *  @throws Error
+     */
+    public function parse(string $source): array
+    {
+        return $this->resolveNames((array) $this->parser->parse($source));
+    }
+
+    /** @param array<Node> $ast resolved nodes
+     *  @return list<FunctionResult>
+     */
+    public function checkAst(array $ast, Mode $mode): array
+    {
+        return $this->checkAstWithCache($ast, $mode)[0];
+    }
+
+    /** @param array<Node> $ast resolved nodes
+     *  @return array{list<FunctionResult>, ReflectedByReferenceParameters}
+     */
+    public function checkAstWithCache(array $ast, Mode $mode): array
+    {
         $parameters = $this->parameters->forNodes($ast);
         $analyser = new Analyser($parameters);
         $results = [];

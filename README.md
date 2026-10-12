@@ -74,7 +74,8 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Helpers called with no arguments (`auth()`, `now()`, `request()`, `collect()`, ...) are reported as a possible read and a possible write. The checker cannot tell the direction, and it does not treat a pure factory as exempt. Helpers that take arguments (`env('APP_URL')`, `config('app.name')`, `now($tz)`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are still ordinary calls, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. The checker cannot tell whether that call reads or writes, so the row lists a possible read and a possible write. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, function calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
+- **Facade calls.** Static invocations resolved under `Illuminate\Support\Facades\` or root `Facades\` report a possible read and write in default mode, with or without arguments. Imports, aliased imports and fully qualified names agree. This is a namespace-based heuristic; no Laravel bootstrap or runtime inheritance check is performed. First-class callable creation remains clean.
+- **Blind spot.** Helpers with arguments (`env('APP_URL')`, `config('app.name')`, ...) and arbitrary static calls with arguments remain outside detection. Global facade aliases such as `\Cache::get($key)` need an import to establish facade identity; the checker does not catalogue global aliases. Helpers and static calls without arguments retain their possible read/write findings. A clean result covers the selected direct detectors, rather than proving whole-program purity.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -89,23 +90,35 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 Default property-write detection reuses assignment, compound update, increment/decrement, unset, reference-binding and internal by-reference-call semantics. The constructor exception covers only that method's own body, including mixed-case names. Nested closures, arrows, classes and property hooks are analysed independently. Clone-and-write withers remain outside this rule. This is syntactic initialization handling, not escape or lifetime analysis.
+Transitive analysis follows named function calls (including imports and namespaced/global fallback), and named `$this`, `self`, `static` and `parent` method calls in named classes. Method lookup uses the caller's declaring class and the nearest known parent; `parent` starts at the parent. This is a lexical approximation: inherited methods keep their declaring context, and runtime virtual/late-static dispatch is not expanded.
+
+Only actual invocations create edges. Nested closures, arrows, functions and classes have their own analysis; constructing or passing them does not execute their bodies. Callable parameters and first-class callable creation create no edges. Unresolved, ambiguous, excluded, unreadable and unparseable declarations add no targets. Traits/adaptations, magic dispatch, arbitrary object calls, other-class static calls, constructors, literal-callable wrappers and callback dataflow remain outside this graph.
+
+Propagation consumes the direct findings of the active strict/props modes, including conservative helper heuristics. Zero-argument user helpers may already be direct actions, even if their bodies return constants. This is a bounded selected-file analysis, not a whole-program purity proof. PHPStan behavior and parameters are unchanged; there is no active `explicitness.callsAction` PHPStan diagnostic.
 
 ### Flags
 
+Clock inference uses successful parsing metadata, not sampled current times. Invalid literals produce no proven clock read. For a literal format with non-literal input, a fixed UTC sample exercises its directives; formats that cannot parse that sample remain outside this inference. This is a bounded syntactic check, not a whole-language purity proof.
+
+Randomness findings identify construction sites. A caller-provided Randomizer engine remains explicit; the checker does not prove that passed engines are seeded or deterministic. Inline secure and unseeded engine constructions are reported separately.
+
+- `--help` or `-h`: Show this help message and exit
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
-  - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
-  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
-  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
+  - System time (`time`, `hrtime`, `new DateTime()`, etc.). Literal date strings are checked through PHP's parsed calendar fields: relative or partial dates read the clock; complete fixed dates and fixed-anchor arithmetic do not. `strtotime` also reports non-literal dates unless a non-null base timestamp is supplied. Format parsing reports fields left to now, respects reset directives and escaping, and leaves non-literal formats outside its inference
+  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` with an omitted/null engine, `new Random\Engine\Secure()`, and seedable Random engines with an omitted/null seed, etc.)
+  - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
+  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Add instance property reads and constructor initialization writes. Writes through `$this->property` outside an actual `__construct` method already report in default mode. Static properties are always reported.
+- `--transitive`: CLI-only, opt-in propagation through declarations in exactly the selected files. Calls to analysed actions add Serious `callsAction` findings for each reachable input/output direction, naming the immediate callee and its declaration line. Direct findings stay intact. Checked counts stay fixed; implicit callers lower explicitness percentages once each. Pure argument-bearing recursion stays clean, and action cycles terminate with finite descriptions.
 
 Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.
 

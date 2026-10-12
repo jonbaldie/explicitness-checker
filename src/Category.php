@@ -27,6 +27,7 @@ class Category
     public const STATIC_PROPERTY = 'staticProperty';
     public const STATIC_CALL = 'staticCall';
     public const FUNCTION_CALL = 'functionCall';
+    public const CALLS_ACTION = 'callsAction';
     public const ARGUMENT_MUTATION = 'argumentMutation';
     public const STATIC_VARIABLE = 'staticVariable';
     public const CAPTURED_REFERENCE = 'capturedReference';
@@ -54,6 +55,7 @@ class Category
         self::STATIC_PROPERTY,
         self::STATIC_CALL,
         self::FUNCTION_CALL,
+        self::CALLS_ACTION,
         self::ARGUMENT_MUTATION,
         self::STATIC_VARIABLE,
         self::CAPTURED_REFERENCE,

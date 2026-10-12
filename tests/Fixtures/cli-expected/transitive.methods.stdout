@@ -1,0 +1,22 @@
+Analyzing...
+
+Results:
+
++---------------------------------------+------+-------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------------+----------+
+| File                                  | Line | Function                            | Implicit Inputs                                                  | Implicit Outputs                                                   | Severity |
++---------------------------------------+------+-------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------------+----------+
+| tests/Fixtures/transitive/methods.php | 4    | Dispatch\BaseType::input            | read from global variable $shared                                |                                                                    | Serious  |
+| tests/Fixtures/transitive/methods.php | 5    | Dispatch\BaseType::output           |                                                                  | wrote to global variable $shared                                   | Serious  |
+| tests/Fixtures/transitive/methods.php | 6    | Dispatch\BaseType::via              | calls action Dispatch\BaseType::input() (line 4): implicit input |                                                                    | Serious  |
+| tests/Fixtures/transitive/methods.php | 7    | Dispatch\BaseType::lexical          | calls action Dispatch\BaseType::input() (line 4): implicit input |                                                                    | Serious  |
+| tests/Fixtures/transitive/methods.php | 12   | Dispatch\ChildType::inheritedOutput |                                                                  | calls action Dispatch\BaseType::output() (line 5): implicit output | Serious  |
+| tests/Fixtures/transitive/methods.php | 13   | Dispatch\ChildType::explicitParent  | calls action Dispatch\BaseType::input() (line 4): implicit input |                                                                    | Serious  |
+| tests/Fixtures/transitive/methods.php | 16   | Dispatch\ChildType::inherited       | calls action Dispatch\BaseType::via() (line 6): implicit input   |                                                                    | Serious  |
++---------------------------------------+------+-------------------------------------+------------------------------------------------------------------+--------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 7 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\SourceChecker;
+use JonBaldie\ExplicitnessChecker\Project\ProjectAnalysis;
 
 /**
  * The explicitness-checker command: checks the PHP files under a path for
@@ -16,7 +17,9 @@ use JonBaldie\ExplicitnessChecker\SourceChecker;
  */
 class Application
 {
-    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
+    protected const USAGE = "Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
+
+    protected const HELP = self::USAGE . "\nOptions:\n  -h, --help                          Show this help message and exit.\n  -v, --verbose                       Enable verbose output showing detailed analysis progress.\n      --strict                        Enable strict mode to detect additional implicit I/O patterns.\n      --props                         Add instance property reads and constructor initialization writes.\n      --transitive                    Propagate implicit I/O through calls in selected files.\n      --exclude=<dir>                 Exclude specific directories from analysis (default: vendor). Can be specified multiple times.\n      --include-pattern=<pattern>     Only analyze files matching regex pattern. Can be specified multiple times.\n      --exclude-pattern=<pattern>     Exclude files matching regex pattern. Can be specified multiple times.\n      --min-explicitness=<percent>    Require a minimum percentage of explicit function-likes (0-100).\n\nArguments:\n  /path/to/project                    Path to a PHP file or directory to check.\n";
 
     /**
      * @param resource $stdout
@@ -41,12 +44,27 @@ class Application
         if ($options === null) {
             return $this->usageError(null);
         }
+        if ($options->isHelp()) {
+            return $this->help();
+        }
         $problem = $options->problem();
         if ($problem !== null) {
             return $this->usageError($problem);
         }
 
         return $this->check($options);
+    }
+
+    /**
+     * Prints the help message to stdout.
+     *
+     * @return int exit code 0
+     */
+    protected function help(): int
+    {
+        fwrite($this->stdout, self::HELP);
+
+        return 0;
     }
 
     /**
@@ -85,27 +103,25 @@ class Application
         if ($files === []) {
             $console->out("No PHP files found in {$path}\n");
 
-            return 0;
+            return RunSummary::of($discovered, [], $options->getMinimum())->getExitCode();
         }
 
-        $checker = new FileChecker(new SourceChecker(), $mode);
-        $narrator = new FileNarrator($console);
-        $violations = [];
-        $unchecked = $discovered->getUnchecked();
-        $checked = 0;
+        $checker = new FileChecker(new SourceChecker(), $mode, $options->isTransitive());
+        $results = [];
         foreach ($files as $file) {
             $result = $checker->check($file);
             $checker = $checker->after($result);
+            $results[] = $result;
+        }
+        if ($options->isTransitive()) {
+            $results = (new ProjectAnalysis())->propagate($results);
+        }
+        $narrator = new FileNarrator($console);
+        foreach ($results as $result) {
             $narrator->narrate($result);
-            $violations = array_merge($violations, $result->getViolations());
-            $fileUnchecked = $result->getUnchecked();
-            if ($fileUnchecked !== null) {
-                $unchecked[] = $fileUnchecked;
-            }
-            $checked += $result->getChecked();
         }
 
-        $summary = new RunSummary($violations, $unchecked, $checked, $options->getMinimum());
+        $summary = RunSummary::of($discovered, $results, $options->getMinimum());
         (new Report($console))->print($summary);
 
         return $summary->getExitCode();

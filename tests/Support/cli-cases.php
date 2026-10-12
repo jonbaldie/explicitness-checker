@@ -63,6 +63,31 @@ return $cases + [
     'default-this-writes.minimum-pass' => ['--min-explicitness=10', 'tests/Fixtures/default-this-writes.php'],
     'default-this-writes.minimum-fail' => ['--min-explicitness=10.1', 'tests/Fixtures/default-this-writes.php'],
 
+    'transitive.chain' => ['--transitive', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain-off' => ['tests/Fixtures/transitive/chain'],
+    'transitive.chain.verbose' => ['-v', '--transitive', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.minimum-pass' => ['--transitive', '--min-explicitness=0', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.minimum-fail' => ['--transitive', '--min-explicitness=1', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.filtered' => ['--transitive', '--exclude-pattern=c\\.php$', '--min-explicitness=100', 'tests/Fixtures/transitive/chain'],
+    'transitive.methods' => ['--transitive', 'tests/Fixtures/transitive/methods.php'],
+    'transitive.cycles' => ['--transitive', 'tests/Fixtures/transitive/cycles.php'],
+    'transitive.scopes' => ['--transitive', 'tests/Fixtures/transitive/scopes.php'],
+    'transitive.names' => ['--transitive', 'tests/Fixtures/transitive/names'],
+    'transitive.ambiguous' => ['--transitive', 'tests/Fixtures/transitive/ambiguous'],
+    'transitive.modes.default' => ['--transitive', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.modes.strict' => ['--transitive', '--strict', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.modes.props' => ['--transitive', '--props', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.failures' => ['--transitive', '--min-explicitness=0', 'tests/Fixtures/transitive/failures'],
+
+    'facade-calls.default' => ['tests/Fixtures/facade-calls.php'],
+    'facade-calls.minimum' => ['--min-explicitness=60', 'tests/Fixtures/facade-calls.php'],
+    'clock-reads.strict' => ['--strict', 'tests/Fixtures/clock-reads.php'],
+    'clock-reads.default' => ['tests/Fixtures/clock-reads.php'],
+    'clock-reads.minimum' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/clock-reads.php'],
+    'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
+    'random-engines.default' => ['tests/Fixtures/random-engines.php'],
+    'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
+    'process-state.default' => ['tests/Fixtures/process-state.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
@@ -209,6 +234,13 @@ return $cases + [
     'unknown-option-missing-path' => ['--stict'],
     'unknown-option-before-invalid-pattern' => ['--include-pattern=src/(', '--stict', 'test-fixtures'],
     'known-option-value-with-dash' => ['--exclude-pattern', '-nothing', '--strict', 'tests/Fixtures/cli/minor-only.php'],
+
+    // #153: --help and -h print help and exit 0.
+    'help-long' => ['--help'],
+    'help-short' => ['-h'],
+    'help-with-path' => ['--help', 'tests/Fixtures/cli/minor-only.php'],
+    'help-short-with-path' => ['-h', 'tests/Fixtures/cli/minor-only.php'],
+    'help-with-invalid-pattern' => ['--include-pattern=(', '--help'],
 
     // Same-basename files must stay distinct in the File column (#24).
     'same-basename' => ['tests/Fixtures/same-basename'],

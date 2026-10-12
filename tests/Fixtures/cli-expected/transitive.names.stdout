@@ -1,0 +1,20 @@
+Analyzing...
+
+Results:
+
++-----------------------------------------------+------+--------------------+----------------------------------------------------+------------------+----------+
+| File                                          | Line | Function           | Implicit Inputs                                    | Implicit Outputs | Severity |
++-----------------------------------------------+------+--------------------+----------------------------------------------------+------------------+----------+
+| tests/Fixtures/transitive/names/global.php    | 2    | rootAction         | read from global variable $shared                  |                  | Serious  |
+| tests/Fixtures/transitive/names/global.php    | 3    | chosen             | read from global variable $shared                  |                  | Serious  |
+| tests/Fixtures/transitive/names/namespace.php | 6    | Names\takesImport  | calls action rootAction() (line 2): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/names/namespace.php | 7    | Names\usesFallback | calls action rootAction() (line 2): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/names/namespace.php | 8    | Names\qualified    | calls action rootAction() (line 2): implicit input |                  | Serious  |
++-----------------------------------------------+------+--------------------+----------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 5 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

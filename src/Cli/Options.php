@@ -17,6 +17,8 @@ class Options
         protected Mode $mode,
         protected FileFilter $filter,
         protected ?ExplicitnessMinimum $minimum,
+        protected bool $help = false,
+        protected bool $transitive = false,
     ) {
     }
 
@@ -28,11 +30,20 @@ class Options
      */
     public function problem(): ?string
     {
+        if ($this->help) {
+            return null;
+        }
+
         if (!is_dir($this->path) && !is_file($this->path)) {
             return "Path not found: {$this->path}";
         }
 
         return $this->filter->error() ?? $this->minimum?->error();
+    }
+
+    public function isHelp(): bool
+    {
+        return $this->help;
     }
 
     /**
@@ -46,6 +57,11 @@ class Options
     public function isVerbose(): bool
     {
         return $this->verbose;
+    }
+
+    public function isTransitive(): bool
+    {
+        return $this->transitive;
     }
 
     public function getMode(): Mode
