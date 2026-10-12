@@ -1013,6 +1013,26 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         self::assertSame($this->cliMessages($fixture, $cliFlags), $ruleMessages);
     }
 
+    public function testCallerOriginsReportRootArgumentsAtThePropertyWrite(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/argument-origins.php', [
+            [9, 'argumentMutation', 'origin_direct wrote to argument $carts.'],
+            [10, 'argumentMutation', 'origin_local wrote to argument $carts.'],
+            [11, 'argumentMutation', 'origin_foreach wrote to argument $carts.'],
+            [12, 'argumentMutation', 'origin_keyed_foreach wrote to argument $carts.'],
+            [13, 'argumentMutation', 'origin_destructure wrote to argument $carts.'],
+            [14, 'argumentMutation', 'origin_list wrote to argument $carts.'],
+            [15, 'argumentMutation', 'origin_keyed wrote to argument $carts.'],
+            [16, 'argumentMutation', 'origin_nested wrote to argument $carts.'],
+            [17, 'argumentMutation', 'origin_alias wrote to argument $cart.'],
+            [18, 'argumentMutation', 'origin_chain wrote to argument $cart.'],
+            [19, 'argumentMutation', 'origin_clone wrote to argument $cart.'],
+            [20, 'argumentMutation', 'origin_clone_array wrote to argument $cart.'],
+            [21, 'argumentMutation', 'origin_join wrote to argument $cart.'],
+            [21, 'argumentMutation', 'origin_join wrote to argument $other.'],
+        ]);
+    }
+
     /**
      * #159: CLI and PHPStan agree on a fresh shallow copy of a by-value parameter.
      */
@@ -1023,8 +1043,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [29, 'argumentMutation', 'write_on_rhs wrote to argument $cart.'],
             [45, 'argumentMutation', 'after_branch wrote to argument $cart.'],
             [59, 'argumentMutation', 'by_reference wrote to argument $cart.'],
-            [66, 'argumentMutation', 'from_other wrote to argument $cart.'],
-            [72, 'argumentMutation', 'from_element wrote to argument $cart.'],
+            [66, 'argumentMutation', 'from_other wrote to argument $other.'],
+            [72, 'argumentMutation', 'from_element wrote to argument $carts.'],
             [78, 'argumentMutation', 'from_call wrote to argument $cart.'],
             [84, 'argumentMutation', 'shallow_parent wrote to argument $cart.'],
             [90, 'argumentMutation', 'shallow_element wrote to argument $cart.'],
