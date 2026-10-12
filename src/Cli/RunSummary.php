@@ -21,12 +21,36 @@ class RunSummary
      * @param list<UncheckedInput> $unchecked  the files and directories the run could not check
      * @param int                  $checked    how many function-likes were checked
      */
-    public function __construct(
+    protected function __construct(
         protected array $violations,
         protected array $unchecked,
         protected int $checked,
         protected ?ExplicitnessMinimum $minimum,
     ) {
+    }
+
+    /** @param list<FileCheckResult> $results */
+    public static function of(DiscoveredFiles $discovered, array $results, ?ExplicitnessMinimum $minimum): self
+    {
+        $violations = [];
+        $unchecked = $discovered->getUnchecked();
+        $checked = 0;
+        foreach ($results as $result) {
+            $violations = array_merge($violations, $result->getViolations());
+            $fileUnchecked = $result->getUnchecked();
+            if ($fileUnchecked !== null) {
+                $unchecked[] = $fileUnchecked;
+            }
+            $checked += $result->getChecked();
+        }
+
+        return new self($violations, $unchecked, $checked, $minimum);
+    }
+
+    /** @return list<UncheckedInput> discovery failures, then file failures in result order */
+    public function getUnchecked(): array
+    {
+        return $this->unchecked;
     }
 
     /**

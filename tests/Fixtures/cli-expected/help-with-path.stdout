@@ -1,0 +1,15 @@
+Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project
+
+Options:
+  -h, --help                          Show this help message and exit.
+  -v, --verbose                       Enable verbose output showing detailed analysis progress.
+      --strict                        Enable strict mode to detect additional implicit I/O patterns.
+      --props                         Also report instance property access ($this->property).
+      --transitive                    Propagate implicit I/O through calls in selected files.
+      --exclude=<dir>                 Exclude specific directories from analysis (default: vendor). Can be specified multiple times.
+      --include-pattern=<pattern>     Only analyze files matching regex pattern. Can be specified multiple times.
+      --exclude-pattern=<pattern>     Exclude files matching regex pattern. Can be specified multiple times.
+      --min-explicitness=<percent>    Require a minimum percentage of explicit function-likes (0-100).
+
+Arguments:
+  /path/to/project                    Path to a PHP file or directory to check.

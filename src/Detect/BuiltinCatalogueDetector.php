@@ -235,11 +235,36 @@ class BuiltinCatalogueDetector implements Detector
         'define' => [self::CONFIG_WRITE],
         'register_shutdown_function' => [self::CONFIG_WRITE],
         'set_time_limit' => [self::CONFIG_WRITE],
+        'json_last_error' => [self::CONFIG_READ],
+        'json_last_error_msg' => [self::CONFIG_READ],
+        'preg_last_error' => [self::CONFIG_READ],
+        'preg_last_error_msg' => [self::CONFIG_READ],
+        'error_get_last' => [self::CONFIG_READ],
+        'libxml_get_errors' => [self::CONFIG_READ],
+        'libxml_get_last_error' => [self::CONFIG_READ],
+        'getcwd' => [self::CONFIG_READ],
+        'error_clear_last' => [self::CONFIG_WRITE],
+        'libxml_clear_errors' => [self::CONFIG_WRITE],
+        'chdir' => [self::CONFIG_WRITE],
         'ini_get' => [self::CONFIG_READ],
         'date_default_timezone_get' => [self::CONFIG_READ],
         'filter_input' => [self::SUPERGLOBAL_READ],
         'filter_input_array' => [self::SUPERGLOBAL_READ],
         'getopt' => [self::SUPERGLOBAL_READ],
+    ];
+
+    protected const RANDOM_PARAMETERS = [
+        'random\randomizer' => 'engine',
+        'random\engine\mt19937' => 'seed',
+        'random\engine\xoshiro256starstar' => 'seed',
+        'random\engine\pcgoneseq128xslrr64' => 'seed',
+    ];
+
+    protected const CONFIG_PARAMETERS = [
+        'ignore_user_abort' => 'enable',
+        'libxml_use_internal_errors' => 'use_errors',
+        'mb_internal_encoding' => 'encoding',
+        'umask' => 'mask',
     ];
 
     public function wouldReportEmptyCall(string $resolvedName): bool
@@ -280,6 +305,7 @@ class BuiltinCatalogueDetector implements Detector
     protected function classify(Node $node): ?array
     {
         return $this->classifyConstruct($node)
+            ?? DateFormatCall::classify($node)
             ?? $this->classifyNamedInvocation((new LiteralCallable($node))->directCall())
             ?? $this->classifyNamedInvocation($node)
             ?? $this->classifyPipe($node);
@@ -380,7 +406,8 @@ class BuiltinCatalogueDetector implements Detector
                 'fopen' => $this->fopenEntries($arguments->string(1, 'mode')),
                 'print_r', 'var_export' => $arguments->isTrue(1, 'return') ? [] : [self::STDOUT],
                 'error_reporting' => $arguments->isEmpty() ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
-                'ignore_user_abort' => $arguments->omits(0, 'enable') ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
+                'ignore_user_abort', 'libxml_use_internal_errors', 'mb_internal_encoding', 'umask'
+                    => $arguments->omits(0, self::CONFIG_PARAMETERS[$lowerName]) ? [self::CONFIG_READ] : [self::CONFIG_WRITE],
                 'http_response_code' => $arguments->omitsOrZero(0, 'response_code') ? [self::HEADERS_READ] : [self::HEADERS],
                 default => $this->catalogueEntries($lowerName),
             };
@@ -406,13 +433,19 @@ class BuiltinCatalogueDetector implements Detector
     {
         $readsClock = match ($lowerName) {
             'date_create', 'date_create_immutable' => $arguments->readsClock(),
+            'strtotime' => $arguments->strtotimeReadsClock(),
+            'date_create_from_format', 'date_create_immutable_from_format' => $arguments->formatReadsClock(),
             'date', 'gmdate', 'idate' => $arguments->omits(1, 'timestamp'),
             'getdate', 'localtime' => $arguments->omits(0, 'timestamp'),
             'mktime', 'gmmktime' => $arguments->omitsAny(self::DATE_FIELDS),
             default => null,
         };
 
-        return $readsClock === null ? null : ($readsClock ? [self::TIME] : []);
+        return match ($readsClock) {
+            null => null,
+            true => [self::TIME],
+            false => [],
+        };
     }
 
     /**
@@ -425,7 +458,9 @@ class BuiltinCatalogueDetector implements Detector
     {
         return match ($lowerClass) {
             'datetime', 'datetimeimmutable' => $arguments->readsClock() ? [self::TIME] : [],
-            'random\randomizer' => $arguments->omits(0, 'engine') ? [self::RANDOM_READ] : [],
+            'random\engine\secure' => [self::RANDOM_READ],
+            'random\randomizer', 'random\engine\mt19937', 'random\engine\xoshiro256starstar', 'random\engine\pcgoneseq128xslrr64'
+                => $arguments->omits(0, self::RANDOM_PARAMETERS[$lowerClass]) ? [self::RANDOM_READ] : [],
             default => [],
         };
     }
