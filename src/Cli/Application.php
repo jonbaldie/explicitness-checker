@@ -16,7 +16,9 @@ use JonBaldie\ExplicitnessChecker\SourceChecker;
  */
 class Application
 {
-    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
+    protected const USAGE = "Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
+
+    protected const HELP = self::USAGE . "\nOptions:\n  -h, --help                          Show this help message and exit.\n  -v, --verbose                       Enable verbose output showing detailed analysis progress.\n      --strict                        Enable strict mode to detect additional implicit I/O patterns.\n      --props                         Also report instance property access (\$this->property).\n      --exclude=<dir>                 Exclude specific directories from analysis (default: vendor). Can be specified multiple times.\n      --include-pattern=<pattern>     Only analyze files matching regex pattern. Can be specified multiple times.\n      --exclude-pattern=<pattern>     Exclude files matching regex pattern. Can be specified multiple times.\n      --min-explicitness=<percent>    Require a minimum percentage of explicit function-likes (0-100).\n\nArguments:\n  /path/to/project                    Path to a PHP file or directory to check.\n";
 
     /**
      * @param resource $stdout
@@ -41,12 +43,27 @@ class Application
         if ($options === null) {
             return $this->usageError(null);
         }
+        if ($options->isHelp()) {
+            return $this->help();
+        }
         $problem = $options->problem();
         if ($problem !== null) {
             return $this->usageError($problem);
         }
 
         return $this->check($options);
+    }
+
+    /**
+     * Prints the help message to stdout.
+     *
+     * @return int exit code 0
+     */
+    protected function help(): int
+    {
+        fwrite($this->stdout, self::HELP);
+
+        return 0;
     }
 
     /**

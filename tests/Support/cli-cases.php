@@ -206,6 +206,13 @@ return $cases + [
     'unknown-option-before-invalid-pattern' => ['--include-pattern=src/(', '--stict', 'test-fixtures'],
     'known-option-value-with-dash' => ['--exclude-pattern', '-nothing', '--strict', 'tests/Fixtures/cli/minor-only.php'],
 
+    // #153: --help and -h print help and exit 0.
+    'help-long' => ['--help'],
+    'help-short' => ['-h'],
+    'help-with-path' => ['--help', 'tests/Fixtures/cli/minor-only.php'],
+    'help-short-with-path' => ['-h', 'tests/Fixtures/cli/minor-only.php'],
+    'help-with-invalid-pattern' => ['--include-pattern=(', '--help'],
+
     // Same-basename files must stay distinct in the File column (#24).
     'same-basename' => ['tests/Fixtures/same-basename'],
     'same-basename.file' => ['tests/Fixtures/same-basename/src/Calculator.php'],
