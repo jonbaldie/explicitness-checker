@@ -723,6 +723,30 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testFacadeCallsWithArgumentsInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/facade-calls.php', [
+            [9, 'staticCall', 'cache_get may read via static method Illuminate\\Support\\Facades\\Cache::get().'],
+            [9, 'staticCall', 'cache_get may write via static method Illuminate\\Support\\Facades\\Cache::get().'],
+            [13, 'staticCall', 'cache_put may read via static method Illuminate\\Support\\Facades\\Cache::put().'],
+            [13, 'staticCall', 'cache_put may write via static method Illuminate\\Support\\Facades\\Cache::put().'],
+            [17, 'staticCall', 'db_table may read via static method Illuminate\\Support\\Facades\\DB::table().'],
+            [17, 'staticCall', 'db_table may write via static method Illuminate\\Support\\Facades\\DB::table().'],
+            [21, 'staticCall', 'log_info may read via static method Illuminate\\Support\\Facades\\Log::info().'],
+            [21, 'staticCall', 'log_info may write via static method Illuminate\\Support\\Facades\\Log::info().'],
+            [25, 'staticCall', 'auth_user may read via static method Illuminate\\Support\\Facades\\Auth::user().'],
+            [25, 'staticCall', 'auth_user may write via static method Illuminate\\Support\\Facades\\Auth::user().'],
+            [29, 'staticCall', 'realtime may read via static method Facades\\App\\Services\\Pricing::quote().'],
+            [29, 'staticCall', 'realtime may write via static method Facades\\App\\Services\\Pricing::quote().'],
+            [33, 'staticCall', 'unpacked may read via static method Illuminate\\Support\\Facades\\Cache::get().'],
+            [33, 'staticCall', 'unpacked may write via static method Illuminate\\Support\\Facades\\Cache::get().'],
+            [37, 'staticCall', 'mixed_case may read via static method iLlUmInAtE\\Support\\Facades\\Cache::get().'],
+            [37, 'staticCall', 'mixed_case may write via static method iLlUmInAtE\\Support\\Facades\\Cache::get().'],
+            [41, 'staticCall', 'dynamic_method may read via static method Illuminate\\Support\\Facades\\Cache::...().'],
+            [41, 'staticCall', 'dynamic_method may write via static method Illuminate\\Support\\Facades\\Cache::...().'],
+        ]);
+    }
+
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);

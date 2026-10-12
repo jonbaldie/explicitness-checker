@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'facade-calls.default' => ['tests/Fixtures/facade-calls.php'],
+    'facade-calls.minimum' => ['--min-explicitness=60', 'tests/Fixtures/facade-calls.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
