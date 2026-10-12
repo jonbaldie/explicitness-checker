@@ -96,6 +96,7 @@ return $cases + [
     // captures are shared state, so they are serious in default mode. Static
     // properties are too: see namespaced-static-property.default.
     'argument-mutation.default' => ['tests/Fixtures/argument-mutation.php'],
+    'argument-origins.default' => ['tests/Fixtures/argument-origins.php'],
     'static-variable.default' => ['tests/Fixtures/static-variable.php'],
     'captured-reference.default' => ['tests/Fixtures/captured-reference.php'],
 

@@ -157,7 +157,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Static method calls with no arguments (`ClassName::method()`), as a possible read and a possible write
   - Function calls with no arguments (`auth()`, `now()`, `request()`), as a possible read and a possible write. A call the strict catalogue already recognises, including `time()`, `date()`, `session_id()`, and the `mysqli_` / `ob_` families, stays out of this category even when that extension is not loaded. Other loaded internals, such as `strlen()`, stay out too. `collect()` is still reported.
   - Static properties (`ClassName::$property`)
-  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
+  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`, or `foreach ($carts as $cart) { $cart->items = []; }`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
   - Instance properties (`$this->property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
@@ -169,6 +169,8 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Session functions (`session_start`, `session_id`) (*strict*)
   - Error logging (`error_log`, `trigger_error`, `syslog`) (*strict*)
   - Network, databases, external processes, email, `include`/`require` and runtime configuration (*strict*)
+
+**Object handles through locals.** Assignment, foreach values, destructuring and alias chains retain the root argument: `$first = $carts[0]; $first->items = [];` reports `wrote to argument $carts`. A straight-line fresh or unrelated local rebinding, or `unset($first)`, clears that local's origin. Conditional rebinding conservatively retains possible roots. Arrays still copy by value: `$copy = $carts; $copy[] = 1;` is clean, but `$copy[0]->items = [];` writes a shared object. A shallow clone's top-level writes are clean (`$copy = clone $cart; $copy->items = [];`), while nested object writes (`$copy->parent->items = [];` or `$copy->items[0]->x = 1;`) are reported. This is bounded syntactic provenance for ordinary objects and arrays, not full heap analysis: return-value aliases, magic getters, custom clone behavior and reference-containing structures are not inferred. By-value closure and arrow captures do not inherit these local origins.
 
 **By-reference built-ins.** A built-in that takes an argument by reference, such as `sort`, `array_push` or `preg_match`'s `$matches`, writes to it. Passing it a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture is reported as a write. Iterating by reference (`foreach ($cart as &$line)`) and binding a reference (`$r = &$cart`, `[&$first] = $cart`) count the same way. The checker asks the PHP that runs it which parameters are by reference, so the result depends on the extensions loaded there: a call to a function from an extension that isn't loaded isn't reported, and two machines with different extensions can report different results for the same code. User-defined functions, and calls that unpack their arguments (`sort(...$lists)`), are never treated as by-reference.
 
