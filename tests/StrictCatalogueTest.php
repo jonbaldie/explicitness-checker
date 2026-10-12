@@ -18,6 +18,68 @@ use PHPUnit\Framework\TestCase;
  */
 class StrictCatalogueTest extends TestCase
 {
+    public function testReportsDirectProcessStateAccessors(): void
+    {
+        $read = static fn (string $name): array => [[['reads runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]], []];
+        $write = static fn (string $name): array => [[], [['writes runtime configuration (' . $name . ')', Category::RUNTIME_CONFIG]]];
+        $this->assertFindings([
+            'json_last_error()' => $read('json_last_error'),
+            'json_last_error_msg()' => $read('json_last_error_msg'),
+            'preg_last_error()' => $read('preg_last_error'),
+            'preg_last_error_msg()' => $read('preg_last_error_msg'),
+            'error_get_last()' => $read('error_get_last'),
+            'libxml_get_errors()' => $read('libxml_get_errors'),
+            'libxml_get_last_error()' => $read('libxml_get_last_error'),
+            'getcwd()' => $read('getcwd'),
+            'error_clear_last()' => $write('error_clear_last'),
+            'libxml_clear_errors()' => $write('libxml_clear_errors'),
+            'chdir($a)' => $write('chdir'),
+            'libxml_use_internal_errors()' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(null)' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(use_errors: NULL)' => $read('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(false)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(true)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors($a)' => $write('libxml_use_internal_errors'),
+            'libxml_use_internal_errors(use_errors: $a)' => $write('libxml_use_internal_errors'),
+            'mb_internal_encoding()' => $read('mb_internal_encoding'),
+            'mb_internal_encoding(null)' => $read('mb_internal_encoding'),
+            'mb_internal_encoding(encoding: NULL)' => $read('mb_internal_encoding'),
+            'mb_internal_encoding("UTF-8")' => $write('mb_internal_encoding'),
+            'mb_internal_encoding($a)' => $write('mb_internal_encoding'),
+            'mb_internal_encoding(encoding: $a)' => $write('mb_internal_encoding'),
+            'umask()' => $read('umask'),
+            'umask(null)' => $read('umask'),
+            'umask(mask: NULL)' => $read('umask'),
+            'umask(0)' => $write('umask'),
+            'umask($a)' => $write('umask'),
+            'umask(mask: $a)' => $write('umask'),
+            'json_last_error(...)' => [[], []],
+            '("json_last_error")()' => $read('json_last_error'),
+            'libxml_use_internal_errors(); libxml_use_internal_errors(false)' => [
+                [['reads runtime configuration (libxml_use_internal_errors)', Category::RUNTIME_CONFIG]],
+                [['writes runtime configuration (libxml_use_internal_errors)', Category::RUNTIME_CONFIG]],
+            ],
+            '\\JSON_Last_Error()' => $read('JSON_Last_Error'),
+        ]);
+    }
+
+    public function testProcessStateNamesRespectNamespaces(): void
+    {
+        $source = '<?php namespace App; use function Other\\json_last_error as foreign_error;
+            function local($a) { json_last_error(); }
+            function imported($a) { foreign_error(); }
+            function qualified($a) { \\Other\\json_last_error(); }';
+        self::assertSame([
+            [['reads runtime configuration (json_last_error)', Category::RUNTIME_CONFIG]], [],
+        ], $this->findingsIn($source, 0));
+        $helper = [
+            [['may read via function Other\\json_last_error()', Category::FUNCTION_CALL]],
+            [['may write via function Other\\json_last_error()', Category::FUNCTION_CALL]],
+        ];
+        self::assertSame($helper, $this->findingsIn($source, 1));
+        self::assertSame($helper, $this->findingsIn($source, 2));
+    }
+
     public function testReportsNetworkAccess(): void
     {
         $this->assertFindings([
@@ -498,6 +560,74 @@ class StrictCatalogueTest extends TestCase
     /**
      * PHP fills any mktime argument that's missing or null from the clock.
      */
+    public function testReportsRelativeAndPartialDateLiterals(): void
+    {
+        foreach (['new \\DateTime', 'new \\DateTimeImmutable', 'date_create', 'date_create_immutable'] as $call) {
+            $name = ltrim(str_replace('new ', '', $call), '\\');
+            $time = [[['reads system time (' . $name . ')', Category::TIME]], []];
+            foreach (['tomorrow', 'today', 'midnight', 'next monday', '+1 week', '10:00', 'January 1', 'first day of next month', ' now '] as $date) {
+                self::assertSame($time, $this->findings($call . '(' . var_export($date, true) . ')'), $call . ': ' . $date);
+            }
+            foreach (['2020-01-01', '@0', '2020-01-01 +1 day', 'not a valid date'] as $date) {
+                self::assertSame([[], []], $this->findings($call . '(' . var_export($date, true) . ')'), $call . ': ' . $date);
+            }
+        }
+    }
+
+    public function testReportsStrtotimeOnlyWithAnImplicitBase(): void
+    {
+        $time = [[['reads system time (strtotime)', Category::TIME]], []];
+        $this->assertFindings([
+            'strtotime("+1 day")' => $time,
+            'strtotime("January 1")' => $time,
+            'strtotime("+1 day", null)' => $time,
+            'strtotime(baseTimestamp: NULL, datetime: "10:00")' => $time,
+            'strtotime($a)' => $time,
+            'strtotime($a, null)' => $time,
+            'strtotime($a, 0)' => [[], []],
+            'strtotime("now", $a)' => [[], []],
+            'strtotime("+1 day", baseTimestamp: 123)' => [[], []],
+            'strtotime("2020-01-01")' => [[], []],
+            'strtotime("@0")' => [[], []],
+            'strtotime("2020-01-01 +1 day")' => [[], []],
+            'strtotime("")' => [[], []],
+            'strtotime(" ")' => [[], []],
+            'strtotime("not a valid date")' => [[], []],
+        ]);
+    }
+
+    public function testReportsFormatParsingWithMissingFields(): void
+    {
+        foreach (['DateTime::createFromFormat', 'DateTimeImmutable::createFromFormat', 'date_create_from_format', 'date_create_immutable_from_format'] as $call) {
+            $time = [[['reads system time (' . $call . ')', Category::TIME]], []];
+            foreach ([['H:i', '09:00'], ['Y-m-d', '2020-01-01'], ['\\!H:i', '!09:00'], ['H:i\\|', '09:00|']] as [$format, $date]) {
+                self::assertSame($time, $this->findings($call . '(' . var_export($format, true) . ', ' . var_export($date, true) . ')'));
+            }
+            foreach ([['!H:i', '09:00'], ['H:i|', '09:00'], ['Y-m-d H:i:s', '2020-01-01 09:00:00'], ['U', '0'], ['H:i', 'invalid']] as [$format, $date]) {
+                self::assertSame([[], []], $this->findings($call . '(' . var_export($format, true) . ', ' . var_export($date, true) . ')'));
+            }
+            self::assertSame($time, $this->findings($call . '("H:i", $a)'));
+            self::assertSame([[], []], $this->findings($call . '($a, $b)'));
+        }
+    }
+
+    public function testDateFormatBoundariesAndNames(): void
+    {
+        $time = static fn (string $name): array => [[['reads system time (' . $name . ')', Category::TIME]], []];
+        $this->assertFindings([
+            'DateTimeImmutable::createFromFormat(datetime: "09:00", format: "H:i")' => $time('DateTimeImmutable::createFromFormat'),
+            '\\DATETIME::CREATEFROMFORMAT("H:i", "09:00")' => $time('DATETIME::CREATEFROMFORMAT'),
+            'date_create_from_format("H:i", "09:00\\0")' => [[], []],
+            'date_create_from_format("!H:i", $a)' => [[], []],
+            'date_create_from_format("H:i|", $a)' => [[], []],
+            'date_create_from_format("Y-m-d H:i:s", $a)' => [[], []],
+            'DateTime::createFromFormat(...)' => [[], []],
+            '\\App\\DateTime::createFromFormat("H:i", "09:00")' => [[], []],
+        ]);
+        $source = '<?php use DateTimeImmutable as ClockDate; function f($a) { ClockDate::createFromFormat("H:i", $a); }';
+        self::assertSame($time('DateTimeImmutable::createFromFormat'), $this->findingsIn($source, 0));
+    }
+
     public function testReportsMktimeUnlessEveryFieldIsGiven(): void
     {
         $now = static fn (string $name): array => [[['reads system time (' . $name . ')', Category::TIME]], []];
@@ -513,9 +643,33 @@ class StrictCatalogueTest extends TestCase
     }
 
     /**
-     * A Randomizer built with an explicit engine is seeded by its caller; one
+     * A Randomizer built with an explicit engine leaves that choice to its caller; one
      * given null uses the default engine.
      */
+    public function testReportsUnseededRandomEngines(): void
+    {
+        $random = static fn (string $name): array => [[['reads from random number generator (' . $name . ')', Category::RANDOM]], []];
+        $this->assertFindings([
+            'new \\Random\\Engine\\Secure()' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Secure())' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937())' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937(42))' => [[], []],
+            'new \\Random\\Engine\\Mt19937(mode: $a)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(mode: $a, seed: 0)' => [[], []],
+            'new \\random\\engine\\secure()' => $random('random\\engine\\secure'),
+            'new \\App\\Random\\Engine\\Secure()' => [[], []],
+        ]);
+        foreach (['Mt19937', 'Xoshiro256StarStar', 'PcgOneseq128XslRr64'] as $engine) {
+            $class = 'Random\\Engine\\' . $engine;
+            foreach (['', 'null', 'seed: NULL'] as $seed) {
+                self::assertSame($random($class), $this->findings('new \\' . $class . '(' . $seed . ')'));
+            }
+            foreach (['0', '42', '$a', 'seed: $a'] as $seed) {
+                self::assertSame([[], []], $this->findings('new \\' . $class . '(' . $seed . ')'));
+            }
+        }
+    }
+
     public function testReportsRandomness(): void
     {
         $random = static fn (string $name): array => [[['reads from random number generator (' . $name . ')', Category::RANDOM]], []];

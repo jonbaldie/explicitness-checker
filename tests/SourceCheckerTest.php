@@ -239,6 +239,27 @@ class SourceCheckerTest extends TestCase
         );
     }
 
+    public function testReportsFacadeCallsWithArguments(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            use Illuminate\Support\Facades\Cache as Store;
+            function facade($key) { Store::get($key); Store::get($key); }
+            function realtime($value) { \Facades\App\Services\Pricing::quote($value); }
+            function normal($value) { \Illuminate\Support\Str::slug($value); \App\Money::of($value); }
+            function callable_factory() { return Store::get(...); }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+        self::assertSame([
+            ['facade', 3, ['may read via static method Illuminate\Support\Facades\Cache::get()'], ['may write via static method Illuminate\Support\Facades\Cache::get()']],
+            ['realtime', 4, ['may read via static method Facades\App\Services\Pricing::quote()'], ['may write via static method Facades\App\Services\Pricing::quote()']],
+            ['normal', 5, [], []],
+            ['callable_factory', 6, [], []],
+        ], $this->summaries($results));
+        self::assertSame(Category::STATIC_CALL, $results[0]->getInputs()[0]->getCategory());
+        self::assertSame(3, $results[0]->getInputs()[0]->getLine());
+    }
+
     public function testReportsArgumentlessStaticCallsAsPossibleReadAndWriteInDefaultMode(): void
     {
         $source = <<<'PHP'
@@ -1508,8 +1529,8 @@ class SourceCheckerTest extends TestCase
                 ['after_branch', 40, [], ['wrote to argument $cart']],
                 ['after_unconditional', 48, [], []],
                 ['by_reference', 57, [], ['wrote to argument $cart']],
-                ['from_other', 63, [], ['wrote to argument $cart']],
-                ['from_element', 69, [], ['wrote to argument $cart']],
+                ['from_other', 63, [], ['wrote to argument $other']],
+                ['from_element', 69, [], ['wrote to argument $carts']],
                 ['from_call', 75, [], ['wrote to argument $cart']],
                 ['shallow_parent', 81, [], ['wrote to argument $cart']],
                 ['shallow_element', 87, [], ['wrote to argument $cart']],

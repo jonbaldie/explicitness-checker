@@ -22,6 +22,8 @@ use JonBaldie\ExplicitnessChecker\Mode;
 class ArgumentParser
 {
     protected const SWITCHES = [
+        '-h' => 'help',
+        '--help' => 'help',
         '-v' => 'verbose',
         '--verbose' => 'verbose',
         '--strict' => 'strict',
@@ -39,7 +41,7 @@ class ArgumentParser
      */
     public function parse(array $argv): ?Options
     {
-        $switches = ['verbose' => false, 'strict' => false, 'props' => false];
+        $switches = ['help' => false, 'verbose' => false, 'strict' => false, 'props' => false];
         $values = ['--exclude' => FileFilter::DEFAULT_EXCLUDE_DIRS, '--include-pattern' => [], '--exclude-pattern' => [], '--min-explicitness' => []];
         $path = null;
 
@@ -65,16 +67,17 @@ class ArgumentParser
             $path ??= $argument;
         }
 
-        if ($path === null) {
+        if ($path === null && !$switches['help']) {
             return null;
         }
 
         return new Options(
-            $path,
+            $path ?? '',
             $switches['verbose'],
             new Mode($switches['strict'], $switches['props']),
             new FileFilter($values['--exclude'], $values['--include-pattern'], $values['--exclude-pattern']),
             $this->minimum($values['--min-explicitness']),
+            $switches['help'],
         );
     }
 

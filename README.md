@@ -74,7 +74,8 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Helpers called with no arguments (`auth()`, `now()`, `request()`, `collect()`, ...) are reported as a possible read and a possible write. The checker cannot tell the direction, and it does not treat a pure factory as exempt. Helpers that take arguments (`env('APP_URL')`, `config('app.name')`, `now($tz)`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are still ordinary calls, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. The checker cannot tell whether that call reads or writes, so the row lists a possible read and a possible write. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, function calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
+- **Facade calls.** Static invocations resolved under `Illuminate\Support\Facades\` or root `Facades\` report a possible read and write in default mode, with or without arguments. Imports, aliased imports and fully qualified names agree. This is a namespace-based heuristic; no Laravel bootstrap or runtime inheritance check is performed. First-class callable creation remains clean.
+- **Blind spot.** Helpers with arguments (`env('APP_URL')`, `config('app.name')`, ...) and arbitrary static calls with arguments remain outside detection. Global facade aliases such as `\Cache::get($key)` need an import to establish facade identity; the checker does not catalogue global aliases. Helpers and static calls without arguments retain their possible read/write findings. A clean result covers the selected direct detectors, rather than proving whole-program purity.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -89,19 +90,25 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
 ### Flags
 
+Clock inference uses successful parsing metadata, not sampled current times. Invalid literals produce no proven clock read. For a literal format with non-literal input, a fixed UTC sample exercises its directives; formats that cannot parse that sample remain outside this inference. This is a bounded syntactic check, not a whole-language purity proof.
+
+Randomness findings identify construction sites. A caller-provided Randomizer engine remains explicit; the checker does not prove that passed engines are seeded or deterministic. Inline secure and unseeded engine constructions are reported separately.
+
+- `--help` or `-h`: Show this help message and exit
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
 - `--strict`: Enable strict mode which detects additional implicit I/O patterns:
   - Standard output (`echo`, `print`, `printf`, `ob_*`, etc.). `print_r` and `var_export` with `return: true` aren't reported
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
-  - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
-  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
-  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
+  - System time (`time`, `hrtime`, `new DateTime()`, etc.). Literal date strings are checked through PHP's parsed calendar fields: relative or partial dates read the clock; complete fixed dates and fixed-anchor arithmetic do not. `strtotime` also reports non-literal dates unless a non-null base timestamp is supplied. Format parsing reports fields left to now, respects reset directives and escaping, and leaves non-literal formats outside its inference
+  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` with an omitted/null engine, `new Random\Engine\Secure()`, and seedable Random engines with an omitted/null seed, etc.)
+  - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
+  - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 
@@ -157,7 +164,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Static method calls with no arguments (`ClassName::method()`), as a possible read and a possible write
   - Function calls with no arguments (`auth()`, `now()`, `request()`), as a possible read and a possible write. A call the strict catalogue already recognises, including `time()`, `date()`, `session_id()`, and the `mysqli_` / `ob_` families, stays out of this category even when that extension is not loaded. Other loaded internals, such as `strlen()`, stay out too. `collect()` is still reported.
   - Static properties (`ClassName::$property`)
-  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
+  - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`, or `foreach ($carts as $cart) { $cart->items = []; }`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
   - Instance properties (`$this->property`) when `--props` is enabled
 - **Critical** (Exit code 3): System-level implicit I/O
@@ -169,6 +176,8 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Session functions (`session_start`, `session_id`) (*strict*)
   - Error logging (`error_log`, `trigger_error`, `syslog`) (*strict*)
   - Network, databases, external processes, email, `include`/`require` and runtime configuration (*strict*)
+
+**Object handles through locals.** Assignment, foreach values, destructuring and alias chains retain the root argument: `$first = $carts[0]; $first->items = [];` reports `wrote to argument $carts`. A straight-line fresh or unrelated local rebinding, or `unset($first)`, clears that local's origin. Conditional rebinding conservatively retains possible roots. Arrays still copy by value: `$copy = $carts; $copy[] = 1;` is clean, but `$copy[0]->items = [];` writes a shared object. A shallow clone's top-level writes are clean (`$copy = clone $cart; $copy->items = [];`), while nested object writes (`$copy->parent->items = [];` or `$copy->items[0]->x = 1;`) are reported. This is bounded syntactic provenance for ordinary objects and arrays, not full heap analysis: return-value aliases, magic getters, custom clone behavior and reference-containing structures are not inferred. By-value closure and arrow captures do not inherit these local origins.
 
 **By-reference built-ins.** A built-in that takes an argument by reference, such as `sort`, `array_push` or `preg_match`'s `$matches`, writes to it. Passing it a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture is reported as a write. Iterating by reference (`foreach ($cart as &$line)`) and binding a reference (`$r = &$cart`, `[&$first] = $cart`) count the same way. The checker asks the PHP that runs it which parameters are by reference, so the result depends on the extensions loaded there: a call to a function from an extension that isn't loaded isn't reported, and two machines with different extensions can report different results for the same code. User-defined functions, and calls that unpack their arguments (`sort(...$lists)`), are never treated as by-reference.
 

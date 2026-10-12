@@ -22,6 +22,18 @@ class OptionsTest extends TestCase
         self::assertNull($this->options(__FILE__, minimum: '87.5')->problem());
     }
 
+    public function testHelpOptionsHaveNoProblemEvenWithMissingPathOrInvalidFilters(): void
+    {
+        self::assertNull($this->options(self::MISSING_PATH, help: true)->problem());
+        self::assertNull($this->options(self::MISSING_PATH, includePatterns: ['('], help: true)->problem());
+    }
+
+    public function testIsHelpReportsWhetherHelpWasRequested(): void
+    {
+        self::assertTrue($this->options(__DIR__, help: true)->isHelp());
+        self::assertFalse($this->options(__DIR__, help: false)->isHelp());
+    }
+
     public function testAPathThatIsNeitherAFileNorADirectoryIsNotFound(): void
     {
         self::assertSame('Path not found: ' . self::MISSING_PATH, $this->options(self::MISSING_PATH)->problem());
@@ -103,6 +115,7 @@ class OptionsTest extends TestCase
         array $includePatterns = [],
         array $excludePatterns = [],
         ?string $minimum = null,
+        bool $help = false,
     ): Options {
         return new Options(
             $path,
@@ -110,6 +123,7 @@ class OptionsTest extends TestCase
             new Mode(false, false),
             new FileFilter($excludeDirs, $includePatterns, $excludePatterns),
             $minimum === null ? null : new ExplicitnessMinimum($minimum),
+            $help,
         );
     }
 }

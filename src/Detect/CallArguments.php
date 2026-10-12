@@ -16,7 +16,7 @@ use PhpParser\Node\Scalar;
  */
 class CallArguments
 {
-    public function __construct(protected Expr\FuncCall|Expr\New_|Expr\Exit_|Expr\BinaryOp\Pipe $node)
+    public function __construct(protected Expr\FuncCall|Expr\StaticCall|Expr\New_|Expr\Exit_|Expr\BinaryOp\Pipe $node)
     {
     }
 
@@ -72,14 +72,31 @@ class CallArguments
 
     /**
      * A date is built from the clock when its datetime argument is absent,
-     * null, 'now' in any case, or '', which PHP also reads as now.
+     * null, or a successfully parsed literal with missing calendar fields.
      */
     public function readsClock(int $position = 0, string $name = 'datetime'): bool
     {
         $datetime = $this->string($position, $name);
 
         return $this->omits($position, $name)
-            || ($datetime !== null && in_array(strtolower($datetime), ['now', ''], true));
+            || ($datetime !== null && DateLiteral::readsClock($datetime));
+    }
+
+    public function formatReadsClock(): bool
+    {
+        $format = $this->string(0, 'format');
+
+        return $format !== null && DateFormat::readsClock($format, $this->string(1, 'datetime'));
+    }
+
+    public function strtotimeReadsClock(): bool
+    {
+        if (!$this->omits(1, 'baseTimestamp')) {
+            return false;
+        }
+        $datetime = $this->string(0, 'datetime');
+
+        return $datetime === null || (trim($datetime) !== '' && DateLiteral::readsClock($datetime));
     }
 
     /**

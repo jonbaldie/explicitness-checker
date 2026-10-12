@@ -1,0 +1,30 @@
+Analyzing...
+
+Results:
+
++--------------------------------+------+-------------------+---------------------------------------------------------+------------------+----------+
+| File                           | Line | Function          | Implicit Inputs                                         | Implicit Outputs | Severity |
++--------------------------------+------+-------------------+---------------------------------------------------------+------------------+----------+
+| tests/Fixtures/clock-reads.php | 5    | tomorrow          | reads system time (DateTimeImmutable)                   |                  | Critical |
+| tests/Fixtures/clock-reads.php | 9    | january           | reads system time (DateTime)                            |                  | Critical |
+| tests/Fixtures/clock-reads.php | 25   | partial           | reads system time (date_create)                         |                  | Critical |
+| tests/Fixtures/clock-reads.php | 29   | next_month        | reads system time (date_create_immutable)               |                  | Critical |
+| tests/Fixtures/clock-reads.php | 33   | strtotime_partial | reads system time (strtotime)                           |                  | Critical |
+| tests/Fixtures/clock-reads.php | 37   | strtotime_dynamic | reads system time (strtotime)                           |                  | Critical |
+| tests/Fixtures/clock-reads.php | 41   | strtotime_null    | reads system time (strtotime)                           |                  | Critical |
+| tests/Fixtures/clock-reads.php | 57   | partial_format    | reads system time (DateTimeImmutable::createFromFormat) |                  | Critical |
+| tests/Fixtures/clock-reads.php | 61   | date_only_format  | reads system time (DateTime::createFromFormat)          |                  | Critical |
+| tests/Fixtures/clock-reads.php | 65   | escaped_reset     | reads system time (date_create_from_format)             |                  | Critical |
+| tests/Fixtures/clock-reads.php | 69   | escaped_pipe      | reads system time (date_create_immutable_from_format)   |                  | Critical |
+| tests/Fixtures/clock-reads.php | 93   | dynamic_date      | reads system time (date_create_from_format)             |                  | Critical |
+| tests/Fixtures/clock-reads.php | 101  | named_format      | reads system time (DateTimeImmutable::createFromFormat) |                  | Critical |
+| tests/Fixtures/clock-reads.php | 105  | named_base        | reads system time (strtotime)                           |                  | Critical |
+| tests/Fixtures/clock-reads.php | 109  | case_format       | reads system time (DATETIME::CREATEFROMFORMAT)          |                  | Critical |
++--------------------------------+------+-------------------+---------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 15 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
