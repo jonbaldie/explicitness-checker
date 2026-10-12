@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'facade-calls.default' => ['tests/Fixtures/facade-calls.php'],
+    'facade-calls.minimum' => ['--min-explicitness=60', 'tests/Fixtures/facade-calls.php'],
     'clock-reads.strict' => ['--strict', 'tests/Fixtures/clock-reads.php'],
     'clock-reads.default' => ['tests/Fixtures/clock-reads.php'],
     'clock-reads.minimum' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/clock-reads.php'],

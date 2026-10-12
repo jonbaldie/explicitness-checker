@@ -15,7 +15,8 @@ class StaticCallDetector implements Detector
     {
         if (
             !$node instanceof Expr\StaticCall
-            || $node->args !== []
+            || $node->isFirstClassCallable()
+            || ($node->args !== [] && !$this->isFacade($node->class))
             || ($node->class instanceof Node\Name && $node->class->isSpecialClassName())
         ) {
             return;
@@ -28,4 +29,16 @@ class StaticCallDetector implements Detector
         $findings->input('may read via static method ' . $subject, Category::STATIC_CALL, $node);
         $findings->output('may write via static method ' . $subject, Category::STATIC_CALL, $node);
     }
+
+    protected function isFacade(Node\Name|Expr $class): bool
+    {
+        if (!$class instanceof Node\Name) {
+            return false;
+        }
+        $name = strtolower($class->toString());
+
+        return str_starts_with($name, 'illuminate\\support\\facades\\')
+            || str_starts_with($name, 'facades\\');
+    }
+
 }
