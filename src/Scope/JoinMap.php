@@ -8,11 +8,11 @@ use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 
 /**
- * Definite fresh shallow copies, and the joins that discard assignments.
+ * Walk-ordered caller origins, with independent arms and conservative joins.
  *
- * Each join stores the root map from the moment it opened. PHP copies that
- * array on write, so later updates do not change the stored map. On close
- * the stored map returns and every name assigned inside the join is removed.
+ * Each arm starts from the saved map and collects its result separately.
+ * At the fork's exit all possible origins, including the zero-execution
+ * path, are merged. One arm cannot erase another's facts.
  */
 class JoinMap
 {
@@ -22,8 +22,11 @@ class JoinMap
 
     protected const EACH = 'each';
 
+    protected const CASCADE = 'cascade';
+
     /**
-     * Subnode name to prefix, group, or each. The only list of conditional nodes.
+     * Subnode name to prefix, group, independent each, or possible cascade.
+     * The only list of conditional nodes.
      *
      * @var array<string, array<string, string>>
      */
@@ -32,9 +35,9 @@ class JoinMap
         'PhpParser\Node\Stmt\While_' => ['cond' => self::PREFIX, 'stmts' => self::GROUP],
         'PhpParser\Node\Stmt\Do_' => ['stmts' => self::GROUP, 'cond' => self::PREFIX],
         'PhpParser\Node\Stmt\For_' => ['init' => self::PREFIX, 'cond' => self::EACH, 'loop' => self::EACH, 'stmts' => self::GROUP],
-        'PhpParser\Node\Stmt\Foreach_' => ['expr' => self::PREFIX, 'keyVar' => self::PREFIX, 'valueVar' => self::PREFIX, 'stmts' => self::GROUP],
-        'PhpParser\Node\Stmt\Switch_' => ['cond' => self::PREFIX, 'cases' => self::EACH],
-        'PhpParser\Node\Stmt\TryCatch' => ['stmts' => self::GROUP, 'catches' => self::EACH, 'finally' => self::EACH],
+        'PhpParser\Node\Stmt\Foreach_' => ['expr' => self::PREFIX, 'keyVar' => self::GROUP, 'valueVar' => self::GROUP, 'stmts' => self::GROUP],
+        'PhpParser\Node\Stmt\Switch_' => ['cond' => self::PREFIX, 'cases' => self::CASCADE],
+        'PhpParser\Node\Stmt\TryCatch' => ['stmts' => self::GROUP, 'catches' => self::CASCADE, 'finally' => self::CASCADE],
         'PhpParser\Node\Expr\Ternary' => ['cond' => self::PREFIX, 'if' => self::EACH, 'else' => self::EACH],
         'PhpParser\Node\Expr\BinaryOp\BooleanAnd' => ['left' => self::PREFIX, 'right' => self::EACH],
         'PhpParser\Node\Expr\BinaryOp\BooleanOr' => ['left' => self::PREFIX, 'right' => self::EACH],
@@ -45,21 +48,14 @@ class JoinMap
         'PhpParser\Node\MatchArm' => ['conds' => self::EACH, 'body' => self::EACH],
     ];
 
-    /**
-     * Children that rebind a name the way an assignment does.
-     *
-     * @var array<string, list<string>>
-     */
-    protected const REBINDS = [
-        'PhpParser\Node\Stmt\Foreach_' => ['keyVar', 'valueVar'],
-        'PhpParser\Node\Stmt\Catch_' => ['var'],
-    ];
+    /** @var array<string, array<string, string>> */
+    protected array $roots;
 
-    /** @var array<string, FreshShallow> */
-    protected array $roots = [];
-
-    /** @var list<array{saved: array<string, FreshShallow>, assigned: array<string, true>}> */
+    /** @var list<array{saved: array<string, array<string, string>>, owner: int}> */
     protected array $joins = [];
+
+    /** @var array<int, array<string, array<string, string>>> */
+    protected array $outcomes = [];
 
     /** @var list<Node> */
     protected array $stack = [];
@@ -73,26 +69,33 @@ class JoinMap
     /** @var array<string, true> */
     protected array $forkShapeChecked = [];
 
-    public function origin(string $name): ?string
+    /** @param array<string, array<string, string>> $roots */
+    public function __construct(array $roots)
     {
-        if (!isset($this->roots[$name])) {
-            return null;
-        }
-
-        return $this->roots[$name]->getOrigin();
+        $this->roots = $roots;
     }
 
-    public function establish(string $name): void
+    /** @return array<string, string> */
+    public function origins(string $name): array
     {
-        $this->roots[$name] = new FreshShallow($name);
-        $this->touch($name);
+        return $this->roots[$name] ?? [];
+    }
+
+    /** @param array<string, string> $origins */
+    public function bind(string $name, array $origins): void
+    {
+        $this->roots[$name] = $origins;
+    }
+
+    public function parent(): ?Node
+    {
+        return $this->stack === [] ? null : $this->stack[array_key_last($this->stack)];
     }
 
     public function killBound(Node $node): void
     {
         foreach ($this->boundNames($node) as $name) {
             unset($this->roots[$name]);
-            $this->touch($name);
         }
     }
 
@@ -101,7 +104,6 @@ class JoinMap
         $this->checkFork($node);
         if ($this->stack !== []) {
             $parent = $this->stack[array_key_last($this->stack)];
-            $this->killRebound($parent, $node);
             $this->enterSlot($parent, $node);
         }
         $this->stack[] = $node;
@@ -118,6 +120,10 @@ class JoinMap
         if (isset($this->eachOpen[$id])) {
             unset($this->eachOpen[$id]);
             $this->closeJoin();
+        }
+        if (isset($this->outcomes[$id])) {
+            $this->roots = self::merge($this->roots, $this->outcomes[$id]);
+            unset($this->outcomes[$id]);
         }
     }
 
@@ -147,25 +153,11 @@ class JoinMap
         return $names;
     }
 
-    protected function killRebound(Node $parent, Node $child): void
-    {
-        if (!isset(self::REBINDS[$parent::class])) {
-            return;
-        }
-        foreach (self::REBINDS[$parent::class] as $subnode) {
-            if ($this->sameChild($parent, $subnode, $child)) {
-                $this->killBound($child);
-
-                return;
-            }
-        }
-    }
-
     protected function enterSlot(Node $parent, Node $child): void
     {
         $slot = $this->slot($parent, $child);
         $id = spl_object_id($parent);
-        if ($slot === self::PREFIX || $slot === self::EACH) {
+        if ($slot !== self::GROUP) {
             if (isset($this->groupOpen[$id])) {
                 unset($this->groupOpen[$id]);
                 $this->closeJoin();
@@ -174,16 +166,20 @@ class JoinMap
         if ($slot === self::GROUP) {
             if (!isset($this->groupOpen[$id])) {
                 $this->groupOpen[$id] = true;
-                $this->openJoin();
+                $this->openJoin($id);
             }
 
             return;
         }
-        if ($slot !== self::EACH) {
+        if ($slot === self::CASCADE) {
+            // Fallthrough and exceptions can reach the next arm with earlier bindings.
+            $this->roots = self::merge($this->roots, $this->outcomes[$id] ?? []);
+        }
+        if ($slot !== self::EACH && $slot !== self::CASCADE) {
             return;
         }
 
-        $this->openJoin();
+        $this->openJoin($id);
         $this->eachOpen[spl_object_id($child)] = true;
     }
 
@@ -238,16 +234,9 @@ class JoinMap
         return false;
     }
 
-    protected function touch(string $name): void
+    protected function openJoin(int $owner): void
     {
-        foreach (array_keys($this->joins) as $index) {
-            $this->joins[$index]['assigned'][$name] = true;
-        }
-    }
-
-    protected function openJoin(): void
-    {
-        $this->joins[] = ['saved' => $this->roots, 'assigned' => []];
+        $this->joins[] = ['saved' => $this->roots, 'owner' => $owner];
     }
 
     protected function closeJoin(): void
@@ -257,10 +246,22 @@ class JoinMap
             return;
         }
 
-        // The walk visits both arms, so a root assigned inside this join does not survive it.
+        $owner = $join['owner'];
+        $this->outcomes[$owner] = self::merge($this->outcomes[$owner] ?? [], $this->roots);
         $this->roots = $join['saved'];
-        foreach (array_keys($join['assigned']) as $name) {
-            unset($this->roots[$name]);
+    }
+
+    /**
+     * @param array<string, array<string, string>> $left
+     * @param array<string, array<string, string>> $right
+     * @return array<string, array<string, string>>
+     */
+    protected static function merge(array $left, array $right): array
+    {
+        foreach ($right as $name => $origins) {
+            $left[$name] = ValueSelections::merge($left[$name] ?? [], $origins);
         }
+
+        return $left;
     }
 }
