@@ -20,8 +20,8 @@ use PhpParser\Node\Stmt;
  * a PHP 8.5 pipe into a first-class callable, which is the call it makes with
  * the piped value as the only argument; a call through a literal callable
  * (see LiteralCallable), which is the call it names; and creating an object
- * that reads the clock or the default random engine, matched by its resolved
- * class name in any case.
+ * that reads the clock, the default random engine, a secure engine, or an
+ * unseeded seedable engine, matched by its resolved class name in any case.
  *
  * Every rule that depends on a call's arguments reads them through
  * CallArguments, so a parameter is found by position or by name.
@@ -435,8 +435,9 @@ class BuiltinCatalogueDetector implements Detector
     }
 
     /**
-     * A date reads the clock; a Randomizer given no engine reads the default
-     * random engine.
+     * A date reads the clock. A Randomizer given no engine reads the default
+     * random engine. Secure and unseeded seedable engines are classified by
+     * EngineCatalogue.
      *
      * @return list<array{string, bool, string}>
      */
@@ -445,7 +446,7 @@ class BuiltinCatalogueDetector implements Detector
         return match ($lowerClass) {
             'datetime', 'datetimeimmutable' => $arguments->readsClock() ? [self::TIME] : [],
             'random\randomizer' => $arguments->omits(0, 'engine') ? [self::RANDOM_READ] : [],
-            default => [],
+            default => (new EngineCatalogue())->entries($lowerClass, $arguments, self::RANDOM_READ),
         };
     }
 

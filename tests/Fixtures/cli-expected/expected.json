@@ -1110,5 +1110,17 @@
     "process-state.default": {
         "stderr": "",
         "exitCode": 0
+    },
+    "random-engines.strict": {
+        "exitCode": 3,
+        "stderr": ""
+    },
+    "random-engines.default": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "random-engines.min-explicitness": {
+        "exitCode": 3,
+        "stderr": ""
     }
 }

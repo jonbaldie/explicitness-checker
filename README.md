@@ -101,7 +101,7 @@ Run the checker on `app`:
   - File I/O (`file_get_contents`, `fwrite`, `fgets`, etc.) and file system checks and writes (`file_exists`, `unlink`, `mkdir`, etc.)
   - Environment variables, HTTP headers, sessions and error logging (`getenv`, `header`, `session_start`, `error_log`, `syslog`, etc.)
   - System time (`time`, `hrtime`, `new DateTime()`, etc.). `date`, `mktime`, `date_create` and the rest of the date family are reported only when they read the clock, not when they're given a timestamp or date
-  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
+  - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without a seeded engine, `new Random\Engine\Secure()`, and `Mt19937`, `Xoshiro256StarStar` or `PcgOneseq128XslRr64` with no seed or a literal `null` seed). A Randomizer given an engine expression is not itself a finding; the engine is reported where it is constructed. An engine passed in from the caller is that caller's choice: the checker does not prove the engine is seeded or deterministic.
   - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
   - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
@@ -166,7 +166,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Environment access: `$_ENV`, and `getenv` (*strict*)
   - File operations (`file_get_contents`, `fwrite`, `unlink`, etc.) (*strict*)
   - Time functions (`time`, `date`, `microtime`, `new DateTime()`) (*strict*)
-  - Random functions (`rand`, `random_int`, `shuffle`) (*strict*)
+  - Random functions and unseeded engines (`rand`, `random_int`, `shuffle`, `new Random\Engine\Secure()`, `new Mt19937()`) (*strict*)
   - HTTP headers (`header`, `setcookie`) (*strict*)
   - Session functions (`session_start`, `session_id`) (*strict*)
   - Error logging (`error_log`, `trigger_error`, `syslog`) (*strict*)
@@ -291,7 +291,7 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | File system checks and writes (`file_exists`, `is_dir`, `unlink`, `mkdir`, ...) | `explicitness.fileSystem` | `strict` |
 | Environment variables (`getenv`, `putenv`) | `explicitness.environment` | `strict` |
 | System time (`time`, `date`, `microtime`, `new DateTime()`, ...) | `explicitness.time` | `strict` |
-| Random number generator (`rand`, `random_int`, `shuffle`, `uniqid`, ...) | `explicitness.random` | `strict` |
+| Random number generator (`rand`, `random_int`, `shuffle`, `uniqid`, `new Random\Randomizer()` with no engine or `null`, `new Random\Engine\Secure()`, unseeded `Mt19937` / `Xoshiro256StarStar` / `PcgOneseq128XslRr64`) | `explicitness.random` | `strict` |
 | HTTP headers (`header`, `setcookie`, `getallheaders`, ...) | `explicitness.httpHeaders` | `strict` |
 | Error log (`error_log`, `trigger_error`, `syslog`, ...) | `explicitness.errorLog` | `strict` |
 | Session (`session_start`, `session_id`, ...) | `explicitness.session` | `strict` |

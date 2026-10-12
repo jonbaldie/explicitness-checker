@@ -755,6 +755,32 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/process-state.php', []);
     }
 
+    /**
+     * #162: Secure and an unseeded seedable engine are random inputs. A nested
+     * engine is reported on its own construction line, once.
+     */
+    public function testSecureAndUnseededEnginesInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', [
+            [11, 'random', 'default_engine reads from random number generator (Random\Randomizer).'],
+            [17, 'random', 'secure_engine reads from random number generator (Random\Engine\Secure).'],
+            [23, 'random', 'unseeded_mt reads from random number generator (Random\Engine\Mt19937).'],
+            [28, 'random', 'unseeded_xoshiro reads from random number generator (Random\Engine\Xoshiro256StarStar).'],
+            [33, 'random', 'unseeded_pcg reads from random number generator (Random\Engine\PcgOneseq128XslRr64).'],
+            [38, 'random', 'null_seed reads from random number generator (Random\Engine\Mt19937).'],
+            [43, 'random', 'named_null reads from random number generator (Random\Engine\Mt19937).'],
+            [48, 'random', 'mode_only reads from random number generator (Random\Engine\Mt19937).'],
+            [53, 'random', 'standalone_secure reads from random number generator (Random\Engine\Secure).'],
+            [58, 'random', 'repeated reads from random number generator (Random\Engine\Secure).'],
+        ]);
+    }
+
+    public function testSecureAndUnseededEnginesAreNotReportedInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/random-engines.php', []);
+    }
+
     public function testStrictCatalogueAdditionsAreNotReportedInDefaultMode(): void
     {
         $this->assertErrorsAtPath(self::STRICT_CATALOGUE_ADDITIONS_FIXTURE, []);

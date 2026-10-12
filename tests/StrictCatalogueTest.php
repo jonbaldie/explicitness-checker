@@ -592,7 +592,179 @@ class StrictCatalogueTest extends TestCase
             'new \\Random\\Randomizer($a)' => [[], []],
             'new \\Random\\Randomizer(null)' => $random('Random\\Randomizer'),
             'new \\Random\\Randomizer(engine: null)' => $random('Random\\Randomizer'),
+            'new \\Random\\Engine\\Secure()' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Engine\\Secure' => $random('Random\\Engine\\Secure'),
+            'new \\random\\engine\\secure()' => $random('random\\engine\\secure'),
+            'new \\Random\\Engine\\Secure($a)' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Engine\\Mt19937()' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(null)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(NULL)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(seed: null)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(mode: \\MT_RAND_MT19937)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Mt19937(mode: 1, seed: null)' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Engine\\Xoshiro256StarStar()' => $random('Random\\Engine\\Xoshiro256StarStar'),
+            'new \\Random\\Engine\\Xoshiro256StarStar(null)' => $random('Random\\Engine\\Xoshiro256StarStar'),
+            'new \\Random\\Engine\\Xoshiro256StarStar(seed: null)' => $random('Random\\Engine\\Xoshiro256StarStar'),
+            'new \\Random\\Engine\\PcgOneseq128XslRr64()' => $random('Random\\Engine\\PcgOneseq128XslRr64'),
+            'new \\Random\\Engine\\PcgOneseq128XslRr64(null)' => $random('Random\\Engine\\PcgOneseq128XslRr64'),
+            'new \\Random\\Engine\\PcgOneseq128XslRr64(seed: NULL)' => $random('Random\\Engine\\PcgOneseq128XslRr64'),
+            'new \\Random\\Engine\\Mt19937(0)' => [[], []],
+            'new \\Random\\Engine\\Mt19937(42)' => [[], []],
+            'new \\Random\\Engine\\Mt19937($a)' => [[], []],
+            'new \\Random\\Engine\\Mt19937(seed: 0)' => [[], []],
+            'new \\Random\\Engine\\Mt19937(seed: 42, mode: 1)' => [[], []],
+            'new \\Random\\Engine\\Mt19937(\'42\')' => [[], []],
+            'new \\Random\\Engine\\Xoshiro256StarStar(42)' => [[], []],
+            'new \\Random\\Engine\\Xoshiro256StarStar(\'abc\')' => [[], []],
+            'new \\Random\\Engine\\Xoshiro256StarStar($a)' => [[], []],
+            'new \\Random\\Engine\\PcgOneseq128XslRr64(0)' => [[], []],
+            'new \\Random\\Engine\\PcgOneseq128XslRr64(\'abc\')' => [[], []],
+            'new \\Random\\Engine\\PcgOneseq128XslRr64(seed: $a)' => [[], []],
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Secure())' => $random('Random\\Engine\\Secure'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937())' => $random('Random\\Engine\\Mt19937'),
+            'new \\Random\\Randomizer(new \\Random\\Engine\\Mt19937(42))' => [[], []],
+            'new \\Random\\Randomizer($a)' => [[], []],
+            'new \\App\\Random\\Engine\\Secure()' => [[], []],
+            'new \\My\\Engine()' => [[], []],
+            'new $a()' => [[], []],
         ]);
+    }
+
+    /**
+     * Secure cannot be seeded. A seedable engine reads entropy only when its
+     * seed is omitted or literal null; an explicit seed, including zero or a
+     * variable, is the caller's input. A nested engine reports itself, not
+     * the Randomizer that receives it.
+     */
+    public function testReportsSecureAndUnseededEngines(): void
+    {
+        $source = <<<'PHP'
+<?php
+namespace App;
+
+use Random\Engine\Mt19937;
+use Random\Engine\PcgOneseq128XslRr64;
+use Random\Engine\Secure;
+use Random\Engine\Xoshiro256StarStar as Xoshiro;
+use Random\Randomizer;
+use App\Random\Engine\Secure as Lookalike;
+
+function secure(): object
+{
+    return new Secure();
+}
+
+function nested(): object
+{
+    return new Randomizer(
+        new Secure()
+    );
+}
+
+function unseeded_mt(): object
+{
+    return new Randomizer(new Mt19937());
+}
+
+function seeded(): object
+{
+    return new Randomizer(new Mt19937(42));
+}
+
+function caller(object $engine): object
+{
+    return new Randomizer($engine);
+}
+
+function repeated(): void
+{
+    new Secure();
+    new \Random\Engine\Secure();
+}
+
+function alias(): object
+{
+    return new Xoshiro();
+}
+
+function pcg(): object
+{
+    return new PcgOneseq128XslRr64(seed: null);
+}
+
+function lookalike(): object
+{
+    return new Lookalike();
+}
+
+function foreign(): object
+{
+    return new \App\Engine();
+}
+
+function mixed_case(): object
+{
+    return new \RANDOM\ENGINE\SECURE();
+}
+
+function mode_only(int $mode): object
+{
+    return new Mt19937(mode: $mode);
+}
+PHP;
+        $checker = new SourceChecker();
+        $results = $checker->check($source, new Mode(true, false));
+        $described = static function (int $index) use ($results): array {
+            $finding = $results[$index]->getInputs()[0] ?? null;
+            self::assertInstanceOf(Finding::class, $finding);
+            self::assertTrue($finding->isInput());
+            self::assertFalse($finding->isOutput());
+            self::assertSame([], $results[$index]->getOutputs());
+
+            return [$finding->getLine(), $finding->getDescription(), $finding->getCategory()];
+        };
+
+        self::assertSame(
+            [13, 'reads from random number generator (Random\Engine\Secure)', Category::RANDOM],
+            $described(0),
+        );
+        self::assertSame(
+            [19, 'reads from random number generator (Random\Engine\Secure)', Category::RANDOM],
+            $described(1),
+        );
+        self::assertCount(1, $results[1]->getInputs());
+        self::assertSame(
+            [25, 'reads from random number generator (Random\Engine\Mt19937)', Category::RANDOM],
+            $described(2),
+        );
+        self::assertSame([], $results[3]->getFindings());
+        self::assertSame([], $results[4]->getFindings());
+        self::assertCount(1, $results[5]->getInputs());
+        self::assertSame(
+            [40, 'reads from random number generator (Random\Engine\Secure)', Category::RANDOM],
+            $described(5),
+        );
+        self::assertSame(
+            [46, 'reads from random number generator (Random\Engine\Xoshiro256StarStar)', Category::RANDOM],
+            $described(6),
+        );
+        self::assertSame(
+            [51, 'reads from random number generator (Random\Engine\PcgOneseq128XslRr64)', Category::RANDOM],
+            $described(7),
+        );
+        self::assertSame([], $results[8]->getFindings());
+        self::assertSame([], $results[9]->getFindings());
+        self::assertSame(
+            [66, 'reads from random number generator (RANDOM\ENGINE\SECURE)', Category::RANDOM],
+            $described(10),
+        );
+        self::assertSame(
+            [71, 'reads from random number generator (Random\Engine\Mt19937)', Category::RANDOM],
+            $described(11),
+        );
+        foreach ($checker->check($source, new Mode(false, false)) as $result) {
+            self::assertSame([], $result->getFindings(), $result->getName());
+        }
     }
 
     /**

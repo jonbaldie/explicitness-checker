@@ -1,0 +1,26 @@
+Analyzing...
+
+Results:
+
++-----------------------------------+------+-------------------+------------------------------------------------------------------------+------------------+----------+
+| File                              | Line | Function          | Implicit Inputs                                                        | Implicit Outputs | Severity |
++-----------------------------------+------+-------------------+------------------------------------------------------------------------+------------------+----------+
+| tests/Fixtures/random-engines.php | 9    | default_engine    | reads from random number generator (Random\Randomizer)                 |                  | Critical |
+| tests/Fixtures/random-engines.php | 14   | secure_engine     | reads from random number generator (Random\Engine\Secure)              |                  | Critical |
+| tests/Fixtures/random-engines.php | 21   | unseeded_mt       | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 26   | unseeded_xoshiro  | reads from random number generator (Random\Engine\Xoshiro256StarStar)  |                  | Critical |
+| tests/Fixtures/random-engines.php | 31   | unseeded_pcg      | reads from random number generator (Random\Engine\PcgOneseq128XslRr64) |                  | Critical |
+| tests/Fixtures/random-engines.php | 36   | null_seed         | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 41   | named_null        | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 46   | mode_only         | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 51   | standalone_secure | reads from random number generator (Random\Engine\Secure)              |                  | Critical |
+| tests/Fixtures/random-engines.php | 56   | repeated          | reads from random number generator (Random\Engine\Secure)              |                  | Critical |
++-----------------------------------+------+-------------------+------------------------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 10 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+  Explicit function-likes: 6 of 16 (37.5%, minimum 50%)
+

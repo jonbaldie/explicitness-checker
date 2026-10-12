@@ -59,6 +59,10 @@ foreach ($targets as $targetName => $target) {
 return $cases + [
     'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
     'process-state.default' => ['tests/Fixtures/process-state.php'],
+    // #162: Secure and unseeded seedable engines read randomness; a passed-in engine does not.
+    'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
+    'random-engines.default' => ['tests/Fixtures/random-engines.php'],
+    'random-engines.min-explicitness' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/random-engines.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],
