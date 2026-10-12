@@ -64,6 +64,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -90,7 +93,35 @@ jobs:
       # Fails below the minMsi / minCoveredMsi set in infection.json5, or if
       # any mutant is skipped for taking longer than the timeout.
       - name: Run Infection
+        if: github.event_name == 'push'
         run: composer infection
+
+      - name: Run Infection on changed PR source files
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$PR_BASE_SHA"
+          merge_base=$(git merge-base "$PR_BASE_SHA" "$PR_HEAD_SHA")
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+
+          if git diff --quiet --no-renames --diff-filter=AM "$merge_base" "$PR_HEAD_SHA" -- ':(glob)src/**/*.php'; then
+            echo "No added or modified PHP source files since the PR merge base; skipping mutation testing."
+            exit 0
+          else
+            diff_status=$?
+            if [ "$diff_status" -ne 1 ]; then
+              exit "$diff_status"
+            fi
+          fi
+
+          sh tools/install-infection.sh
+          rm -f build/infection.json
+          php tools/infection.phar --threads=max --git-diff-filter=AMR --git-diff-base="$merge_base" --ignore-msi-with-no-mutations
+          php tools/check-infection-skips.php
 
   test:
     name: Tests
