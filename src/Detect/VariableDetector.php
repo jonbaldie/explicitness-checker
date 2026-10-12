@@ -7,7 +7,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
 use JonBaldie\ExplicitnessChecker\Scope\Bindings;
-use JonBaldie\ExplicitnessChecker\Scope\EffectiveTargets;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\Superglobals;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
@@ -29,7 +29,7 @@ class VariableDetector implements Detector
         Bindings::CAPTURED_REFERENCE => ['captured reference $', Category::CAPTURED_REFERENCE],
     ];
 
-    public function __construct(protected Bindings $bindings, protected EffectiveTargets $targets)
+    public function __construct(protected Bindings $bindings, protected Denotation $denotation)
     {
     }
 
@@ -60,7 +60,7 @@ class VariableDetector implements Detector
             return;
         }
 
-        $target = $this->targets->targetOf($node);
+        $target = $this->denotation->channel($node);
         if ($target['subject'] !== null) {
             $findings->access($isWrite, $target['subject'], Category::GLOBALS_ARRAY, $node);
 

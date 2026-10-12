@@ -6,7 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Walk;
 
 use JonBaldie\ExplicitnessChecker\Detect\Detector;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
-use JonBaldie\ExplicitnessChecker\Scope\ReferenceAliases;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use PhpParser\Node;
 
 /**
@@ -23,13 +23,13 @@ class BodyWalker
         protected array $detectors,
         protected AccessRules $rules,
         protected FindingCollector $findings,
-        protected ReferenceAliases $aliases,
+        protected Denotation $denotation,
     ) {
     }
 
     public function walk(Node $node, bool $isWrite): void
     {
-        $this->aliases->enter($node);
+        $this->denotation->enter($node);
 
         foreach ($this->detectors as $detector) {
             $detector->detect($node, $isWrite, $this->findings);
@@ -39,6 +39,6 @@ class BodyWalker
             $this->walk($child, $childIsWrite);
         }
 
-        $this->aliases->leave($node);
+        $this->denotation->leave($node);
     }
 }

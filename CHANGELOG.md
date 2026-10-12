@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A no-argument call to a function that is not a built-in is reported as both a possible read and a possible write (`may read via function auth()` and `may write via function auth()`), category `functionCall`, Serious, in default mode as well as with `--strict` and `--props` (#155). The name is the resolved spelling, so `namespace\time()` inside `namespace App` is `App\time` and `use function Other\time` is `Other\time`. `time()` and `strlen()` stay out. Strict catalogue findings are unchanged and are not repeated under `functionCall`. A pure helper such as `collect()` is reported. Helpers with arguments stay unreported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2. An internal that is neither in the catalogue nor loaded in the checker process can be reported as `functionCall`
 
+### Fixed
+
+- A by-value parameter rebound with `clone` or `new` denotes a fresh shallow copy of that parameter, so a later write to the copy's own property is no longer reported as argument mutation. A nested object reached from the copy, a write after a branch or other rebind, and a by-reference parameter stay caller-visible (#159)
+
 ### Changed
 
 - A no-argument static call is reported as both a possible read and a possible write (`may read via static method Class::method()` and `may write via static method Class::method()`), because the checker cannot tell the direction (#154). An existing row gains an output. The functions reported, the severity, the explicit counts, and the exit code stay the same. Calls with arguments, calls on `self`, `parent`, or `static`, and first-class callables stay unreported
