@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++----------------------------------+------+---------------+------------------------------+-------------------------------+----------+
+| File                             | Line | Function      | Implicit Inputs              | Implicit Outputs              | Severity |
++----------------------------------+------+---------------+------------------------------+-------------------------------+----------+
+| tests/Fixtures/function-call.php | 3    | currentUser   | may read via function auth() | may write via function auth() | Serious  |
+| tests/Fixtures/function-call.php | 12   | Orders::load  | may read via function auth() | may write via function auth() | Serious  |
+| tests/Fixtures/function-call.php | 18   | qualifiedExit |                              | terminates the program (exit) | Minor    |
+| tests/Fixtures/function-call.php | 23   | qualifiedDie  |                              | terminates the program (die)  | Minor    |
++----------------------------------+------+---------------+------------------------------+-------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 2 (exit code 1)
+  Exit code: 2
+

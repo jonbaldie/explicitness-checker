@@ -85,6 +85,11 @@ return $cases + [
     'static-call.default' => ['tests/Fixtures/static-call.php'],
     'dynamic-static-call.default' => ['tests/Fixtures/dynamic-static-call.php'],
 
+    // #155: a no-argument call that is not a built-in is a Serious read and write.
+    'function-call.default' => ['tests/Fixtures/function-call.php'],
+    'function-call.strict' => ['--strict', 'tests/Fixtures/function-call.php'],
+    'function-call.props' => ['--props', 'tests/Fixtures/function-call.php'],
+
     // #81: dynamic global accesses are pinned in default mode.
     'dynamic-global.default' => ['tests/Fixtures/dynamic-global.php'],
 
