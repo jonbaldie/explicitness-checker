@@ -95,6 +95,7 @@ class Application
         $checked = 0;
         foreach ($files as $file) {
             $result = $checker->check($file);
+            $checker = $checker->after($result);
             $narrator->narrate($result);
             $violations = array_merge($violations, $result->getViolations());
             $fileUnchecked = $result->getUnchecked();

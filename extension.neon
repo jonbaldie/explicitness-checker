@@ -4,7 +4,8 @@
 #
 # Set `explicitness.strict: true` and/or `explicitness.props: true` under
 # `parameters` to also report what the CLI reports under --strict and --props.
-# `props` covers `$this->property` only; static properties are always reported.
+# Default mode reports writes through `$this->property` outside constructor bodies.
+# `props` adds reads and constructor writes; static properties are always reported.
 parameters:
 	explicitness:
 		strict: false

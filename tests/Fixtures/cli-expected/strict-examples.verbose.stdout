@@ -8,7 +8,7 @@
 [verbose] Analyzing function/method: UserSession::greet (line 31)
 [verbose]   No implicit inputs/outputs detected for UserSession::greet
 [verbose] Analyzing function/method: UserSession::incrementLoginCount (line 40)
-[verbose]   No implicit inputs/outputs detected for UserSession::incrementLoginCount
+[verbose]   Implicit outputs for UserSession::incrementLoginCount: wrote to object property $this->loginCount
 [verbose] Analyzing function/method: AppAnalytics::recordPageView (line 59)
 [verbose]   Implicit inputs for AppAnalytics::recordPageView: read from static property self::$pageViews
 [verbose]   Implicit outputs for AppAnalytics::recordPageView: wrote to static property self::$pageViews
@@ -67,16 +67,17 @@ Analyzing...
 
 Results:
 
-+-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
-| File                              | Line | Function                     | Implicit Inputs                            | Implicit Outputs                          | Severity |
-+-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
-| test-fixtures/strict-examples.php | 59   | AppAnalytics::recordPageView | read from static property self::$pageViews | wrote to static property self::$pageViews | Serious  |
-| test-fixtures/strict-examples.php | 68   | AppAnalytics::logEvent       | read from static property self::$pageViews | wrote to static property self::$events    | Serious  |
-+-----------------------------------+------+------------------------------+--------------------------------------------+-------------------------------------------+----------+
++-----------------------------------+------+----------------------------------+--------------------------------------------+--------------------------------------------+----------+
+| File                              | Line | Function                         | Implicit Inputs                            | Implicit Outputs                           | Severity |
++-----------------------------------+------+----------------------------------+--------------------------------------------+--------------------------------------------+----------+
+| test-fixtures/strict-examples.php | 40   | UserSession::incrementLoginCount |                                            | wrote to object property $this->loginCount | Serious  |
+| test-fixtures/strict-examples.php | 59   | AppAnalytics::recordPageView     | read from static property self::$pageViews | wrote to static property self::$pageViews  | Serious  |
+| test-fixtures/strict-examples.php | 68   | AppAnalytics::logEvent           | read from static property self::$pageViews | wrote to static property self::$events     | Serious  |
++-----------------------------------+------+----------------------------------+--------------------------------------------+--------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)
-  Serious violations: 2 (exit code 2)
+  Serious violations: 3 (exit code 2)
   Minor violations: 0 (exit code 1)
   Exit code: 2
 

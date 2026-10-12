@@ -14,13 +14,14 @@ use PhpParser\Node;
  */
 class GlobalsArrayDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         $subject = GlobalsArray::subjectOf($node);
         if ($subject === null) {
-            return;
+            return $findings;
         }
 
-        $findings->access($isWrite, $subject, Category::GLOBALS_ARRAY, $node);
+        $findings = $findings->access($isWrite, $subject, Category::GLOBALS_ARRAY, $node);
+        return $findings;
     }
 }

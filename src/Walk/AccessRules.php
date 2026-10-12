@@ -23,10 +23,10 @@ class AccessRules extends RuleChain
 {
     protected SubNodesRule $unclaimed;
 
-    public function __construct()
+    public function __construct(?ByReferenceParameters $parameters = null)
     {
         $this->rules = [
-            new WriteRules(),
+            new WriteRules($parameters),
             new LeafRule(),
             new ArrayIndexRule(),
             new ArrayItemRule(),

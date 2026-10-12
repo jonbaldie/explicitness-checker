@@ -18,18 +18,22 @@ class HookedProperties
     /** @var list<string> enclosing hooked properties, innermost last */
     protected array $names = [];
 
-    public function enter(Node $node): void
+    public function enter(Node $node): self
     {
-        if ($this->isHooked($node)) {
-            $this->names[] = $this->propertyNameOf($node);
+        $next = clone $this;
+        if ($next->isHooked($node)) {
+            $next->names[] = $next->propertyNameOf($node);
         }
+        return $next;
     }
 
-    public function leave(Node $node): void
+    public function leave(Node $node): self
     {
-        if ($this->isHooked($node)) {
-            array_pop($this->names);
+        $next = clone $this;
+        if ($next->isHooked($node)) {
+            array_pop($next->names);
         }
+        return $next;
     }
 
     /**
@@ -44,7 +48,7 @@ class HookedProperties
             return null;
         }
 
-        return FunctionLikeNames::hook($className, (string) end($this->names), $node->name->toString());
+        return FunctionLikeNames::hook($className, ($this->names[array_key_last($this->names)] ?? ''), $node->name->toString());
     }
 
     /**

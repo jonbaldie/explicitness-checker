@@ -29,6 +29,20 @@ class ValueOrigins
         $this->selections = new ValueSelections();
     }
 
+    public function withContext(ReferenceAliases $aliases, JoinMap $map): self
+    {
+        $next = clone $this;
+        $next->aliases = $aliases;
+        $next->map = $map;
+
+        return $next;
+    }
+
+    public function getMap(): JoinMap
+    {
+        return $this->map;
+    }
+
     /** @return array<string, array<string, string>> */
     public static function initial(Bindings $bindings): array
     {
@@ -53,48 +67,56 @@ class ValueOrigins
     }
 
     /** @param array<string, string> $origins */
-    public function bind(Node $target, array $origins): void
+    public function bind(Node $target, array $origins): self
     {
+        $next = clone $this;
         if ($target instanceof Expr\List_) {
             foreach ($target->items as $item) {
                 if ($item !== null) {
-                    $this->bind($item->value, ValueSelections::selected($origins, true));
+                    $next = $next->bind($item->value, ValueSelections::selected($origins, true));
                 }
             }
 
-            return;
+            return $next;
         }
         $name = VariableName::of($target);
-        if ($name === null || !$this->canBind($target, $name)) {
-            return;
+        if ($name === null || !$next->canBind($target, $name)) {
+            return $next;
         }
         // Keep the existing bounded parameter policy for unknown sources (#159).
-        if ($origins === [] && $this->bindings->isParameter($name)) {
+        if ($origins === [] && $next->bindings->isParameter($name)) {
             $origins = [$name => self::SHARED];
         }
-        $this->map->bind($name, $origins);
+        $next->map = $next->map->bind($name, $origins);
+        return $next;
     }
 
-    public function assign(Expr\Assign $node): void
+    public function assign(Expr\Assign $node): self
     {
-        $origins = $this->of($node->expr);
+        $next = clone $this;
+        $origins = $next->of($node->expr);
         $name = VariableName::of($node->var);
-        if ($node->expr instanceof Expr\New_ && $name !== null && $this->bindings->isParameter($name)) {
+        if ($node->expr instanceof Expr\New_ && $name !== null && $next->bindings->isParameter($name)) {
             $origins = [$name => self::FRESH_OBJECT];
         }
-        $this->bind($node->var, $origins);
+        $next = $next->bind($node->var, $origins);
+        return $next;
     }
 
-    public function forget(Node $target): void
+    public function forget(Node $target): self
     {
-        $this->map->killBound($target);
-        $this->bind($target, []);
+        $next = clone $this;
+        $next->map = $next->map->killBound($target);
+        $next = $next->bind($target, []);
+        return $next;
     }
 
     /** @param array<string, string> $origins */
-    public function bindElement(Node $target, array $origins): void
+    public function bindElement(Node $target, array $origins): self
     {
-        $this->bind($target, ValueSelections::selected($origins, true));
+        $next = clone $this;
+        $next = $next->bind($target, ValueSelections::selected($origins, true));
+        return $next;
     }
 
     protected function canBind(Node $target, string $name): bool

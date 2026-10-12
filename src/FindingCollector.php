@@ -7,7 +7,7 @@ namespace JonBaldie\ExplicitnessChecker;
 use PhpParser\Node;
 
 /**
- * Accumulates findings for one function-like, keeping the first occurrence of
+ * Immutable findings for one function-like, keeping the first occurrence of
  * each description in the order it was found, inputs and outputs together.
  *
  * One map serves both directions: every description names its direction
@@ -23,25 +23,23 @@ class FindingCollector
      * Record a read ("read from <subject>") or a write ("wrote to <subject>"),
      * of the named variable if there is one.
      */
-    public function access(bool $isWrite, string $subject, string $category, Node $node, ?string $variable = null): void
+    public function access(bool $isWrite, string $subject, string $category, Node $node, ?string $variable = null): self
     {
         if ($isWrite) {
-            $this->output('wrote to ' . $subject, $category, $node, $variable);
-
-            return;
+            return $this->output('wrote to ' . $subject, $category, $node, $variable);
         }
 
-        $this->input('read from ' . $subject, $category, $node, $variable);
+        return $this->input('read from ' . $subject, $category, $node, $variable);
     }
 
-    public function input(string $description, string $category, Node $node, ?string $variable = null): void
+    public function input(string $description, string $category, Node $node, ?string $variable = null): self
     {
-        $this->record($description, $category, $node, $variable, false);
+        return $this->record($description, $category, $node, $variable, false);
     }
 
-    public function output(string $description, string $category, Node $node, ?string $variable = null): void
+    public function output(string $description, string $category, Node $node, ?string $variable = null): self
     {
-        $this->record($description, $category, $node, $variable, true);
+        return $this->record($description, $category, $node, $variable, true);
     }
 
     /**
@@ -54,8 +52,11 @@ class FindingCollector
         return array_values($this->findings);
     }
 
-    protected function record(string $description, string $category, Node $node, ?string $variable, bool $isOutput): void
+    protected function record(string $description, string $category, Node $node, ?string $variable, bool $isOutput): self
     {
-        $this->findings[$description] ??= new Finding($description, $category, $node->getStartLine(), $variable, $isOutput);
+        $next = clone $this;
+        $next->findings[$description] ??= new Finding($description, $category, $node->getStartLine(), $variable, $isOutput);
+
+        return $next;
     }
 }

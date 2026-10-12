@@ -1,0 +1,34 @@
+Analyzing...
+
+Results:
+
++----------------------------------------+------+--------------------------------------+----------------------------------------+-----------------------------------------------------------------------------+----------+
+| File                                   | Line | Function                             | Implicit Inputs                        | Implicit Outputs                                                            | Severity |
++----------------------------------------+------+--------------------------------------+----------------------------------------+-----------------------------------------------------------------------------+----------+
+| tests/Fixtures/default-this-writes.php | 4    | MutableCart::$amount::set            |                                        | wrote to object property $this->value                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 6    | MutableCart::__CONSTRUCT             |                                        | wrote to object property $this->items; wrote to global variable $ctorGlobal | Serious  |
+| tests/Fixtures/default-this-writes.php | 10   | {closure}                            |                                        | wrote to object property $this->later                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 11   | {closure}                            |                                        | wrote to object property $this->arrow                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 13   | MutableCart::class@anonymous::change |                                        | wrote to object property $this->nested                                      | Serious  |
+| tests/Fixtures/default-this-writes.php | 16   | MutableCart::assign                  |                                        | wrote to object property $this->value                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 17   | MutableCart::append                  |                                        | wrote to object property $this->items                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 18   | MutableCart::index                   |                                        | wrote to object property $this->items                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 19   | MutableCart::compound                | read from object property $this->count | wrote to object property $this->count                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 20   | MutableCart::coalesce                | read from object property $this->value | wrote to object property $this->value                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 21   | MutableCart::increment               | read from object property $this->count | wrote to object property $this->count                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 22   | MutableCart::decrement               | read from object property $this->count | wrote to object property $this->count                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 23   | MutableCart::remove                  |                                        | wrote to object property $this->value                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 24   | MutableCart::reference               |                                        | wrote to object property $this->ref                                         | Serious  |
+| tests/Fixtures/default-this-writes.php | 25   | MutableCart::referenceRead           | read from object property $this->ref   | wrote to object property $this->ref                                         | Serious  |
+| tests/Fixtures/default-this-writes.php | 26   | MutableCart::sortItems               | read from object property $this->items | wrote to object property $this->items                                       | Serious  |
+| tests/Fixtures/default-this-writes.php | 27   | MutableCart::dynamic                 |                                        | wrote to object property $this->...                                         | Serious  |
+| tests/Fixtures/default-this-writes.php | 28   | MutableCart::globalName              | read from $GLOBALS['field']            | wrote to object property $this->...                                         | Serious  |
+| tests/Fixtures/default-this-writes.php | 29   | MutableCart::owner                   | read from object property $this->value |                                                                             | Serious  |
++----------------------------------------+------+--------------------------------------+----------------------------------------+-----------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 19 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

@@ -12,6 +12,7 @@ use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use JonBaldie\ExplicitnessChecker\Scope\CheckedFunctionLike;
 use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
+use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 
 /**
  * The source-level check: parses PHP source, resolves names, and reports the
@@ -29,12 +30,12 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
 {
     protected Parser $parser;
 
-    protected Analyser $analyser;
+    protected ReflectedByReferenceParameters $parameters;
 
-    public function __construct()
+    public function __construct(?ReflectedByReferenceParameters $parameters = null)
     {
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
-        $this->analyser = new Analyser();
+        $this->parameters = $parameters ?? new ReflectedByReferenceParameters();
     }
 
     /**
@@ -44,15 +45,29 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
      */
     public function check(string $source, Mode $mode): array
     {
-        // Only a parser with a non-throwing error handler returns null; the
-        // one this class builds throws instead.
-        $ast = (array) $this->parser->parse($source);
+        return $this->checkWithCache($source, $mode)[0];
+    }
+
+    public function withParameters(ReflectedByReferenceParameters $parameters): self
+    {
+        $next = clone $this;
+        $next->parameters = $parameters;
+
+        return $next;
+    }
+
+    /** @return array{list<FunctionResult>, ReflectedByReferenceParameters} */
+    public function checkWithCache(string $source, Mode $mode): array
+    {
+        $ast = $this->resolveNames((array) $this->parser->parse($source));
+        $parameters = $this->parameters->forNodes($ast);
+        $analyser = new Analyser($parameters);
         $results = [];
-        foreach ((new FunctionLikeFinder())->find($this->resolveNames($ast)) as $functionLike) {
-            $results[] = $this->result($functionLike, $mode);
+        foreach ((new FunctionLikeFinder())->find($ast) as $functionLike) {
+            $results[] = $this->result($functionLike, $mode, $analyser);
         }
 
-        return $results;
+        return [$results, $parameters];
     }
 
     /**
@@ -67,9 +82,9 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
         return (new NodeTraverser(new NameResolver()))->traverse($ast);
     }
 
-    protected function result(CheckedFunctionLike $functionLike, Mode $mode): FunctionResult
+    protected function result(CheckedFunctionLike $functionLike, Mode $mode, Analyser $analyser): FunctionResult
     {
-        $analysis = $this->analyser->analyse($functionLike->getNode(), $mode);
+        $analysis = $analyser->analyse($functionLike->getNode(), $mode);
 
         return new FunctionResult(
             $functionLike->getName(),

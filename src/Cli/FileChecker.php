@@ -33,7 +33,9 @@ class FileChecker
         }
 
         try {
-            return new FileCheckResult($file, $this->sourceChecker->check($code, $this->mode));
+            [$functions, $parameters] = $this->sourceChecker->checkWithCache($code, $this->mode);
+
+            return new FileCheckResult($file, $functions, null, $parameters);
         } catch (Error $error) {
             return new FileCheckResult(
                 $file,
@@ -42,4 +44,16 @@ class FileChecker
             );
         }
     }
+    public function after(FileCheckResult $result): self
+    {
+        $parameters = $result->getNativeParameters();
+        if ($parameters === null) {
+            return $this;
+        }
+        $next = clone $this;
+        $next->sourceChecker = $this->sourceChecker->withParameters($parameters);
+
+        return $next;
+    }
+
 }

@@ -92,6 +92,8 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker [--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
 
+Default property-write detection reuses assignment, compound update, increment/decrement, unset, reference-binding and internal by-reference-call semantics. The constructor exception covers only that method's own body, including mixed-case names. Nested closures, arrows, classes and property hooks are analysed independently. Clone-and-write withers remain outside this rule. This is syntactic initialization handling, not escape or lifetime analysis.
+
 ### Flags
 
 - `--verbose` or `-v`: Enable verbose output showing detailed analysis progress
@@ -103,7 +105,7 @@ Run the checker on `app`:
   - Randomness (`rand`, `shuffle`, `uniqid`, `new Random\Randomizer()` without an engine, etc.)
   - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
-- `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
+- `--props`: Add instance property reads and constructor initialization writes. Writes through `$this->property` outside an actual `__construct` method already report in default mode. Static properties are always reported.
 
 Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.
 
@@ -159,7 +161,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Static properties (`ClassName::$property`)
   - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`, or `foreach ($carts as $cart) { $cart->items = []; }`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
-  - Instance properties (`$this->property`) when `--props` is enabled
+  - Writes through `$this->property` outside constructor bodies in default mode; `--props` also adds reads and constructor writes
 - **Critical** (Exit code 3): System-level implicit I/O
   - Environment access: `$_ENV`, and `getenv` (*strict*)
   - File operations (`file_get_contents`, `fwrite`, `unlink`, etc.) (*strict*)
@@ -299,7 +301,7 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Email (`mail`, `mb_send_mail`) | `explicitness.mail` | `strict` |
 | Included file (`include`, `require`, `include_once`, `require_once`) | `explicitness.include` | `strict` |
 | Runtime configuration (`ini_set`, `ini_get`, `set_error_handler`, `define`, ...) | `explicitness.runtimeConfig` | `strict` |
-| Object property (`$this->property`) | `explicitness.objectProperty` | `props` |
+| Object property (`$this->property`) | `explicitness.objectProperty` | default writes outside constructors; `props` adds reads and constructor writes |
 
 ### Ignoring or baselining a category
 

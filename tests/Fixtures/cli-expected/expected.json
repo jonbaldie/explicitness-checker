@@ -1028,7 +1028,7 @@
         "stderr": ""
     },
     "dynamic-this-property.default": {
-        "exitCode": 0,
+        "exitCode": 2,
         "stderr": ""
     },
     "dynamic-this-property.props": {
@@ -1081,6 +1081,26 @@
     },
     "strict-catalogue-additions.default": {
         "exitCode": 0,
+        "stderr": ""
+    },
+    "default-this-writes.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "default-this-writes.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "default-this-writes.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "default-this-writes.minimum-pass": {
+        "exitCode": 0,
+        "stderr": ""
+    },
+    "default-this-writes.minimum-fail": {
+        "exitCode": 2,
         "stderr": ""
     }
 }

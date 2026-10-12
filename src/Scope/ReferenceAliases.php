@@ -23,38 +23,42 @@ class ReferenceAliases
     /** @var array<string, string> alias name => globals-array subject */
     protected array $aliases = [];
 
-    public function enter(Node $node): void
+    public function enter(Node $node): self
     {
+        $next = clone $this;
         if ($node instanceof Expr\AssignRef) {
-            $this->assignReference($node);
+            $next = $next->assignReference($node);
 
-            return;
+            return $next;
         }
 
         if ($node instanceof Stmt\Global_) {
             foreach ($node->vars as $variable) {
-                $this->forget($variable);
+                $next = $next->forget($variable);
             }
 
-            return;
+            return $next;
         }
 
         if ($node instanceof Stmt\Foreach_ && $node->byRef) {
-            $this->forget($node->valueVar);
+            $next = $next->forget($node->valueVar);
         }
+        return $next;
     }
 
-    public function leave(Node $node): void
+    public function leave(Node $node): self
     {
+        $next = clone $this;
         if (!$node instanceof Stmt\Unset_) {
-            return;
+            return $next;
         }
 
         foreach ($node->vars as $variable) {
             if ($variable instanceof Expr\Variable) {
-                $this->forget($variable);
+                $next = $next->forget($variable);
             }
         }
+        return $next;
     }
 
     public function targetOf(Node $node): ?string
@@ -64,28 +68,32 @@ class ReferenceAliases
         return $name === null ? null : ($this->aliases[$name] ?? null);
     }
 
-    protected function assignReference(Expr\AssignRef $node): void
+    protected function assignReference(Expr\AssignRef $node): self
     {
+        $next = clone $this;
         $name = VariableName::of($node->var);
         if ($name === null) {
-            return;
+            return $next;
         }
 
         $target = GlobalsArray::subjectOf($node->expr);
         if ($target === null) {
-            $this->forget($node->var);
+            $next = $next->forget($node->var);
 
-            return;
+            return $next;
         }
 
-        $this->aliases[$name] = $target;
+        $next->aliases[$name] = $target;
+        return $next;
     }
 
-    protected function forget(Node $node): void
+    protected function forget(Node $node): self
     {
+        $next = clone $this;
         $name = VariableName::of($node);
         if ($name !== null) {
-            unset($this->aliases[$name]);
+            unset($next->aliases[$name]);
         }
+        return $next;
     }
 }

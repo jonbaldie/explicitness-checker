@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Scope;
 
 use PhpParser\Node;
-use PhpParser\NodeTraverser;
 
 /**
  * Finds the function-likes of a file that the checker reports on: every
@@ -31,10 +30,20 @@ class FunctionLikeFinder
     public function find(array $ast): array
     {
         $collector = new FunctionLikeCollector();
-        $traverser = new NodeTraverser();
-        $traverser->addVisitor($collector);
-        $traverser->traverse($ast);
+        foreach ($ast as $node) {
+            $collector = self::walk($node, $collector);
+        }
 
         return $collector->getFound();
     }
+    protected static function walk(Node $node, FunctionLikeCollector $collector): FunctionLikeCollector
+    {
+        $collector = $collector->enter($node);
+        foreach (ChildNodes::of($node) as $child) {
+            $collector = self::walk($child, $collector);
+        }
+
+        return $collector->leave($node);
+    }
+
 }

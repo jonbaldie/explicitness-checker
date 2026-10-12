@@ -10,23 +10,29 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 
 /**
- * Props mode: reads and writes of `$this->name` and `$this?->name` (the name
+ * Default writes, with optional props-mode reads, of `$this->name` and `$this?->name` (the name
  * is shown as "..." when dynamic).
  */
 class ObjectPropertyDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function __construct(protected bool $reportReads = true)
+    {
+    }
+
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         if (
-            (!$node instanceof Expr\PropertyFetch && !$node instanceof Expr\NullsafePropertyFetch)
+            (!$isWrite && !$this->reportReads)
+            || (!$node instanceof Expr\PropertyFetch && !$node instanceof Expr\NullsafePropertyFetch)
             || !$node->var instanceof Expr\Variable
             || $node->var->name !== 'this'
         ) {
-            return;
+            return $findings;
         }
 
         $property = $node->name instanceof Node\Identifier ? $node->name->toString() : '...';
         $subject = 'object property $this->' . $property;
-        $findings->access($isWrite, $subject, Category::OBJECT_PROPERTY, $node);
+        $findings = $findings->access($isWrite, $subject, Category::OBJECT_PROPERTY, $node);
+        return $findings;
     }
 }

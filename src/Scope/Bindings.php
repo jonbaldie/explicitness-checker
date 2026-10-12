@@ -40,11 +40,11 @@ class Bindings
         array $capturedReferences,
     ) {
         // Lowest precedence first, so each later kind overrides the earlier.
-        $this->bind($capturedReferences, self::CAPTURED_REFERENCE);
-        $this->bind($parameters, self::PARAMETER);
-        $this->bind($byReferenceParameters, self::BY_REFERENCE_PARAMETER);
-        $this->bind($staticVariables, self::STATIC);
-        $this->bind($declaredGlobals, self::GLOBAL);
+        $this->kinds = self::bound($this->kinds, $capturedReferences, self::CAPTURED_REFERENCE);
+        $this->kinds = self::bound($this->kinds, $parameters, self::PARAMETER);
+        $this->kinds = self::bound($this->kinds, $byReferenceParameters, self::BY_REFERENCE_PARAMETER);
+        $this->kinds = self::bound($this->kinds, $staticVariables, self::STATIC);
+        $this->kinds = self::bound($this->kinds, $declaredGlobals, self::GLOBAL);
     }
 
     /**
@@ -94,13 +94,16 @@ class Bindings
     }
 
     /**
+     * @param array<string, self::*> $kinds
      * @param list<string> $names
      * @param self::* $kind
+     * @return array<string, self::*>
      */
-    protected function bind(array $names, string $kind): void
+    protected static function bound(array $kinds, array $names, string $kind): array
     {
         foreach ($names as $name) {
-            $this->kinds[$name] = $kind;
+            $kinds[$name] = $kind;
         }
+        return $kinds;
     }
 }

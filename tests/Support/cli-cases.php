@@ -57,6 +57,12 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'default-this-writes.default' => ['tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.strict' => ['--strict', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.props' => ['--props', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.minimum-pass' => ['--min-explicitness=10', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.minimum-fail' => ['--min-explicitness=10.1', 'tests/Fixtures/default-this-writes.php'],
+
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],
     // #107: making first-class callables does not perform the referenced calls.
     'first-class-callables.strict' => ['--strict', 'tests/Fixtures/first-class-callables.php'],

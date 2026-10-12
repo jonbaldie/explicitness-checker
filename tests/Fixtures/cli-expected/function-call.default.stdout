@@ -2,12 +2,12 @@ Analyzing...
 
 Results:
 
-+----------------------------------+------+--------------+------------------------------+-------------------------------+----------+
-| File                             | Line | Function     | Implicit Inputs              | Implicit Outputs              | Severity |
-+----------------------------------+------+--------------+------------------------------+-------------------------------+----------+
-| tests/Fixtures/function-call.php | 3    | currentUser  | may read via function auth() | may write via function auth() | Serious  |
-| tests/Fixtures/function-call.php | 12   | Orders::load | may read via function auth() | may write via function auth() | Serious  |
-+----------------------------------+------+--------------+------------------------------+-------------------------------+----------+
++----------------------------------+------+--------------+------------------------------+-----------------------------------------------------------------------+----------+
+| File                             | Line | Function     | Implicit Inputs              | Implicit Outputs                                                      | Severity |
++----------------------------------+------+--------------+------------------------------+-----------------------------------------------------------------------+----------+
+| tests/Fixtures/function-call.php | 3    | currentUser  | may read via function auth() | may write via function auth()                                         | Serious  |
+| tests/Fixtures/function-call.php | 12   | Orders::load | may read via function auth() | wrote to object property $this->orders; may write via function auth() | Serious  |
++----------------------------------+------+--------------+------------------------------+-----------------------------------------------------------------------+----------+
 
 Summary:
   Critical violations: 0 (exit code 3)
