@@ -238,13 +238,7 @@ class SourceCheckerTest extends TestCase
         );
     }
 
-    /**
-     * A static call with no arguments may read or write, so both are reported.
-     * Calls that pass arguments, calls on the current class (self::, parent::,
-     * static::), and first-class callables (`Str::make(...)`) are not reported.
-     * Calls with dynamic classes or methods are reported with `...` placeholders.
-     */
-    public function testReportsArgumentlessStaticCallsAsImplicitInputsInDefaultMode(): void
+    public function testReportsArgumentlessStaticCallsAsPossibleReadAndWriteInDefaultMode(): void
     {
         $source = <<<'PHP'
             <?php
@@ -368,10 +362,6 @@ class SourceCheckerTest extends TestCase
         self::assertSame($this->summaries($results), $this->summaries($strictResults));
     }
 
-    /**
-     * A no-argument static call may read or write. The checker reports both,
-     * and a repeated call keeps the first line of each direction.
-     */
     public function testArgumentlessStaticCallReportsPossibleReadAndWrite(): void
     {
         $source = <<<'PHP'

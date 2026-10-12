@@ -9,12 +9,6 @@ use JonBaldie\ExplicitnessChecker\FindingCollector;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 
-/**
- * Default mode: static method calls with no arguments. The checker cannot
- * tell whether the call reads or writes, so it reports both as possible.
- * Dynamic classes and methods are shown as "...". Calls on the current
- * class (self::, parent::, static::) are not reported.
- */
 class StaticCallDetector implements Detector
 {
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
