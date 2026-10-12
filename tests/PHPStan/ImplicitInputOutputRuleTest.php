@@ -54,6 +54,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/static-call.php';
 
+    protected const FUNCTION_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/function-call.php';
+
     protected const DYNAMIC_STATIC_CALL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-static-call.php';
 
     protected const DYNAMIC_GLOBAL_FIXTURE = Process::ROOT . '/tests/Fixtures/dynamic-global.php';
@@ -828,6 +830,43 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         $this->assertErrorsAtPath(self::STATIC_CALL_FIXTURE, [
             [4, 'staticCall', 'accesses_static_helper may read via static method SomeClass::staticMethod().'],
             [4, 'staticCall', 'accesses_static_helper may write via static method SomeClass::staticMethod().'],
+        ]);
+    }
+
+    public function testArgumentlessFunctionCallsInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(self::FUNCTION_CALL_FIXTURE, [
+            [5, 'functionCall', 'currentUser may read via function auth().'],
+            [5, 'functionCall', 'currentUser may write via function auth().'],
+            [14, 'functionCall', 'Orders::load may read via function auth().'],
+            [14, 'functionCall', 'Orders::load may write via function auth().'],
+        ]);
+    }
+
+    public function testArgumentlessFunctionCallsInStrictModeStayBesideExit(): void
+    {
+        $this->strict = true;
+
+        $this->assertErrorsAtPath(self::FUNCTION_CALL_FIXTURE, [
+            [5, 'functionCall', 'currentUser may read via function auth().'],
+            [5, 'functionCall', 'currentUser may write via function auth().'],
+            [14, 'functionCall', 'Orders::load may read via function auth().'],
+            [14, 'functionCall', 'Orders::load may write via function auth().'],
+            [20, 'standardOutput', 'qualifiedExit terminates the program (exit).'],
+            [25, 'standardOutput', 'qualifiedDie terminates the program (die).'],
+        ]);
+    }
+
+    public function testArgumentlessFunctionCallsInPropsModeIncludeThePropertyWrite(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::FUNCTION_CALL_FIXTURE, [
+            [5, 'functionCall', 'currentUser may read via function auth().'],
+            [5, 'functionCall', 'currentUser may write via function auth().'],
+            [14, 'functionCall', 'Orders::load may read via function auth().'],
+            [14, 'objectProperty', 'Orders::load wrote to object property $this->orders.'],
+            [14, 'functionCall', 'Orders::load may write via function auth().'],
         ]);
     }
 

@@ -24,6 +24,7 @@ class DetectorSet
             new VariableDetector($bindings, $targets),
             new GlobalsArrayDetector(),
             new StaticCallDetector(),
+            new FunctionCallDetector(),
             new ArgumentMutationDetector($targets),
             new StaticPropertyDetector(),
         ];

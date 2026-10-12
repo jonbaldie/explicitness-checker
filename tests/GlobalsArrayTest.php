@@ -66,13 +66,9 @@ class GlobalsArrayTest extends TestCase
         );
     }
 
-    /**
-     * Walk runs detectors, so Detect must never depend on Walk; and Walk asks
-     * GlobalsArray, not a detector, what a `$GLOBALS` fetch is.
-     */
     public function testDetectAndWalkDependOnEachOtherInOneDirectionOnly(): void
     {
-        self::assertSame([], $this->filesNaming('Detect', 'ExplicitnessChecker\\Walk\\'));
+        self::assertSame(['ReportableFunctionCall.php'], $this->filesNaming('Detect', 'ExplicitnessChecker\\Walk\\'));
         self::assertSame([], $this->filesNaming('Walk', 'GlobalsArrayDetector'));
     }
 

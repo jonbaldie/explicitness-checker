@@ -569,7 +569,10 @@ class StrictCatalogueTest extends TestCase
             'ob_start()' => $stdout('ob_start'),
             'ob_get_clean()' => $stdout('ob_get_clean'),
             'flush()' => $stdout('flush'),
-            'my_ob_start()' => [[], []],
+            'my_ob_start()' => [
+                [['may read via function my_ob_start()', Category::FUNCTION_CALL]],
+                [['may write via function my_ob_start()', Category::FUNCTION_CALL]],
+            ],
         ]);
     }
 

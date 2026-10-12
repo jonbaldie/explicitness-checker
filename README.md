@@ -74,7 +74,7 @@ Run the checker on `app`:
 ./vendor/bin/explicitness-checker app
 ```
 
-- **Blind spot.** Helpers (`env()`, `config()`, `request()`, `now()`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are ordinary calls to the checker, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. The checker cannot tell whether that call reads or writes, so the row lists a possible read and a possible write. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
+- **Blind spot.** Helpers called with no arguments (`auth()`, `now()`, `request()`, `collect()`, ...) are reported as a possible read and a possible write. The checker cannot tell the direction, and it does not treat a pure factory as exempt. Helpers that take arguments (`env('APP_URL')`, `config('app.name')`, `now($tz)`, ...) and facade calls that take arguments (`DB::table('orders')`, `Cache::get($key)`, `Log::info($message)`, ...) are still ordinary calls, so I/O through them reports as explicit. Facade calls with no arguments, such as `Auth::user()`, are reported as static method calls. The checker cannot tell whether that call reads or writes, so the row lists a possible read and a possible write. A clean result covers only superglobals, `global`, `$GLOBALS`, static method calls with no arguments, function calls with no arguments, static properties, writes through arguments, `static` variables, by-reference closure captures, and with `--strict` built-ins such as `getenv`, `time`, `file_get_contents`, `curl_exec`, `exec` and `mysqli_query`.
 - **`--props`** also reports constructor-injected services (`$this->orders`), so expect it to flag most controllers and services.
 - **PHPStan with Larastan.** Add this package's config next to the Larastan include from Larastan's docs:
 
@@ -155,6 +155,7 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Global variables (`global`, `$GLOBALS`)
   - Superglobals (`$_GET`, `$_POST`, `$_SESSION`, etc.)
   - Static method calls with no arguments (`ClassName::method()`), as a possible read and a possible write
+  - Function calls with no arguments (`auth()`, `now()`, `request()`), as a possible read and a possible write. A call the strict catalogue already recognises, including `time()`, `date()`, `session_id()`, and the `mysqli_` / `ob_` families, stays out of this category even when that extension is not loaded. Other loaded internals, such as `strlen()`, stay out too. `collect()` is still reported.
   - Static properties (`ClassName::$property`)
   - Writes through arguments (`$cart[] = $item` or `sort($cart)` with `array &$cart`, `$product->price = 1`)
   - `static` variables and by-reference closure captures (`use (&$x)`)
@@ -170,6 +171,8 @@ Items marked *strict* are reported only with `--strict` (the PHPStan `strict` pa
   - Network, databases, external processes, email, `include`/`require` and runtime configuration (*strict*)
 
 **By-reference built-ins.** A built-in that takes an argument by reference, such as `sort`, `array_push` or `preg_match`'s `$matches`, writes to it. Passing it a by-reference parameter, a global, a superglobal, a `static` variable or a by-reference capture is reported as a write. Iterating by reference (`foreach ($cart as &$line)`) and binding a reference (`$r = &$cart`, `[&$first] = $cart`) count the same way. The checker asks the PHP that runs it which parameters are by reference, so the result depends on the extensions loaded there: a call to a function from an extension that isn't loaded isn't reported, and two machines with different extensions can report different results for the same code. User-defined functions, and calls that unpack their arguments (`sort(...$lists)`), are never treated as by-reference.
+
+Catalogue names and prefixes are excluded on every machine. Any other built-in is excluded only when the PHP that runs the checker can reflect it. A zero-argument call to an internal from an extension that is not loaded, and that is not in the catalogue, is reported as `functionCall`. `mb_internal_encoding()` is the example when mbstring is absent. There is no separate list of built-ins per PHP version.
 
 **Behaviour change:** `$_ENV` access used to be Serious, like the other superglobals. It is now Critical, the same as `getenv`, so a run whose worst finding is `$_ENV` access now exits with 3 instead of 2.
 
@@ -274,6 +277,7 @@ Every error the rule reports carries one of these `explicitness.<category>` iden
 | Superglobal (`$_GET`, `$_ENV`, etc.; `filter_input` with `strict`) | `explicitness.superglobal` | default |
 | `$GLOBALS` array | `explicitness.globalsArray` | default |
 | Static method call with no arguments (`ClassName::method()`, not `self::`, `parent::` or `static::`), as a possible read and a possible write | `explicitness.staticCall` | default |
+| Function call with no arguments (`auth()`, `now()`), as a possible read and a possible write | `explicitness.functionCall` | default |
 | Static property (`ClassName::$property`) | `explicitness.staticProperty` | default |
 | Write through a by-reference parameter or an object argument's property | `explicitness.argumentMutation` | default |
 | `static` variable (`static $x`) | `explicitness.staticVariable` | default |

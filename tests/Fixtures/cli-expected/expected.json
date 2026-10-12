@@ -867,6 +867,18 @@
         "exitCode": 2,
         "stderr": ""
     },
+    "function-call.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "function-call.strict": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "function-call.props": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "dynamic-static-call.default": {
         "exitCode": 2,
         "stderr": ""
