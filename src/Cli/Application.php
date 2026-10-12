@@ -85,26 +85,19 @@ class Application
         if ($files === []) {
             $console->out("No PHP files found in {$path}\n");
 
-            return 0;
+            return RunSummary::of($discovered, [], $options->getMinimum())->getExitCode();
         }
 
         $checker = new FileChecker(new SourceChecker(), $mode);
         $narrator = new FileNarrator($console);
-        $violations = [];
-        $unchecked = $discovered->getUnchecked();
-        $checked = 0;
+        $results = [];
         foreach ($files as $file) {
             $result = $checker->check($file);
             $narrator->narrate($result);
-            $violations = array_merge($violations, $result->getViolations());
-            $fileUnchecked = $result->getUnchecked();
-            if ($fileUnchecked !== null) {
-                $unchecked[] = $fileUnchecked;
-            }
-            $checked += $result->getChecked();
+            $results[] = $result;
         }
 
-        $summary = new RunSummary($violations, $unchecked, $checked, $options->getMinimum());
+        $summary = RunSummary::of($discovered, $results, $options->getMinimum());
         (new Report($console))->print($summary);
 
         return $summary->getExitCode();
