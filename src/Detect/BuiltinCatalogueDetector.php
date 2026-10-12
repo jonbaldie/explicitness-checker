@@ -9,6 +9,7 @@ use JonBaldie\ExplicitnessChecker\FindingCollector;
 use JonBaldie\ExplicitnessChecker\LiteralCallable;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 
 /**
@@ -241,6 +242,18 @@ class BuiltinCatalogueDetector implements Detector
         'getopt' => [self::SUPERGLOBAL_READ],
     ];
 
+    /**
+     * Whether an empty call of this resolved name is one the strict catalogue
+     * would already report. Classifies a synthetic empty call and does not
+     * record findings.
+     */
+    public function wouldReportEmptyCall(string $resolvedName): bool
+    {
+        $entries = $this->classify(new Expr\FuncCall(new Name($resolvedName), []))[1] ?? [];
+
+        return $entries !== [];
+    }
+
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
     {
         $classified = $this->classify($node);
@@ -307,7 +320,9 @@ class BuiltinCatalogueDetector implements Detector
             }
         }
         if ($node instanceof Expr\Exit_) {
-            return [$this->exitName($node), $this->exitEntries(new CallArguments($node))];
+            $kind = $node->getAttribute('kind', Expr\Exit_::KIND_EXIT);
+
+            return [$kind === Expr\Exit_::KIND_DIE ? 'die' : 'exit', $this->exitEntries(new CallArguments($node))];
         }
         if ($node instanceof Expr\ShellExec) {
             return ['shell_exec', $this->catalogueEntries('shell_exec')];
@@ -429,13 +444,6 @@ class BuiltinCatalogueDetector implements Detector
     protected function exitEntries(CallArguments $arguments): array
     {
         return $arguments->string(0, 'status') === null ? [self::TERMINATES] : [self::STDOUT];
-    }
-
-    protected function exitName(Expr\Exit_ $node): string
-    {
-        return $node->getAttribute('kind', Expr\Exit_::KIND_EXIT) === Expr\Exit_::KIND_DIE
-            ? 'die'
-            : 'exit';
     }
 
     /**
