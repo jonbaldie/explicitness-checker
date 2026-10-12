@@ -90,8 +90,14 @@ Run the checker on `app`:
 ## How do I run the tool?
 
 ```bash
-./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
+./vendor/bin/explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] ./path/to/your/project
 ```
+
+Transitive analysis follows named function calls (including imports and namespaced/global fallback), and named `$this`, `self`, `static` and `parent` method calls in named classes. Method lookup uses the caller's declaring class and the nearest known parent; `parent` starts at the parent. This is a lexical approximation: inherited methods keep their declaring context, and runtime virtual/late-static dispatch is not expanded.
+
+Only actual invocations create edges. Nested closures, arrows, functions and classes have their own analysis; constructing or passing them does not execute their bodies. Callable parameters and first-class callable creation create no edges. Unresolved, ambiguous, excluded, unreadable and unparseable declarations add no targets. Traits/adaptations, magic dispatch, arbitrary object calls, other-class static calls, constructors, literal-callable wrappers and callback dataflow remain outside this graph.
+
+Propagation consumes the direct findings of the active strict/props modes, including conservative helper heuristics. Zero-argument user helpers may already be direct actions, even if their bodies return constants. This is a bounded selected-file analysis, not a whole-program purity proof. PHPStan behavior and parameters are unchanged; there is no active `explicitness.callsAction` PHPStan diagnostic.
 
 ### Flags
 
@@ -110,6 +116,7 @@ Randomness findings identify construction sites. A caller-provided Randomizer en
   - Direct process-setting accessors (`libxml_use_internal_errors`, `mb_internal_encoding`, `umask`) read when their setting argument is omitted or literal `null`, and write when another value is supplied, including `false` or zero.
   - Network (`curl_exec`, `fsockopen`, `socket_*`, `ftp_*`, etc.), databases (`mysqli_*`, `pg_*`, `odbc_*`, `sqlsrv_*`, `oci_*`), external processes (`exec`, backticks, etc.), email (`mail`), `include`/`require`, and runtime configuration (`ini_set`, `set_error_handler`, `define`, `set_time_limit`, `json_last_error`, `chdir`, `libxml_use_internal_errors`, etc.)
   - Superglobals read through `filter_input`, `filter_input_array` and `getopt`
+- `--transitive`: CLI-only, opt-in propagation through declarations in exactly the selected files. Calls to analysed actions add Serious `callsAction` findings for each reachable input/output direction, naming the immediate callee and its declaration line. Direct findings stay intact. Checked counts stay fixed; implicit callers lower explicitness percentages once each. Pure argument-bearing recursion stays clean, and action cycles terminate with finite descriptions.
 - `--props`: Also report instance property access (`$this->property`). Static properties are reported without it.
 
 Any other argument starting with `-` is an unknown option. It stops the run before anything is analysed: `Unknown option: <argument>` and the usage line go to stderr and the exit code is 2, so a mistyped flag such as `--stict` fails the build instead of quietly turning a check off.

@@ -28,6 +28,7 @@ class ArgumentParser
         '--verbose' => 'verbose',
         '--strict' => 'strict',
         '--props' => 'props',
+        '--transitive' => 'transitive',
     ];
 
     protected const VALUE_OPTIONS = ['--exclude', '--include-pattern', '--exclude-pattern', '--min-explicitness'];
@@ -41,7 +42,7 @@ class ArgumentParser
      */
     public function parse(array $argv): ?Options
     {
-        $switches = ['help' => false, 'verbose' => false, 'strict' => false, 'props' => false];
+        $switches = ['help' => false, 'verbose' => false, 'strict' => false, 'props' => false, 'transitive' => false];
         $values = ['--exclude' => FileFilter::DEFAULT_EXCLUDE_DIRS, '--include-pattern' => [], '--exclude-pattern' => [], '--min-explicitness' => []];
         $path = null;
 
@@ -78,6 +79,7 @@ class ArgumentParser
             new FileFilter($values['--exclude'], $values['--include-pattern'], $values['--exclude-pattern']),
             $this->minimum($values['--min-explicitness']),
             $switches['help'],
+            $switches['transitive'],
         );
     }
 

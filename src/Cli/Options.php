@@ -18,6 +18,7 @@ class Options
         protected FileFilter $filter,
         protected ?ExplicitnessMinimum $minimum,
         protected bool $help = false,
+        protected bool $transitive = false,
     ) {
     }
 
@@ -56,6 +57,11 @@ class Options
     public function isVerbose(): bool
     {
         return $this->verbose;
+    }
+
+    public function isTransitive(): bool
+    {
+        return $this->transitive;
     }
 
     public function getMode(): Mode

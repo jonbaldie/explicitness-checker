@@ -44,11 +44,24 @@ use JonBaldie\ExplicitnessChecker\Scope\FunctionLikeFinder;
      */
     public function check(string $source, Mode $mode): array
     {
-        // Only a parser with a non-throwing error handler returns null; the
-        // one this class builds throws instead.
-        $ast = (array) $this->parser->parse($source);
+        return $this->checkAst($this->parse($source), $mode);
+    }
+
+    /** @return array<Node> resolved AST
+     *  @throws Error
+     */
+    public function parse(string $source): array
+    {
+        return $this->resolveNames((array) $this->parser->parse($source));
+    }
+
+    /** @param array<Node> $ast resolved nodes
+     *  @return list<FunctionResult>
+     */
+    public function checkAst(array $ast, Mode $mode): array
+    {
         $results = [];
-        foreach ((new FunctionLikeFinder())->find($this->resolveNames($ast)) as $functionLike) {
+        foreach ((new FunctionLikeFinder())->find($ast) as $functionLike) {
             $results[] = $this->result($functionLike, $mode);
         }
 

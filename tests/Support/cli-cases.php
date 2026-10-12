@@ -57,6 +57,22 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'transitive.chain' => ['--transitive', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain-off' => ['tests/Fixtures/transitive/chain'],
+    'transitive.chain.verbose' => ['-v', '--transitive', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.minimum-pass' => ['--transitive', '--min-explicitness=0', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.minimum-fail' => ['--transitive', '--min-explicitness=1', 'tests/Fixtures/transitive/chain'],
+    'transitive.chain.filtered' => ['--transitive', '--exclude-pattern=c\\.php$', '--min-explicitness=100', 'tests/Fixtures/transitive/chain'],
+    'transitive.methods' => ['--transitive', 'tests/Fixtures/transitive/methods.php'],
+    'transitive.cycles' => ['--transitive', 'tests/Fixtures/transitive/cycles.php'],
+    'transitive.scopes' => ['--transitive', 'tests/Fixtures/transitive/scopes.php'],
+    'transitive.names' => ['--transitive', 'tests/Fixtures/transitive/names'],
+    'transitive.ambiguous' => ['--transitive', 'tests/Fixtures/transitive/ambiguous'],
+    'transitive.modes.default' => ['--transitive', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.modes.strict' => ['--transitive', '--strict', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.modes.props' => ['--transitive', '--props', 'tests/Fixtures/transitive/modes.php'],
+    'transitive.failures' => ['--transitive', '--min-explicitness=0', 'tests/Fixtures/transitive/failures'],
+
     'facade-calls.default' => ['tests/Fixtures/facade-calls.php'],
     'facade-calls.minimum' => ['--min-explicitness=60', 'tests/Fixtures/facade-calls.php'],
     'clock-reads.strict' => ['--strict', 'tests/Fixtures/clock-reads.php'],

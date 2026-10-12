@@ -1,0 +1,22 @@
+Analyzing...
+
+Results:
+
++--------------------------------------+------+-----------+-------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+----------+
+| File                                 | Line | Function  | Implicit Inputs                                                                                 | Implicit Outputs                                                                                  | Severity |
++--------------------------------------+------+-----------+-------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+----------+
+| tests/Fixtures/transitive/cycles.php | 4    | readSeed  | read from global variable $shared                                                               |                                                                                                   | Serious  |
+| tests/Fixtures/transitive/cycles.php | 5    | writeSeed |                                                                                                 | wrote to global variable $shared                                                                  | Serious  |
+| tests/Fixtures/transitive/cycles.php | 6    | left      | calls action right() (line 7): implicit input; calls action readSeed() (line 4): implicit input | calls action right() (line 7): implicit output                                                    | Serious  |
+| tests/Fixtures/transitive/cycles.php | 7    | right     | calls action left() (line 6): implicit input                                                    | calls action left() (line 6): implicit output; calls action writeSeed() (line 5): implicit output | Serious  |
+| tests/Fixtures/transitive/cycles.php | 8    | readOnly  | calls action readSeed() (line 4): implicit input                                                |                                                                                                   | Serious  |
+| tests/Fixtures/transitive/cycles.php | 11   | writeOnly |                                                                                                 | calls action writeSeed() (line 5): implicit output                                                | Serious  |
+| tests/Fixtures/transitive/cycles.php | 14   | repeat    | calls action readSeed() (line 4): implicit input                                                |                                                                                                   | Serious  |
++--------------------------------------+------+-----------+-------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 7 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

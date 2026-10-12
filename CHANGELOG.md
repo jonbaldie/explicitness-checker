@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CLI-only `--transitive` propagates direct input/output findings through a bounded selected-file function and lexical-class call graph, with Serious immediate-callee `callsAction` findings (#158). Default analysis and PHPStan behavior remain unchanged
 - Default mode reports namespace-resolved Laravel facade calls with arguments as possible static reads and writes (#156). This can add Serious rows, lower explicitness percentages, and raise a clean run to exit 2
 - Strict clock findings cover relative and partial date literals, implicit-base `strtotime`, and date format parsing with fields left to the clock (#161)
 
