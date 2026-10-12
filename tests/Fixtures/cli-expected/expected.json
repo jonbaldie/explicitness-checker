@@ -1,4 +1,8 @@
 {
+    "argument-origins.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "bad.default": {
         "exitCode": 2,
         "stderr": ""
