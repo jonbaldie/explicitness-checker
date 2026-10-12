@@ -1103,6 +1103,18 @@
         "exitCode": 0,
         "stderr": ""
     },
+    "clock-reads.strict": {
+        "stderr": "",
+        "exitCode": 3
+    },
+    "clock-reads.default": {
+        "stderr": "",
+        "exitCode": 0
+    },
+    "clock-reads.minimum": {
+        "stderr": "",
+        "exitCode": 3
+    },
     "random-engines.strict": {
         "stderr": "",
         "exitCode": 3

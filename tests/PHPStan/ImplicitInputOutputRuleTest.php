@@ -723,6 +723,33 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testExpandedClockReadsInStrictMode(): void
+    {
+        $this->strict = true;
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/clock-reads.php', [
+            [6, 'time', 'tomorrow reads system time (DateTimeImmutable).'],
+            [10, 'time', 'january reads system time (DateTime).'],
+            [26, 'time', 'partial reads system time (date_create).'],
+            [30, 'time', 'next_month reads system time (date_create_immutable).'],
+            [34, 'time', 'strtotime_partial reads system time (strtotime).'],
+            [38, 'time', 'strtotime_dynamic reads system time (strtotime).'],
+            [42, 'time', 'strtotime_null reads system time (strtotime).'],
+            [58, 'time', 'partial_format reads system time (DateTimeImmutable::createFromFormat).'],
+            [62, 'time', 'date_only_format reads system time (DateTime::createFromFormat).'],
+            [66, 'time', 'escaped_reset reads system time (date_create_from_format).'],
+            [70, 'time', 'escaped_pipe reads system time (date_create_immutable_from_format).'],
+            [94, 'time', 'dynamic_date reads system time (date_create_from_format).'],
+            [102, 'time', 'named_format reads system time (DateTimeImmutable::createFromFormat).'],
+            [106, 'time', 'named_base reads system time (strtotime).'],
+            [110, 'time', 'case_format reads system time (DATETIME::CREATEFROMFORMAT).'],
+        ]);
+    }
+
+    public function testExpandedClockReadsInDefaultMode(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/clock-reads.php', []);
+    }
+
     public function testRandomEnginesInStrictMode(): void
     {
         $this->strict = true;

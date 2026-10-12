@@ -560,6 +560,74 @@ class StrictCatalogueTest extends TestCase
     /**
      * PHP fills any mktime argument that's missing or null from the clock.
      */
+    public function testReportsRelativeAndPartialDateLiterals(): void
+    {
+        foreach (['new \\DateTime', 'new \\DateTimeImmutable', 'date_create', 'date_create_immutable'] as $call) {
+            $name = ltrim(str_replace('new ', '', $call), '\\');
+            $time = [[['reads system time (' . $name . ')', Category::TIME]], []];
+            foreach (['tomorrow', 'today', 'midnight', 'next monday', '+1 week', '10:00', 'January 1', 'first day of next month', ' now '] as $date) {
+                self::assertSame($time, $this->findings($call . '(' . var_export($date, true) . ')'), $call . ': ' . $date);
+            }
+            foreach (['2020-01-01', '@0', '2020-01-01 +1 day', 'not a valid date'] as $date) {
+                self::assertSame([[], []], $this->findings($call . '(' . var_export($date, true) . ')'), $call . ': ' . $date);
+            }
+        }
+    }
+
+    public function testReportsStrtotimeOnlyWithAnImplicitBase(): void
+    {
+        $time = [[['reads system time (strtotime)', Category::TIME]], []];
+        $this->assertFindings([
+            'strtotime("+1 day")' => $time,
+            'strtotime("January 1")' => $time,
+            'strtotime("+1 day", null)' => $time,
+            'strtotime(baseTimestamp: NULL, datetime: "10:00")' => $time,
+            'strtotime($a)' => $time,
+            'strtotime($a, null)' => $time,
+            'strtotime($a, 0)' => [[], []],
+            'strtotime("now", $a)' => [[], []],
+            'strtotime("+1 day", baseTimestamp: 123)' => [[], []],
+            'strtotime("2020-01-01")' => [[], []],
+            'strtotime("@0")' => [[], []],
+            'strtotime("2020-01-01 +1 day")' => [[], []],
+            'strtotime("")' => [[], []],
+            'strtotime(" ")' => [[], []],
+            'strtotime("not a valid date")' => [[], []],
+        ]);
+    }
+
+    public function testReportsFormatParsingWithMissingFields(): void
+    {
+        foreach (['DateTime::createFromFormat', 'DateTimeImmutable::createFromFormat', 'date_create_from_format', 'date_create_immutable_from_format'] as $call) {
+            $time = [[['reads system time (' . $call . ')', Category::TIME]], []];
+            foreach ([['H:i', '09:00'], ['Y-m-d', '2020-01-01'], ['\\!H:i', '!09:00'], ['H:i\\|', '09:00|']] as [$format, $date]) {
+                self::assertSame($time, $this->findings($call . '(' . var_export($format, true) . ', ' . var_export($date, true) . ')'));
+            }
+            foreach ([['!H:i', '09:00'], ['H:i|', '09:00'], ['Y-m-d H:i:s', '2020-01-01 09:00:00'], ['U', '0'], ['H:i', 'invalid']] as [$format, $date]) {
+                self::assertSame([[], []], $this->findings($call . '(' . var_export($format, true) . ', ' . var_export($date, true) . ')'));
+            }
+            self::assertSame($time, $this->findings($call . '("H:i", $a)'));
+            self::assertSame([[], []], $this->findings($call . '($a, $b)'));
+        }
+    }
+
+    public function testDateFormatBoundariesAndNames(): void
+    {
+        $time = static fn (string $name): array => [[['reads system time (' . $name . ')', Category::TIME]], []];
+        $this->assertFindings([
+            'DateTimeImmutable::createFromFormat(datetime: "09:00", format: "H:i")' => $time('DateTimeImmutable::createFromFormat'),
+            '\\DATETIME::CREATEFROMFORMAT("H:i", "09:00")' => $time('DATETIME::CREATEFROMFORMAT'),
+            'date_create_from_format("H:i", "09:00\\0")' => [[], []],
+            'date_create_from_format("!H:i", $a)' => [[], []],
+            'date_create_from_format("H:i|", $a)' => [[], []],
+            'date_create_from_format("Y-m-d H:i:s", $a)' => [[], []],
+            'DateTime::createFromFormat(...)' => [[], []],
+            '\\App\\DateTime::createFromFormat("H:i", "09:00")' => [[], []],
+        ]);
+        $source = '<?php use DateTimeImmutable as ClockDate; function f($a) { ClockDate::createFromFormat("H:i", $a); }';
+        self::assertSame($time('DateTimeImmutable::createFromFormat'), $this->findingsIn($source, 0));
+    }
+
     public function testReportsMktimeUnlessEveryFieldIsGiven(): void
     {
         $now = static fn (string $name): array => [[['reads system time (' . $name . ')', Category::TIME]], []];

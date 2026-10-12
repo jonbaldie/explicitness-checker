@@ -57,6 +57,9 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'clock-reads.strict' => ['--strict', 'tests/Fixtures/clock-reads.php'],
+    'clock-reads.default' => ['tests/Fixtures/clock-reads.php'],
+    'clock-reads.minimum' => ['--strict', '--min-explicitness=50', 'tests/Fixtures/clock-reads.php'],
     'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
     'random-engines.default' => ['tests/Fixtures/random-engines.php'],
     'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
