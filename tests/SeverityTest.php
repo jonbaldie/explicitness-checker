@@ -27,6 +27,7 @@ class SeverityTest extends TestCase
         'staticProperty' => 2,
         'staticCall' => 2,
         'functionCall' => 2,
+        'callsAction' => 2,
         'argumentMutation' => 2,
         'staticVariable' => 2,
         'capturedReference' => 2,

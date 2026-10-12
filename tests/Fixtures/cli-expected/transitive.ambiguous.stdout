@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++-------------------------------------------+------+-------------+-----------------------------------+------------------+----------+
+| File                                      | Line | Function    | Implicit Inputs                   | Implicit Outputs | Severity |
++-------------------------------------------+------+-------------+-----------------------------------+------------------+----------+
+| tests/Fixtures/transitive/ambiguous/a.php | 2    | duplicate   | read from global variable $shared |                  | Serious  |
+| tests/Fixtures/transitive/ambiguous/a.php | 4    | Twice::seed | read from global variable $shared |                  | Serious  |
++-------------------------------------------+------+-------------+-----------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

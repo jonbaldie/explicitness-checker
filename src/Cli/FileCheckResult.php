@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\FunctionResult;
+use PhpParser\Node;
 
 /**
  * What checking one PHP file produced: every function-like it contains, or
@@ -14,13 +15,21 @@ class FileCheckResult
 {
     /**
      * @param list<FunctionResult> $functions every function-like, in source order
+     * @param array<Node> $ast resolved nodes retained for project analysis
      * @param UncheckedInput|null  $unchecked why the file could not be analysed, or null when it was
      */
     public function __construct(
         protected string $file,
         protected array $functions,
         protected ?UncheckedInput $unchecked = null,
+        protected array $ast = [],
     ) {
+    }
+
+    /** @return array<Node> */
+    public function getAst(): array
+    {
+        return $this->ast;
     }
 
     /**

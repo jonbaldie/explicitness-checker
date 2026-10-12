@@ -1,0 +1,21 @@
+Analyzing...
+
+Results:
+
++--------------------------------------+------+--------------------+-----------------+--------------------------------------------------------+----------+
+| File                                 | Line | Function           | Implicit Inputs | Implicit Outputs                                       | Severity |
++--------------------------------------+------+--------------------+-----------------+--------------------------------------------------------+----------+
+| tests/Fixtures/transitive/scopes.php | 3    | Scopes\action      |                 | wrote to global variable $shared                       | Serious  |
+| tests/Fixtures/transitive/scopes.php | 5    | Scopes\nested      |                 | calls action Scopes\action() (line 3): implicit output | Serious  |
+| tests/Fixtures/transitive/scopes.php | 6    | {closure}          |                 | calls action Scopes\action() (line 3): implicit output | Serious  |
+| tests/Fixtures/transitive/scopes.php | 7    | {closure}          |                 | calls action Scopes\action() (line 3): implicit output | Serious  |
+| tests/Fixtures/transitive/scopes.php | 9    | class@anonymous::m |                 | calls action Scopes\action() (line 3): implicit output | Serious  |
+| tests/Fixtures/transitive/scopes.php | 16   | {closure}          |                 | calls action Scopes\action() (line 3): implicit output | Serious  |
++--------------------------------------+------+--------------------+-----------------+--------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

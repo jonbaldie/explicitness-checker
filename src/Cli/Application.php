@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\SourceChecker;
+use JonBaldie\ExplicitnessChecker\Project\ProjectAnalysis;
 
 /**
  * The explicitness-checker command: checks the PHP files under a path for
@@ -16,7 +17,7 @@ use JonBaldie\ExplicitnessChecker\SourceChecker;
  */
 class Application
 {
-    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
+    protected const USAGE = "Usage: explicitness-checker [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
 
     /**
      * @param resource $stdout
@@ -88,13 +89,16 @@ class Application
             return 0;
         }
 
-        $checker = new FileChecker(new SourceChecker(), $mode);
+        $checker = new FileChecker(new SourceChecker(), $mode, $options->isTransitive());
+        $results = array_map(static fn (string $file): FileCheckResult => $checker->check($file), $files);
+        if ($options->isTransitive()) {
+            $results = (new ProjectAnalysis())->propagate($results);
+        }
         $narrator = new FileNarrator($console);
         $violations = [];
         $unchecked = $discovered->getUnchecked();
         $checked = 0;
-        foreach ($files as $file) {
-            $result = $checker->check($file);
+        foreach ($results as $result) {
             $narrator->narrate($result);
             $violations = array_merge($violations, $result->getViolations());
             $fileUnchecked = $result->getUnchecked();

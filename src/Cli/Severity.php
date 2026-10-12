@@ -35,6 +35,7 @@ class Severity
         Category::STATIC_PROPERTY => self::SERIOUS,
         Category::STATIC_CALL => self::SERIOUS,
         Category::FUNCTION_CALL => self::SERIOUS,
+        Category::CALLS_ACTION => self::SERIOUS,
         Category::ARGUMENT_MUTATION => self::SERIOUS,
         Category::STATIC_VARIABLE => self::SERIOUS,
         Category::CAPTURED_REFERENCE => self::SERIOUS,

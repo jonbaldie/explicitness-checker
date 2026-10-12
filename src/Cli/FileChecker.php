@@ -22,6 +22,7 @@ class FileChecker
     public function __construct(
         protected SourceChecker $sourceChecker,
         protected Mode $mode,
+        protected bool $retainAst = false,
     ) {
     }
 
@@ -33,7 +34,9 @@ class FileChecker
         }
 
         try {
-            return new FileCheckResult($file, $this->sourceChecker->check($code, $this->mode));
+            $ast = $this->sourceChecker->parse($code);
+
+            return new FileCheckResult($file, $this->sourceChecker->checkAst($ast, $this->mode), null, $this->retainAst ? $ast : []);
         } catch (Error $error) {
             return new FileCheckResult(
                 $file,

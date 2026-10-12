@@ -1,0 +1,17 @@
+Analyzing...
+
+Results:
+
++------------------------------------------+------+-------------+-----------------+----------------------------------+----------+
+| File                                     | Line | Function    | Implicit Inputs | Implicit Outputs                 | Severity |
++------------------------------------------+------+-------------+-----------------+----------------------------------+----------+
+| tests/Fixtures/transitive/failures/a.php | 3    | validAction |                 | wrote to global variable $shared | Serious  |
++------------------------------------------+------+-------------+-----------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 2 (50.0%, minimum 0%)
+

@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+| File                                  | Line | Function | Implicit Inputs                                | Implicit Outputs | Severity |
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+| tests/Fixtures/transitive/chain/a.php | 3    | Demo\a   | calls action Demo\b() (line 3): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/chain/b.php | 3    | Demo\b   | calls action Demo\c() (line 3): implicit input |                  | Serious  |
+| tests/Fixtures/transitive/chain/c.php | 3    | Demo\c   | read from global variable $shared              |                  | Serious  |
++---------------------------------------+------+----------+------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 0 of 3 (0.0%, minimum 1%)
+
