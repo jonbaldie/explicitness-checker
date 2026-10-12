@@ -1,0 +1,29 @@
+Analyzing...
+
+Results:
+
++-----------------------------------+------+-----------------------+------------------------------------------------------------------------+------------------+----------+
+| File                              | Line | Function              | Implicit Inputs                                                        | Implicit Outputs | Severity |
++-----------------------------------+------+-----------------------+------------------------------------------------------------------------+------------------+----------+
+| tests/Fixtures/random-engines.php | 9    | secure                | reads from random number generator (Random\Engine\Secure)              |                  | Critical |
+| tests/Fixtures/random-engines.php | 13   | nested_secure         | reads from random number generator (Random\Engine\Secure)              |                  | Critical |
+| tests/Fixtures/random-engines.php | 19   | nested_mt             | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 37   | mode_only             | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 41   | case_secure           | reads from random number generator (random\engine\secure)              |                  | Critical |
+| tests/Fixtures/random-engines.php | 49   | mt19937_0             | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 53   | mt19937_1             | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 57   | mt19937_2             | reads from random number generator (Random\Engine\Mt19937)             |                  | Critical |
+| tests/Fixtures/random-engines.php | 77   | xoshiro256starstar_0  | reads from random number generator (Random\Engine\Xoshiro256StarStar)  |                  | Critical |
+| tests/Fixtures/random-engines.php | 81   | xoshiro256starstar_1  | reads from random number generator (Random\Engine\Xoshiro256StarStar)  |                  | Critical |
+| tests/Fixtures/random-engines.php | 85   | xoshiro256starstar_2  | reads from random number generator (Random\Engine\Xoshiro256StarStar)  |                  | Critical |
+| tests/Fixtures/random-engines.php | 105  | pcgoneseq128xslrr64_0 | reads from random number generator (Random\Engine\PcgOneseq128XslRr64) |                  | Critical |
+| tests/Fixtures/random-engines.php | 109  | pcgoneseq128xslrr64_1 | reads from random number generator (Random\Engine\PcgOneseq128XslRr64) |                  | Critical |
+| tests/Fixtures/random-engines.php | 113  | pcgoneseq128xslrr64_2 | reads from random number generator (Random\Engine\PcgOneseq128XslRr64) |                  | Critical |
++-----------------------------------+------+-----------------------+------------------------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 14 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+

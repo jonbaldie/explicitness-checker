@@ -7,7 +7,7 @@ declare(strict_types=1);
  * and methods. See README.md for flags, severities and exit codes.
  *
  * Usage:
- *   explicitness-checker [-v|--verbose] [--strict] [--props] [--exclude=dir]
+ *   explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--exclude=dir]
  *     [--include-pattern=pattern] [--exclude-pattern=pattern]
  *     [--min-explicitness=percent] /path/to/project
  *

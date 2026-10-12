@@ -10,11 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Default mode reports namespace-resolved Laravel facade calls with arguments as possible static reads and writes (#156). This can add Serious rows, lower explicitness percentages, and raise a clean run to exit 2
+- Strict clock findings cover relative and partial date literals, implicit-base `strtotime`, and date format parsing with fields left to the clock (#161)
 
 - A no-argument call to a function that is not a built-in is reported as both a possible read and a possible write (`may read via function auth()` and `may write via function auth()`), category `functionCall`, Serious, in default mode as well as with `--strict` and `--props` (#155). The name is the resolved spelling, so `namespace\time()` inside `namespace App` is `App\time` and `use function Other\time` is `Other\time`. `time()` and `strlen()` stay out. Strict catalogue findings are unchanged and are not repeated under `functionCall`. A pure helper such as `collect()` is reported. Helpers with arguments stay unreported. This changes default-mode results: upgrading can add rows and raise a clean run's exit code to 2. An internal that is neither in the catalogue nor loaded in the checker process can be reported as `functionCall`
 
 ### Fixed
 
+- Strict mode reports secure Random engine constructions and seedable engines with omitted or literal-null seeds, including engines nested in Randomizer (#162)
+- Strict mode reports direct access to process-global error registers, libxml and mbstring settings, working directory and file mask as runtime configuration reads or writes (#163)
+
+- Property writes through locals bound from arguments by assignment, foreach values, destructuring and alias chains now report the original root argument (#160). Nested shared objects reached through a shallow clone are included; copied-array writes and the clone's own top-level writes stay clean. Conditional joins retain all possible roots. This adds default-mode findings and can raise a previously clean run's exit code to 2. Rebinding a parameter from another argument now names the source argument rather than the receiving parameter
 - A by-value parameter rebound with `clone` or `new` denotes a fresh shallow copy of that parameter, so a later write to the copy's own property is no longer reported as argument mutation. A nested object reached from the copy, a write after a branch or other rebind, and a by-reference parameter stay caller-visible (#159)
 
 ### Changed
