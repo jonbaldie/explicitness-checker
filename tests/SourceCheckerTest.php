@@ -38,11 +38,12 @@ class SourceCheckerTest extends TestCase
 
         self::assertSame(
             [
-                ['App\demo', 4, [], []],
+                ['App\demo', 4, ['may read via function Other\time()'], ['may write via function Other\time()']],
                 ['App\K::m', 5, [], ['wrote to static property App\Other\Thing::$shared']],
             ],
             $this->summaries($results),
         );
+        self::assertSame(Category::FUNCTION_CALL, $results[0]->getInputs()[0]->getCategory());
     }
 
     public function testFindingsCarryDescriptionCategoryAndLine(): void
@@ -394,6 +395,310 @@ class SourceCheckerTest extends TestCase
         self::assertSame($this->summaries($results), $this->summaries($props));
     }
 
+    /**
+     * A direct empty call is a possible read and a possible write in every
+     * mode. time() stays a strict time finding. strlen() stays quiet.
+     */
+    public function testReportsArgumentlessFunctionCallsInEveryMode(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function currentUser(): mixed
+            {
+                return auth();
+            }
+            function stamp(): mixed
+            {
+                return now();
+            }
+            function search(string $q): mixed
+            {
+                return request()->input($q);
+            }
+            function clock(): int
+            {
+                return time();
+            }
+            function tenant(): mixed
+            {
+                return current_tenant();
+            }
+            function bag(): mixed
+            {
+                return collect();
+            }
+            function length(): int
+            {
+                return strlen();
+            }
+            PHP;
+        $default = [
+            ['currentUser', 2, ['may read via function auth()'], ['may write via function auth()']],
+            ['stamp', 6, ['may read via function now()'], ['may write via function now()']],
+            ['search', 10, ['may read via function request()'], ['may write via function request()']],
+            ['clock', 14, [], []],
+            ['tenant', 18, ['may read via function current_tenant()'], ['may write via function current_tenant()']],
+            ['bag', 22, ['may read via function collect()'], ['may write via function collect()']],
+            ['length', 26, [], []],
+        ];
+        $strict = $default;
+        $strict[3] = ['clock', 14, ['reads system time (time)'], []];
+
+        $defaultResults = (new SourceChecker())->check($source, new Mode(false, false));
+        self::assertSame($default, $this->summaries($defaultResults));
+        self::assertSame($default, $this->summaries((new SourceChecker())->check($source, new Mode(false, true))));
+        self::assertSame($strict, $this->summaries((new SourceChecker())->check($source, new Mode(true, false))));
+        self::assertSame($strict, $this->summaries((new SourceChecker())->check($source, new Mode(true, true))));
+
+        self::assertSame(Category::FUNCTION_CALL, $defaultResults[0]->getInputs()[0]->getCategory());
+        self::assertSame(Category::FUNCTION_CALL, $defaultResults[0]->getOutputs()[0]->getCategory());
+        self::assertSame(4, $defaultResults[0]->getInputs()[0]->getLine());
+        self::assertSame(4, $defaultResults[0]->getOutputs()[0]->getLine());
+        self::assertNull($defaultResults[0]->getInputs()[0]->getVariable());
+        self::assertNull($defaultResults[0]->getOutputs()[0]->getVariable());
+
+        $strictClock = (new SourceChecker())->check($source, new Mode(true, false))[3];
+        self::assertSame(Category::TIME, $strictClock->getInputs()[0]->getCategory());
+        self::assertSame([], $strictClock->getOutputs());
+    }
+
+    public function testReportsTheEmptyCallNestedInACallWithArguments(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function nested(): mixed
+            {
+                return auth(now());
+            }
+            PHP;
+        $expected = [
+            ['nested', 2, ['may read via function now()'], ['may write via function now()']],
+        ];
+        foreach ([new Mode(false, false), new Mode(true, false), new Mode(false, true), new Mode(true, true)] as $mode) {
+            self::assertSame($expected, $this->summaries((new SourceChecker())->check($source, $mode)));
+        }
+    }
+
+    public function testLeavesArgumentListsUnpacksAndDynamicCalleesUnreported(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function quiet(mixed $callback, mixed $tz, mixed ...$args): mixed
+            {
+                now($tz);
+                now(...);
+                now(...$args);
+                $callback();
+                'auth'();
+                (now(...))();
+                return call_user_func('auth');
+            }
+            PHP;
+        $expected = [['quiet', 2, [], []]];
+        foreach ([new Mode(false, false), new Mode(true, false), new Mode(false, true), new Mode(true, true)] as $mode) {
+            self::assertSame($expected, $this->summaries((new SourceChecker())->check($source, $mode)));
+        }
+    }
+
+    public function testDynamicCalleeKeepsTheGlobalsFinding(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function dynamicGlobals(mixed $callback): mixed
+            {
+                return $callback($GLOBALS['x']);
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [['dynamicGlobals', 2, ["read from \$GLOBALS['x']"], []]],
+            $this->summaries($results),
+        );
+        self::assertSame(Category::GLOBALS_ARRAY, $results[0]->getInputs()[0]->getCategory());
+    }
+
+    public function testRepeatedFunctionCallIsReportedOnceOnTheFirstLine(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function twice(): mixed
+            {
+                auth();
+                return auth();
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(
+            [['twice', 2, ['may read via function auth()'], ['may write via function auth()']]],
+            $this->summaries($results),
+        );
+        self::assertSame(4, $results[0]->getInputs()[0]->getLine());
+        self::assertSame(4, $results[0]->getOutputs()[0]->getLine());
+    }
+
+    public function testFunctionCallInsideClosureIsReportedOnTheClosure(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function outer(): mixed
+            {
+                return function () {
+                    return auth();
+                };
+            }
+            PHP;
+        $expected = [
+            ['outer', 2, [], []],
+            ['{closure}', 4, ['may read via function auth()'], ['may write via function auth()']],
+        ];
+        foreach ([new Mode(false, false), new Mode(true, false), new Mode(false, true), new Mode(true, true)] as $mode) {
+            $results = (new SourceChecker())->check($source, $mode);
+            self::assertSame($expected, $this->summaries($results));
+            self::assertSame(5, $results[1]->getInputs()[0]->getLine());
+        }
+    }
+
+    public function testFunctionCallAssignedToThisPropertyAddsObjectPropertyUnderProps(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class Orders
+            {
+                public mixed $orders;
+                public function load(): mixed
+                {
+                    return $this->orders = auth();
+                }
+            }
+            PHP;
+        $functionCall = [
+            ['Orders::load', 5, ['may read via function auth()'], ['may write via function auth()']],
+        ];
+        $withProperty = [
+            ['Orders::load', 5, ['may read via function auth()'], [
+                'wrote to object property $this->orders',
+                'may write via function auth()',
+            ]],
+        ];
+
+        self::assertSame($functionCall, $this->summaries((new SourceChecker())->check($source, new Mode(false, false))));
+        self::assertSame($functionCall, $this->summaries((new SourceChecker())->check($source, new Mode(true, false))));
+        foreach ([new Mode(false, true), new Mode(true, true)] as $mode) {
+            $results = (new SourceChecker())->check($source, $mode);
+            self::assertSame($withProperty, $this->summaries($results));
+            self::assertSame(Category::OBJECT_PROPERTY, $results[0]->getOutputs()[0]->getCategory());
+            self::assertSame(Category::FUNCTION_CALL, $results[0]->getOutputs()[1]->getCategory());
+        }
+    }
+
+    /**
+     * \exit() and \die() parse as function calls. This rule stays quiet.
+     * Strict mode still reports that they terminate the program.
+     */
+    public function testQualifiedExitAndDieProduceNoFunctionCallFinding(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function qualifiedExit(): void
+            {
+                \exit();
+            }
+            function qualifiedDie(): void
+            {
+                \die();
+            }
+            PHP;
+        $quiet = [
+            ['qualifiedExit', 2, [], []],
+            ['qualifiedDie', 6, [], []],
+        ];
+        $strict = [
+            ['qualifiedExit', 2, [], ['terminates the program (exit)']],
+            ['qualifiedDie', 6, [], ['terminates the program (die)']],
+        ];
+
+        self::assertSame($quiet, $this->summaries((new SourceChecker())->check($source, new Mode(false, false))));
+        self::assertSame($quiet, $this->summaries((new SourceChecker())->check($source, new Mode(false, true))));
+        foreach ([new Mode(true, false), new Mode(true, true)] as $mode) {
+            $results = (new SourceChecker())->check($source, $mode);
+            self::assertSame($strict, $this->summaries($results));
+            self::assertSame(Category::STANDARD_OUTPUT, $results[0]->getOutputs()[0]->getCategory());
+            self::assertSame(Category::STANDARD_OUTPUT, $results[1]->getOutputs()[0]->getCategory());
+        }
+    }
+
+    /**
+     * Unqualified time() and strlen() inside a namespace stay the global
+     * built-ins. namespace\time() is App\time. Auth() keeps its case.
+     * TIME() stays a strict time finding.
+     */
+    public function testNamespacedCallsUseTheResolvedSpelling(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            namespace App;
+            function globalClock(): int
+            {
+                return time();
+            }
+            function globalLength(): int
+            {
+                return strlen();
+            }
+            function relativeClock(): int
+            {
+                return namespace\time();
+            }
+            function rootedClock(): int
+            {
+                return \time();
+            }
+            function spelled(): mixed
+            {
+                return Auth();
+            }
+            function upperClock(): int
+            {
+                return TIME();
+            }
+            PHP;
+        $default = [
+            ['App\globalClock', 3, [], []],
+            ['App\globalLength', 7, [], []],
+            ['App\relativeClock', 11, ['may read via function App\time()'], ['may write via function App\time()']],
+            ['App\rootedClock', 15, [], []],
+            ['App\spelled', 19, ['may read via function Auth()'], ['may write via function Auth()']],
+            ['App\upperClock', 23, [], []],
+        ];
+        $strict = $default;
+        $strict[0] = ['App\globalClock', 3, ['reads system time (time)'], []];
+        $strict[3] = ['App\rootedClock', 15, ['reads system time (time)'], []];
+        $strict[5] = ['App\upperClock', 23, ['reads system time (TIME)'], []];
+
+        self::assertSame($default, $this->summaries((new SourceChecker())->check($source, new Mode(false, false))));
+        self::assertSame($default, $this->summaries((new SourceChecker())->check($source, new Mode(false, true))));
+        self::assertSame($strict, $this->summaries((new SourceChecker())->check($source, new Mode(true, false))));
+        self::assertSame($strict, $this->summaries((new SourceChecker())->check($source, new Mode(true, true))));
+
+        $imported = <<<'PHP'
+            <?php
+            namespace App;
+            use function Other\time;
+            function importedClock(): int
+            {
+                return time();
+            }
+            PHP;
+        $importedExpected = [
+            ['App\importedClock', 4, ['may read via function Other\time()'], ['may write via function Other\time()']],
+        ];
+        foreach ([new Mode(false, false), new Mode(true, false), new Mode(false, true), new Mode(true, true)] as $mode) {
+            self::assertSame($importedExpected, $this->summaries((new SourceChecker())->check($imported, $mode)));
+        }
+    }
+
     public function testClassifiesExitAndDieByArgument(): void
     {
         $source = <<<'PHP'
@@ -516,14 +821,14 @@ class SourceCheckerTest extends TestCase
         $resolved = (new NodeTraverser(new NameResolver()))->traverse($raw);
         self::assertSame(
             [
-                ['App\demo', []],
+                ['App\demo', ['may read via function Other\time()', 'may write via function Other\time()']],
                 ['App\K::m', ['wrote to static property App\Other\Thing::$shared']],
             ],
             $analyze($resolved),
         );
         self::assertSame(
             [
-                ['App\demo', []],
+                ['App\demo', ['may read via function Other\time()', 'may write via function Other\time()']],
                 ['App\K::m', ['wrote to static property App\Other\Thing::$shared']],
             ],
             array_map(
