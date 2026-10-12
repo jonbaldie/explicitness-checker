@@ -253,6 +253,13 @@ class BuiltinCatalogueDetector implements Detector
         'getopt' => [self::SUPERGLOBAL_READ],
     ];
 
+    protected const RANDOM_PARAMETERS = [
+        'random\randomizer' => 'engine',
+        'random\engine\mt19937' => 'seed',
+        'random\engine\xoshiro256starstar' => 'seed',
+        'random\engine\pcgoneseq128xslrr64' => 'seed',
+    ];
+
     protected const CONFIG_PARAMETERS = [
         'ignore_user_abort' => 'enable',
         'libxml_use_internal_errors' => 'use_errors',
@@ -444,7 +451,9 @@ class BuiltinCatalogueDetector implements Detector
     {
         return match ($lowerClass) {
             'datetime', 'datetimeimmutable' => $arguments->readsClock() ? [self::TIME] : [],
-            'random\randomizer' => $arguments->omits(0, 'engine') ? [self::RANDOM_READ] : [],
+            'random\engine\secure' => [self::RANDOM_READ],
+            'random\randomizer', 'random\engine\mt19937', 'random\engine\xoshiro256starstar', 'random\engine\pcgoneseq128xslrr64'
+                => $arguments->omits(0, self::RANDOM_PARAMETERS[$lowerClass]) ? [self::RANDOM_READ] : [],
             default => [],
         };
     }

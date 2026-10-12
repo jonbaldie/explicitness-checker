@@ -1103,6 +1103,14 @@
         "exitCode": 0,
         "stderr": ""
     },
+    "random-engines.strict": {
+        "stderr": "",
+        "exitCode": 3
+    },
+    "random-engines.default": {
+        "stderr": "",
+        "exitCode": 0
+    },
     "process-state.strict": {
         "stderr": "",
         "exitCode": 3

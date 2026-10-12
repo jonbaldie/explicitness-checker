@@ -57,6 +57,8 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'random-engines.strict' => ['--strict', 'tests/Fixtures/random-engines.php'],
+    'random-engines.default' => ['tests/Fixtures/random-engines.php'],
     'process-state.strict' => ['--strict', 'tests/Fixtures/process-state.php'],
     'process-state.default' => ['tests/Fixtures/process-state.php'],
     'exit-forms.strict' => ['--strict', 'tests/Fixtures/exit-forms.php'],

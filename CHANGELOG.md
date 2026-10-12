@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Strict mode reports secure Random engine constructions and seedable engines with omitted or literal-null seeds, including engines nested in Randomizer (#162)
 - Strict mode reports direct access to process-global error registers, libxml and mbstring settings, working directory and file mask as runtime configuration reads or writes (#163)
 
 - Property writes through locals bound from arguments by assignment, foreach values, destructuring and alias chains now report the original root argument (#160). Nested shared objects reached through a shallow clone are included; copied-array writes and the clone's own top-level writes stay clean. Conditional joins retain all possible roots. This adds default-mode findings and can raise a previously clean run's exit code to 2. Rebinding a parameter from another argument now names the source argument rather than the receiving parameter
