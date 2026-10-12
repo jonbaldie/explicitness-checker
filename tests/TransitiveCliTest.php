@@ -14,6 +14,31 @@ use JonBaldie\ExplicitnessChecker\Project\ProjectAnalysis;
 
 class TransitiveCliTest extends TestCase
 {
+    public function testDefaultPropertyWritesPropagateWithoutLosingSignatureSnapshots(): void
+    {
+        $initial = new Support\CountingByReferenceParameters();
+        $checker = new FileChecker(new SourceChecker($initial), new Mode(false, false), true);
+        $path = Process::ROOT . '/tests/Fixtures/transitive/property-writes.php';
+        $direct = $checker->check($path);
+        $updated = (new ProjectAnalysis())->propagate([$direct])[0];
+
+        self::assertSame([], $updated->getFunctions()[0]->getFindings());
+        self::assertSame([], $updated->getFunctions()[2]->getInputs());
+        self::assertCount(1, $updated->getFunctions()[2]->getOutputs());
+        self::assertSame('calls action PropertyAction::write() (line 4): implicit output', $updated->getFunctions()[2]->getOutputs()[0]->getDescription());
+        self::assertSame($direct->getNativeParameters(), $updated->getNativeParameters());
+        $again = $checker->after($updated)->check($path)->getNativeParameters();
+        self::assertInstanceOf(Support\CountingByReferenceParameters::class, $again);
+        self::assertSame(['sort' => 1], $again->reflections);
+        self::assertSame([], $initial->reflections);
+
+        [$exit, $stdout, $stderr] = Process::cli(['--transitive', '--min-explicitness=34', $path]);
+        self::assertSame(2, $exit);
+        self::assertSame('', $stderr);
+        self::assertStringContainsString('calls action PropertyAction::write() (line 4): implicit output', $stdout);
+        self::assertStringContainsString('Explicit function-likes: 1 of 3 (33.3%, minimum 34%)', $stdout);
+    }
+
     public function testPropagatesAnArgumentBearingChainAcrossFiles(): void
     {
         [$exit, $stdout, $stderr] = Process::cli(['--transitive', 'tests/Fixtures/transitive/chain']);

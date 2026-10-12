@@ -51,7 +51,7 @@ class ExtensionConfigTest extends TestCase
             . '[identifier=explicitness.staticProperty]',
             $output,
         );
-        self::assertSame(4, substr_count($output, '[identifier=explicitness.'), $output);
+        self::assertSame(5, substr_count($output, '[identifier=explicitness.'), $output);
         self::assertSame(4, substr_count($output, '[identifier=explicitness.staticProperty]'), $output);
     }
 
@@ -65,7 +65,7 @@ class ExtensionConfigTest extends TestCase
             . '[identifier=explicitness.environment]',
             $output,
         );
-        self::assertSame(33, substr_count($output, '[identifier=explicitness.'), $output);
+        self::assertSame(34, substr_count($output, '[identifier=explicitness.'), $output);
     }
 
     public function testPropsParameterTurnsOnPropsMode(): void

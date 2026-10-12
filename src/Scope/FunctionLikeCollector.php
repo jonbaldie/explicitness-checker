@@ -6,15 +6,14 @@ namespace JonBaldie\ExplicitnessChecker\Scope;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
-use PhpParser\NodeVisitorAbstract;
 
 /**
- * Node visitor behind FunctionLikeFinder: records every function-like with a
+ * Immutable discovery state behind FunctionLikeFinder: records each function-like with a
  * body, in traversal (source) order, tracking the namespace, the innermost
  * class-like and (through HookedProperties) the innermost hooked property for
- * naming. Use one instance per traversal.
+ * naming. Each enter/leave returns the next snapshot.
  */
-class FunctionLikeCollector extends NodeVisitorAbstract
+class FunctionLikeCollector
 {
     protected string $namespace = '';
 
@@ -31,30 +30,32 @@ class FunctionLikeCollector extends NodeVisitorAbstract
         $this->properties = new HookedProperties();
     }
 
-    public function enterNode(Node $node): ?int
+    public function enter(Node $node): self
     {
+        $next = clone $this;
         if ($node instanceof Stmt\Namespace_) {
-            $this->namespace = $node->name === null ? '' : $node->name->toString();
+            $next->namespace = $node->name === null ? '' : $node->name->toString();
         }
         if ($node instanceof Stmt\ClassLike) {
-            $this->classes[] = $this->classNameOf($node);
+            $next->classes[] = $next->classNameOf($node);
         }
-        $this->properties->enter($node);
+        $next->properties = $next->properties->enter($node);
         if ($node instanceof Node\FunctionLike && $node->getStmts() !== null) {
-            $this->found[] = new CheckedFunctionLike($node, $this->nameOf($node));
+            $next->found[] = new CheckedFunctionLike($node, $next->nameOf($node));
         }
 
-        return null;
+        return $next;
     }
 
-    public function leaveNode(Node $node): ?int
+    public function leave(Node $node): self
     {
+        $next = clone $this;
         if ($node instanceof Stmt\ClassLike) {
-            array_pop($this->classes);
+            array_pop($next->classes);
         }
-        $this->properties->leave($node);
+        $next->properties = $next->properties->leave($node);
 
-        return null;
+        return $next;
     }
 
     /**
@@ -100,8 +101,8 @@ class FunctionLikeCollector extends NodeVisitorAbstract
      */
     protected function className(): ?string
     {
-        $className = end($this->classes);
-        if ($className !== false && $className !== null) {
+        $className = $this->classes[array_key_last($this->classes)] ?? null;
+        if ($className !== null) {
             return $className;
         }
 

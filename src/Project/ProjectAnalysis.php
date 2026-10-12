@@ -91,7 +91,7 @@ final class ProjectAnalysis
             foreach ($file->getFunctions() as $position => $direct) {
                 $functions[] = $results[ProjectIndex::identity($file->getFile(), $position)] ?? $direct;
             }
-            $updated[] = new FileCheckResult($file->getFile(), $functions, $file->getUnchecked(), $file->getAst());
+            $updated[] = new FileCheckResult($file->getFile(), $functions, $file->getUnchecked(), $file->getAst(), $file->getNativeParameters());
         }
 
         return $updated;

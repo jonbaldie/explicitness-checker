@@ -12,20 +12,21 @@ class FunctionCallDetector implements Detector
 {
     protected ReportableFunctionCall $reportable;
 
-    public function __construct()
+    public function __construct(?ReportableFunctionCall $reportable = null)
     {
-        $this->reportable = new ReportableFunctionCall();
+        $this->reportable = $reportable ?? new ReportableFunctionCall();
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         $name = $this->reportable->spelling($node);
         if ($name === null) {
-            return;
+            return $findings;
         }
 
         $subject = 'function ' . $name . '()';
-        $findings->input('may read via ' . $subject, Category::FUNCTION_CALL, $node);
-        $findings->output('may write via ' . $subject, Category::FUNCTION_CALL, $node);
+        $findings = $findings->input('may read via ' . $subject, Category::FUNCTION_CALL, $node);
+        $findings = $findings->output('may write via ' . $subject, Category::FUNCTION_CALL, $node);
+        return $findings;
     }
 }

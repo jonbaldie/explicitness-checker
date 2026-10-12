@@ -33,50 +33,40 @@ class VariableDetector implements Detector
     {
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
-        if ($this->detectDynamicGlobal($node, $isWrite, $findings)) {
-            return;
+        if ($this->bindings->hasDynamicGlobal() && $node instanceof Expr\Variable && !is_string($node->name)) {
+            return $findings->access($isWrite, 'global variable $...', Category::GLOBAL_VARIABLE, $node);
         }
 
-        $this->detectNamedVariable($node, $isWrite, $findings);
+        return $this->detectNamedVariable($node, $isWrite, $findings);
     }
 
-    protected function detectDynamicGlobal(Node $node, bool $isWrite, FindingCollector $findings): bool
-    {
-        if (!$this->bindings->hasDynamicGlobal() || !$node instanceof Expr\Variable || is_string($node->name)) {
-            return false;
-        }
-
-        $findings->access($isWrite, 'global variable $...', Category::GLOBAL_VARIABLE, $node);
-
-        return true;
-    }
-
-    protected function detectNamedVariable(Node $node, bool $isWrite, FindingCollector $findings): void
+    protected function detectNamedVariable(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         $name = VariableName::of($node);
         if ($name === null) {
-            return;
+            return $findings;
         }
 
         $target = $this->denotation->channel($node);
         if ($target['subject'] !== null) {
-            $findings->access($isWrite, $target['subject'], Category::GLOBALS_ARRAY, $node);
+            $findings = $findings->access($isWrite, $target['subject'], Category::GLOBALS_ARRAY, $node);
 
-            return;
+            return $findings;
         }
 
         $kind = $target['kind'];
         if ($kind !== null && isset(self::DESCRIPTIONS[$kind])) {
             [$prefix, $category] = self::DESCRIPTIONS[$kind];
-            $findings->access($isWrite, $prefix . $name, $category, $node, $name);
+            $findings = $findings->access($isWrite, $prefix . $name, $category, $node, $name);
 
-            return;
+            return $findings;
         }
 
         if ($kind === null && Superglobals::includes($name)) {
-            $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node, $name);
+            $findings = $findings->access($isWrite, 'superglobal $' . $name, Category::SUPERGLOBAL, $node, $name);
         }
+        return $findings;
     }
 }

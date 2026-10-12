@@ -57,6 +57,12 @@ foreach ($targets as $targetName => $target) {
 }
 
 return $cases + [
+    'default-this-writes.default' => ['tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.strict' => ['--strict', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.props' => ['--props', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.minimum-pass' => ['--min-explicitness=10', 'tests/Fixtures/default-this-writes.php'],
+    'default-this-writes.minimum-fail' => ['--min-explicitness=10.1', 'tests/Fixtures/default-this-writes.php'],
+
     'transitive.chain' => ['--transitive', 'tests/Fixtures/transitive/chain'],
     'transitive.chain-off' => ['tests/Fixtures/transitive/chain'],
     'transitive.chain.verbose' => ['-v', '--transitive', 'tests/Fixtures/transitive/chain'],

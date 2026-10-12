@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Cli;
 
 use JonBaldie\ExplicitnessChecker\FunctionResult;
 use PhpParser\Node;
+use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 
 /**
  * What checking one PHP file produced: every function-like it contains, or
@@ -23,7 +24,13 @@ class FileCheckResult
         protected array $functions,
         protected ?UncheckedInput $unchecked = null,
         protected array $ast = [],
+        protected ?ReflectedByReferenceParameters $nativeParameters = null,
     ) {
+    }
+
+    public function getNativeParameters(): ?ReflectedByReferenceParameters
+    {
+        return $this->nativeParameters;
     }
 
     /** @return array<Node> */

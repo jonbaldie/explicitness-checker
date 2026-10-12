@@ -60,15 +60,20 @@ class PhpFileFinder
         }
 
         $found = [];
-        $files = new SafeRecursiveIteratorIterator($iterator, $this->console);
-        foreach ($files as $file) {
+        $unchecked = [];
+        foreach (DirectoryWalk::events($iterator) as $file) {
+            if ($file instanceof UncheckedInput) {
+                $this->console->error('Cannot read directory: ' . $file->getPath() . PHP_EOL);
+                $unchecked[] = $file;
+                continue;
+            }
             if ($file instanceof SplFileInfo && $file->isFile() && $this->accepts($file)) {
                 $found[] = $file->getPathname();
             }
         }
         sort($found, SORT_STRING);
 
-        return new DiscoveredFiles($found, $files->getUnchecked());
+        return new DiscoveredFiles($found, $unchecked);
     }
 
     /**

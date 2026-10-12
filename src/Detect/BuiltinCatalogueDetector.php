@@ -274,22 +274,23 @@ class BuiltinCatalogueDetector implements Detector
         return $entries !== [];
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         $classified = $this->classify($node);
         if ($classified === null) {
-            return;
+            return $findings;
         }
 
         [$name, $entries] = $classified;
         foreach ($entries as [$category, $isOutput, $prefix]) {
             $description = $prefix . ' (' . $name . ')';
             if ($isOutput) {
-                $findings->output($description, $category, $node);
+                $findings = $findings->output($description, $category, $node);
                 continue;
             }
-            $findings->input($description, $category, $node);
+            $findings = $findings->input($description, $category, $node);
         }
+        return $findings;
     }
 
     /**

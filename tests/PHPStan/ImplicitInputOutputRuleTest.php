@@ -150,6 +150,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
      * shared state, so they no longer wait for props mode (#72).
      */
     protected const STRICT_EXAMPLES_IN_DEFAULT_MODE = [
+        [42, 'objectProperty', 'UserSession::incrementLoginCount wrote to object property $this->loginCount.'],
         [61, 'staticProperty', 'AppAnalytics::recordPageView read from static property self::$pageViews.'],
         [61, 'staticProperty', 'AppAnalytics::recordPageView wrote to static property self::$pageViews.'],
         [70, 'staticProperty', 'AppAnalytics::logEvent read from static property self::$pageViews.'],
@@ -163,7 +164,6 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         [24, 'objectProperty', 'UserSession::__construct wrote to object property $this->username.'],
         [33, 'objectProperty', 'UserSession::greet read from object property $this->username.'],
         [42, 'objectProperty', 'UserSession::incrementLoginCount read from object property $this->loginCount.'],
-        [42, 'objectProperty', 'UserSession::incrementLoginCount wrote to object property $this->loginCount.'],
     ];
 
     protected bool $strict = false;
@@ -723,6 +723,31 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testDefaultThisWritesAndConstructorScopes(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/default-this-writes.php', [
+            [4, 'objectProperty', 'MutableCart::$amount::set wrote to object property $this->value.'],
+            [9, 'globalVariable', 'MutableCart::__CONSTRUCT wrote to global variable $ctorGlobal.'],
+            [10, 'objectProperty', '{closure} wrote to object property $this->later.'],
+            [11, 'objectProperty', '{closure} wrote to object property $this->arrow.'],
+            [13, 'objectProperty', 'MutableCart::class@anonymous::change wrote to object property $this->nested.'],
+            [16, 'objectProperty', 'MutableCart::assign wrote to object property $this->value.'],
+            [17, 'objectProperty', 'MutableCart::append wrote to object property $this->items.'],
+            [18, 'objectProperty', 'MutableCart::index wrote to object property $this->items.'],
+            [19, 'objectProperty', 'MutableCart::compound wrote to object property $this->count.'],
+            [20, 'objectProperty', 'MutableCart::coalesce wrote to object property $this->value.'],
+            [21, 'objectProperty', 'MutableCart::increment wrote to object property $this->count.'],
+            [22, 'objectProperty', 'MutableCart::decrement wrote to object property $this->count.'],
+            [23, 'objectProperty', 'MutableCart::remove wrote to object property $this->value.'],
+            [24, 'objectProperty', 'MutableCart::reference wrote to object property $this->ref.'],
+            [25, 'objectProperty', 'MutableCart::referenceRead wrote to object property $this->ref.'],
+            [26, 'objectProperty', 'MutableCart::sortItems wrote to object property $this->items.'],
+            [27, 'objectProperty', 'MutableCart::dynamic wrote to object property $this->....'],
+            [28, 'objectProperty', 'MutableCart::globalName wrote to object property $this->....'],
+            [28, 'globalsArray', 'MutableCart::globalName read from $GLOBALS[\'field\'].'],
+        ]);
+    }
+
     public function testFacadeCallsWithArgumentsInDefaultMode(): void
     {
         $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/facade-calls.php', [
@@ -948,6 +973,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [5, 'functionCall', 'currentUser may read via function auth().'],
             [5, 'functionCall', 'currentUser may write via function auth().'],
             [14, 'functionCall', 'Orders::load may read via function auth().'],
+            [14, 'objectProperty', 'Orders::load wrote to object property $this->orders.'],
             [14, 'functionCall', 'Orders::load may write via function auth().'],
         ]);
     }
@@ -960,6 +986,7 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [5, 'functionCall', 'currentUser may read via function auth().'],
             [5, 'functionCall', 'currentUser may write via function auth().'],
             [14, 'functionCall', 'Orders::load may read via function auth().'],
+            [14, 'objectProperty', 'Orders::load wrote to object property $this->orders.'],
             [14, 'functionCall', 'Orders::load may write via function auth().'],
             [20, 'standardOutput', 'qualifiedExit terminates the program (exit).'],
             [25, 'standardOutput', 'qualifiedDie terminates the program (die).'],

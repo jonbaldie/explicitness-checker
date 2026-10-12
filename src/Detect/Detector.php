@@ -16,5 +16,5 @@ interface Detector
     /**
      * @param bool $isWrite whether the walk reached this node as a write target
      */
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void;
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector;
 }

@@ -7,6 +7,8 @@ namespace JonBaldie\ExplicitnessChecker\Tests;
 use JonBaldie\ExplicitnessChecker\Tests\Support\CountingByReferenceParameters;
 use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 use PHPUnit\Framework\TestCase;
+use JonBaldie\ExplicitnessChecker\SourceChecker;
+use JonBaldie\ExplicitnessChecker\Mode;
 
 /**
  * #80: which arguments a built-in takes by reference comes from reflecting on
@@ -102,14 +104,31 @@ class ReflectedByReferenceParametersTest extends TestCase
     {
         $parameters = new CountingByReferenceParameters();
 
+        $parameters = $parameters->withFunction('sort');
         $parameters->isBuiltin('sort');
         $parameters->isPassedByReference('sort', 0, null);
         $parameters->isPassedByReference('SORT', 1, null);
         $parameters->isPassedByReference('Sort', 0, 'array');
+        $parameters = $parameters->withFunction('no_such_function');
         $parameters->isBuiltin('no_such_function');
         $parameters->isPassedByReference('no_such_function', 0, null);
+        $parameters = $parameters->withFunction('preg_match');
         $parameters->isPassedByReference('preg_match', 2, null);
 
         self::assertSame(['sort' => 1, 'no_such_function' => 1, 'preg_match' => 1], $parameters->reflections);
     }
+    public function testSourcePassesReuseExplicitSignatureSnapshots(): void
+    {
+        $initial = new CountingByReferenceParameters();
+        $checker = new SourceChecker($initial);
+        [, $first] = $checker->checkWithCache('<?php function a($x) { sort($x); } function b($x) { SORT($x); }', new Mode(false, false));
+        self::assertInstanceOf(CountingByReferenceParameters::class, $first);
+        self::assertSame([], $initial->reflections);
+        self::assertSame(['sort' => 1], $first->reflections);
+        [, $second] = $checker->withParameters($first)->checkWithCache('<?php function c($x) { sort($x); preg_match("a", "b", $m); }', new Mode(false, false));
+        self::assertInstanceOf(CountingByReferenceParameters::class, $second);
+        self::assertSame(['sort' => 1], $first->reflections);
+        self::assertSame(['sort' => 1, 'preg_match' => 1], $second->reflections);
+    }
+
 }

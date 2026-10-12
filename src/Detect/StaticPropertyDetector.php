@@ -15,10 +15,10 @@ use PhpParser\Node\Expr;
  */
 class StaticPropertyDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         if (!$node instanceof Expr\StaticPropertyFetch) {
-            return;
+            return $findings;
         }
 
         $class = $node->class instanceof Node\Name ? $node->class->toString() : '...';
@@ -26,6 +26,7 @@ class StaticPropertyDetector implements Detector
             ? '$' . $node->name->toString()
             : '$...';
         $subject = 'static property ' . $class . '::' . $property;
-        $findings->access($isWrite, $subject, Category::STATIC_PROPERTY, $node);
+        $findings = $findings->access($isWrite, $subject, Category::STATIC_PROPERTY, $node);
+        return $findings;
     }
 }

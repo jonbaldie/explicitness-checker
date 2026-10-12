@@ -11,7 +11,7 @@ use PhpParser\Node\Expr;
 
 class StaticCallDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         if (
             !$node instanceof Expr\StaticCall
@@ -19,15 +19,16 @@ class StaticCallDetector implements Detector
             || ($node->args !== [] && !$this->isFacade($node->class))
             || ($node->class instanceof Node\Name && $node->class->isSpecialClassName())
         ) {
-            return;
+            return $findings;
         }
 
         $class = $node->class instanceof Node\Name ? $node->class->toString() : '...';
         $method = $node->name instanceof Node\Identifier ? $node->name->toString() : '...';
 
         $subject = $class . '::' . $method . '()';
-        $findings->input('may read via static method ' . $subject, Category::STATIC_CALL, $node);
-        $findings->output('may write via static method ' . $subject, Category::STATIC_CALL, $node);
+        $findings = $findings->input('may read via static method ' . $subject, Category::STATIC_CALL, $node);
+        $findings = $findings->output('may write via static method ' . $subject, Category::STATIC_CALL, $node);
+        return $findings;
     }
 
     protected function isFacade(Node\Name|Expr $class): bool

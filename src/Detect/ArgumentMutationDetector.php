@@ -23,10 +23,11 @@ class ArgumentMutationDetector implements Detector
     {
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): void
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
     {
         foreach ($this->denotation->mutatedParameters($node, $isWrite) as $parameter) {
-            $findings->output('wrote to argument $' . $parameter, Category::ARGUMENT_MUTATION, $node, $parameter);
+            $findings = $findings->output('wrote to argument $' . $parameter, Category::ARGUMENT_MUTATION, $node, $parameter);
         }
+        return $findings;
     }
 }

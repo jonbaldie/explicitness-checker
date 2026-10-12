@@ -82,9 +82,11 @@ class JoinMap
     }
 
     /** @param array<string, string> $origins */
-    public function bind(string $name, array $origins): void
+    public function bind(string $name, array $origins): self
     {
-        $this->roots[$name] = $origins;
+        $next = clone $this;
+        $next->roots[$name] = $origins;
+        return $next;
     }
 
     public function parent(): ?Node
@@ -92,39 +94,45 @@ class JoinMap
         return $this->stack === [] ? null : $this->stack[array_key_last($this->stack)];
     }
 
-    public function killBound(Node $node): void
+    public function killBound(Node $node): self
     {
-        foreach ($this->boundNames($node) as $name) {
-            unset($this->roots[$name]);
+        $next = clone $this;
+        foreach ($next->boundNames($node) as $name) {
+            unset($next->roots[$name]);
         }
+        return $next;
     }
 
-    public function enter(Node $node): void
+    public function enter(Node $node): self
     {
-        $this->checkFork($node);
-        if ($this->stack !== []) {
-            $parent = $this->stack[array_key_last($this->stack)];
-            $this->enterSlot($parent, $node);
+        $next = clone $this;
+        $next = $next->checkFork($node);
+        if ($next->stack !== []) {
+            $parent = $next->stack[array_key_last($next->stack)];
+            $next = $next->enterSlot($parent, $node);
         }
-        $this->stack[] = $node;
+        $next->stack[] = $node;
+        return $next;
     }
 
-    public function leave(Node $node): void
+    public function leave(Node $node): self
     {
-        array_pop($this->stack);
+        $next = clone $this;
+        array_pop($next->stack);
         $id = spl_object_id($node);
-        if (isset($this->groupOpen[$id])) {
-            unset($this->groupOpen[$id]);
-            $this->closeJoin();
+        if (isset($next->groupOpen[$id])) {
+            unset($next->groupOpen[$id]);
+            $next = $next->closeJoin();
         }
-        if (isset($this->eachOpen[$id])) {
-            unset($this->eachOpen[$id]);
-            $this->closeJoin();
+        if (isset($next->eachOpen[$id])) {
+            unset($next->eachOpen[$id]);
+            $next = $next->closeJoin();
         }
-        if (isset($this->outcomes[$id])) {
-            $this->roots = self::merge($this->roots, $this->outcomes[$id]);
-            unset($this->outcomes[$id]);
+        if (isset($next->outcomes[$id])) {
+            $next->roots = self::merge($next->roots, $next->outcomes[$id]);
+            unset($next->outcomes[$id]);
         }
+        return $next;
     }
 
     /**
@@ -153,34 +161,36 @@ class JoinMap
         return $names;
     }
 
-    protected function enterSlot(Node $parent, Node $child): void
+    protected function enterSlot(Node $parent, Node $child): self
     {
-        $slot = $this->slot($parent, $child);
+        $next = clone $this;
+        $slot = $next->slot($parent, $child);
         $id = spl_object_id($parent);
         if ($slot !== self::GROUP) {
-            if (isset($this->groupOpen[$id])) {
-                unset($this->groupOpen[$id]);
-                $this->closeJoin();
+            if (isset($next->groupOpen[$id])) {
+                unset($next->groupOpen[$id]);
+                $next = $next->closeJoin();
             }
         }
         if ($slot === self::GROUP) {
-            if (!isset($this->groupOpen[$id])) {
-                $this->groupOpen[$id] = true;
-                $this->openJoin($id);
+            if (!isset($next->groupOpen[$id])) {
+                $next->groupOpen[$id] = true;
+                $next = $next->openJoin($id);
             }
 
-            return;
+            return $next;
         }
         if ($slot === self::CASCADE) {
             // Fallthrough and exceptions can reach the next arm with earlier bindings.
-            $this->roots = self::merge($this->roots, $this->outcomes[$id] ?? []);
+            $next->roots = self::merge($next->roots, $next->outcomes[$id] ?? []);
         }
         if ($slot !== self::EACH && $slot !== self::CASCADE) {
-            return;
+            return $next;
         }
 
-        $this->openJoin($id);
-        $this->eachOpen[spl_object_id($child)] = true;
+        $next = $next->openJoin($id);
+        $next->eachOpen[spl_object_id($child)] = true;
+        return $next;
     }
 
     protected function slot(Node $parent, Node $child): ?string
@@ -197,19 +207,21 @@ class JoinMap
         return null;
     }
 
-    protected function checkFork(Node $node): void
+    protected function checkFork(Node $node): self
     {
+        $next = clone $this;
         $class = $node::class;
-        if (!isset(self::FORKS[$class]) || isset($this->forkShapeChecked[$class])) {
-            return;
+        if (!isset(self::FORKS[$class]) || isset($next->forkShapeChecked[$class])) {
+            return $next;
         }
-        $this->forkShapeChecked[$class] = true;
+        $next->forkShapeChecked[$class] = true;
         $known = array_flip($node->getSubNodeNames());
         foreach (array_keys(self::FORKS[$class]) as $name) {
             if (!isset($known[$name])) {
                 throw new \LogicException('Fork subnode ' . $name . ' is not on ' . $class);
             }
         }
+        return $next;
     }
 
     protected function sameChild(Node $parent, string $name, Node $child): bool
@@ -234,21 +246,25 @@ class JoinMap
         return false;
     }
 
-    protected function openJoin(int $owner): void
+    protected function openJoin(int $owner): self
     {
-        $this->joins[] = ['saved' => $this->roots, 'owner' => $owner];
+        $next = clone $this;
+        $next->joins[] = ['saved' => $next->roots, 'owner' => $owner];
+        return $next;
     }
 
-    protected function closeJoin(): void
+    protected function closeJoin(): self
     {
-        $join = array_pop($this->joins);
+        $next = clone $this;
+        $join = array_pop($next->joins);
         if (!is_array($join)) {
-            return;
+            return $next;
         }
 
         $owner = $join['owner'];
-        $this->outcomes[$owner] = self::merge($this->outcomes[$owner] ?? [], $this->roots);
-        $this->roots = $join['saved'];
+        $next->outcomes[$owner] = self::merge($next->outcomes[$owner] ?? [], $next->roots);
+        $next->roots = $join['saved'];
+        return $next;
     }
 
     /**

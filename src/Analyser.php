@@ -9,6 +9,7 @@ use JonBaldie\ExplicitnessChecker\Scope\BindingsCollector;
 use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
 use JonBaldie\ExplicitnessChecker\Walk\BodyWalker;
+use JonBaldie\ExplicitnessChecker\Walk\ReflectedByReferenceParameters;
 use PhpParser\Node;
 
 /**
@@ -23,12 +24,8 @@ use PhpParser\Node;
  */
 class Analyser
 {
-    /** Shared by every analysis, so each built-in is reflected once. */
-    protected AccessRules $rules;
-
-    public function __construct()
+    public function __construct(protected ?ReflectedByReferenceParameters $parameters = null)
     {
-        $this->rules = new AccessRules();
     }
 
     public function analyse(Node\FunctionLike $node, Mode $mode): FunctionAnalysis
@@ -37,14 +34,11 @@ class Analyser
 
         $findings = new FindingCollector();
         $denotation = new Denotation($bindings);
-        $walker = new BodyWalker(
-            (new DetectorSet())->select($bindings, $mode, $denotation),
-            $this->rules,
-            $findings,
-            $denotation,
-        );
+        $parameters = ($this->parameters ?? new ReflectedByReferenceParameters())->forNodes([$node]);
+        $constructor = $node instanceof Node\Stmt\ClassMethod && strtolower($node->name->toString()) === '__construct';
+        $walker = new BodyWalker($bindings, $mode, new AccessRules($parameters), $parameters, $constructor);
         foreach ($node->getStmts() ?? [] as $stmt) {
-            $walker->walk($stmt, false);
+            [$findings, $denotation] = $walker->walk($stmt, false, $findings, $denotation);
         }
 
         return new FunctionAnalysis(

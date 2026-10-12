@@ -19,7 +19,7 @@ class Application
 {
     protected const USAGE = "Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project\n";
 
-    protected const HELP = self::USAGE . "\nOptions:\n  -h, --help                          Show this help message and exit.\n  -v, --verbose                       Enable verbose output showing detailed analysis progress.\n      --strict                        Enable strict mode to detect additional implicit I/O patterns.\n      --props                         Also report instance property access (\$this->property).\n      --transitive                    Propagate implicit I/O through calls in selected files.\n      --exclude=<dir>                 Exclude specific directories from analysis (default: vendor). Can be specified multiple times.\n      --include-pattern=<pattern>     Only analyze files matching regex pattern. Can be specified multiple times.\n      --exclude-pattern=<pattern>     Exclude files matching regex pattern. Can be specified multiple times.\n      --min-explicitness=<percent>    Require a minimum percentage of explicit function-likes (0-100).\n\nArguments:\n  /path/to/project                    Path to a PHP file or directory to check.\n";
+    protected const HELP = self::USAGE . "\nOptions:\n  -h, --help                          Show this help message and exit.\n  -v, --verbose                       Enable verbose output showing detailed analysis progress.\n      --strict                        Enable strict mode to detect additional implicit I/O patterns.\n      --props                         Add instance property reads and constructor initialization writes.\n      --transitive                    Propagate implicit I/O through calls in selected files.\n      --exclude=<dir>                 Exclude specific directories from analysis (default: vendor). Can be specified multiple times.\n      --include-pattern=<pattern>     Only analyze files matching regex pattern. Can be specified multiple times.\n      --exclude-pattern=<pattern>     Exclude files matching regex pattern. Can be specified multiple times.\n      --min-explicitness=<percent>    Require a minimum percentage of explicit function-likes (0-100).\n\nArguments:\n  /path/to/project                    Path to a PHP file or directory to check.\n";
 
     /**
      * @param resource $stdout
@@ -107,7 +107,12 @@ class Application
         }
 
         $checker = new FileChecker(new SourceChecker(), $mode, $options->isTransitive());
-        $results = array_map(static fn (string $file): FileCheckResult => $checker->check($file), $files);
+        $results = [];
+        foreach ($files as $file) {
+            $result = $checker->check($file);
+            $checker = $checker->after($result);
+            $results[] = $result;
+        }
         if ($options->isTransitive()) {
             $results = (new ProjectAnalysis())->propagate($results);
         }

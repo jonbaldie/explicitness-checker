@@ -32,6 +32,51 @@ class SourceCheckerTest extends TestCase
         class K { public function m(): void { Other\Thing::$shared = 1; } }
         PHP;
 
+    public function testReportsDefaultThisWritesOutsideConstructors(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            class Cart {
+                public function __CONSTRUCT() { $this->items = []; global $g; $g = 1; }
+                public function add($item) { $this->items[] = $item; }
+                public function owner() { return $this->owner; }
+                public function withOwner($value) { $new = clone $this; $new->owner = $value; return $new; }
+            }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+        self::assertSame([
+            ['Cart::__CONSTRUCT', 3, [], ['wrote to global variable $g']],
+            ['Cart::add', 4, [], ['wrote to object property $this->items']],
+            ['Cart::owner', 5, [], []],
+            ['Cart::withOwner', 6, [], []],
+        ], $this->summaries($results));
+    }
+
+    public function testDefaultThisWriteFormsAndConstructorScopeIsolation(): void
+    {
+        $source = (string) file_get_contents(__DIR__ . '/Fixtures/default-this-writes.php');
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+        $names = [];
+        foreach ($results as $result) {
+            $names[$result->getName()] = $result;
+        }
+        foreach (['assign' => 'value', 'append' => 'items', 'index' => 'items', 'compound' => 'count', 'coalesce' => 'value', 'increment' => 'count', 'decrement' => 'count', 'remove' => 'value', 'reference' => 'ref', 'referenceRead' => 'ref', 'sortItems' => 'items', 'dynamic' => '...'] as $method => $property) {
+            $result = $names['MutableCart::' . $method];
+            self::assertSame([], $result->getInputs(), $method);
+            self::assertSame(['wrote to object property $this->' . $property], array_map(static fn (Finding $finding): string => $finding->getDescription(), $result->getOutputs()), $method);
+        }
+        self::assertSame([], $names['MutableCart::owner']->getFindings());
+        self::assertSame([], $names['MutableCart::withValue']->getFindings());
+        self::assertSame(['wrote to global variable $ctorGlobal'], array_map(static fn (Finding $finding): string => $finding->getDescription(), $names['MutableCart::__CONSTRUCT']->getOutputs()));
+        self::assertSame('wrote to object property $this->value', $names['MutableCart::$amount::set']->getOutputs()[0]->getDescription());
+        self::assertSame('wrote to object property $this->nested', $names['MutableCart::class@anonymous::change']->getOutputs()[0]->getDescription());
+        $closures = array_values(array_filter($results, static fn ($result): bool => $result->getName() === '{closure}'));
+        self::assertCount(2, $closures);
+        self::assertSame('wrote to object property $this->later', $closures[0]->getOutputs()[0]->getDescription());
+        self::assertSame('wrote to object property $this->arrow', $closures[1]->getOutputs()[0]->getDescription());
+        self::assertSame("read from \$GLOBALS['field']", $names['MutableCart::globalName']->getInputs()[0]->getDescription());
+    }
+
     public function testResolvesNamesSoImportsAreNotMistakenForBuiltins(): void
     {
         $results = (new SourceChecker())->check(self::SOURCE, new Mode(true, true));
@@ -590,9 +635,6 @@ class SourceCheckerTest extends TestCase
                 }
             }
             PHP;
-        $functionCall = [
-            ['Orders::load', 5, ['may read via function auth()'], ['may write via function auth()']],
-        ];
         $withProperty = [
             ['Orders::load', 5, ['may read via function auth()'], [
                 'wrote to object property $this->orders',
@@ -600,8 +642,8 @@ class SourceCheckerTest extends TestCase
             ]],
         ];
 
-        self::assertSame($functionCall, $this->summaries((new SourceChecker())->check($source, new Mode(false, false))));
-        self::assertSame($functionCall, $this->summaries((new SourceChecker())->check($source, new Mode(true, false))));
+        self::assertSame($withProperty, $this->summaries((new SourceChecker())->check($source, new Mode(false, false))));
+        self::assertSame($withProperty, $this->summaries((new SourceChecker())->check($source, new Mode(true, false))));
         foreach ([new Mode(false, true), new Mode(true, true)] as $mode) {
             $results = (new SourceChecker())->check($source, $mode);
             self::assertSame($withProperty, $this->summaries($results));
@@ -1298,7 +1340,7 @@ class SourceCheckerTest extends TestCase
             PHP;
 
         self::assertSame(
-            [['Counter::bump', 5, ['read from static property Counter::$n'], ['wrote to static property Counter::$n']]],
+            [['Counter::bump', 5, ['read from static property Counter::$n'], ['wrote to object property $this->x', 'wrote to static property Counter::$n']]],
             $this->summaries((new SourceChecker())->check($source, new Mode(false, false))),
         );
         self::assertSame(
@@ -1338,7 +1380,7 @@ class SourceCheckerTest extends TestCase
         self::assertSame(
             [
                 ['C::r', 3, [], []],
-                ['C::w', 4, [], []],
+                ['C::w', 4, [], ['wrote to object property $this->...']],
                 ['C::braced', 5, [], []],
                 ['C::literal', 6, [], []],
             ],
@@ -1497,7 +1539,7 @@ class SourceCheckerTest extends TestCase
 
         self::assertSame(
             [
-                ['RefBug::assignThis', 7, ["read from \$GLOBALS['counter']"], ["wrote to \$GLOBALS['counter']"]],
+                ['RefBug::assignThis', 7, ["read from \$GLOBALS['counter']"], ['wrote to object property $this->ref', "wrote to \$GLOBALS['counter']"]],
                 ['RefBug::assignStatic', 12, ["read from \$GLOBALS['counter']"], ['wrote to static property self::$staticRef', "wrote to \$GLOBALS['counter']"]],
                 ['mutateParamRef', 18, ["read from \$GLOBALS['counter']"], ['wrote to argument $param', "wrote to \$GLOBALS['counter']"]],
                 ['mutateParamArrayRef', 23, ["read from \$GLOBALS['counter']"], ['wrote to argument $arr', "wrote to \$GLOBALS['counter']"]],
