@@ -17,6 +17,8 @@ It also reports a few things that Normand's definition treats as explicit or as 
 
 Every "not reported" claim below was checked by running the checker. The commands and full outputs are under "Verification" at the end.
 
+A later pass, [2026-10-12](../exploratory-testing/2026-10-12-copies-aliases-clock-and-registers.md), tested the shipped checks against the book again. It covered copy-on-write, aliased argument handles, relative clock strings, unseeded random engines and process-global registers.
+
 ## Checks we don't do but should (ranked)
 
 Ranked by value: how central the gap is to Normand's definition × how feasible the check is.
