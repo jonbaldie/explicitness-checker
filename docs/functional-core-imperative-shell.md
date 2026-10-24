@@ -7,6 +7,8 @@ Split each feature into two parts:
 
 Aim the checker at the core. Exempt the shell by directory, so an implicit input that slips into the core still fails the build.
 
+For observed CLI and PHPStan exemption behaviour, transitive-analysis boundaries and gate replays, see the [2026-10-24 exploratory report](exploratory-testing/2026-10-24-transitive-shell-and-gate.md).
+
 ## Tips
 
 - **Exempt by directory.** Both the CLI and PHPStan select files, not classes. Keep shells in their own directories, such as `app/Console` or `src/Command`, and keep core code out of them.

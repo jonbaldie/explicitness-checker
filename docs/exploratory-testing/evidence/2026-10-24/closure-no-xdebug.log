@@ -1,0 +1,4 @@
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in /Users/jonathanbaldie/Code-2/github.com/jonbaldie/explicitness-checker/src/Scope/FunctionLikeCollector.php on line 104
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in /Users/jonathanbaldie/Code-2/github.com/jonbaldie/explicitness-checker/src/Scope/FunctionLikeCollector.php on line 104
+No implicit inputs or outputs found.

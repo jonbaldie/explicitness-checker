@@ -1,0 +1,592 @@
+
+### graph direct
+$ php <repo>/bin/explicitness-checker <repo>/build/exploratory-2026-10-24/fixtures/graph.php
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+Analyzing...
+
+Results:
+
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+------------------------------+------------------+----------+
+| File                                                                                                                   | Line | Function        | Implicit Inputs              | Implicit Outputs | Severity |
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 3    | Shop\load       | read from superglobal $_GET  |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 9    | Shop\cycleA     | read from superglobal $_POST |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 12   | Shop\Base::read | read from superglobal $_GET  |                  | Serious  |
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+exit=2
+
+### graph transitive
+$ php <repo>/bin/explicitness-checker --transitive --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/graph.php
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+Analyzing...
+
+Results:
+
++------------------------------------------------------------------------------------------------------------------------+------+------------------------+------------------------------------------------------------------------------------+------------------+----------+
+| File                                                                                                                   | Line | Function               | Implicit Inputs                                                                    | Implicit Outputs | Severity |
++------------------------------------------------------------------------------------------------------------------------+------+------------------------+------------------------------------------------------------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 3    | Shop\load              | read from superglobal $_GET                                                        |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 4    | Shop\middle            | calls action Shop\load() (line 3): implicit input                                  |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 5    | Shop\entry             | calls action Shop\middle() (line 4): implicit input                                |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 9    | Shop\cycleA            | read from superglobal $_POST; calls action Shop\cycleB() (line 10): implicit input |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 10   | Shop\cycleB            | calls action Shop\cycleA() (line 9): implicit input                                |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 12   | Shop\Base::read        | read from superglobal $_GET                                                        |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 13   | Shop\Base::wrap        | calls action Shop\Base::read() (line 12): implicit input                           |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 17   | Shop\Child::outer      | calls action Shop\Base::wrap() (line 13): implicit input                           |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 18   | Shop\Child::parentRead | calls action Shop\Base::read() (line 12): implicit input                           |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/graph.php | 20   | {closure}              | calls action Shop\load() (line 3): implicit input                                  |                  | Serious  |
++------------------------------------------------------------------------------------------------------------------------+------+------------------------+------------------------------------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 10 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 6 of 16 (37.5%, minimum 100%)
+
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+exit=2
+
+### whole app
+$ php <repo>/bin/explicitness-checker --strict --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app
+Analyzing...
+
+Results:
+
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+----------------------------------+----------+
+| File                                                                                                                                             | Line | Function | Implicit Inputs              | Implicit Outputs                 | Severity |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+----------------------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/app/src/Billing/Command/Message.php | 2    | core     | read from superglobal $_POST |                                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/app/src/Command/Run.php             | 2    | shell    | read from superglobal $_GET  | writes to standard output (echo) | Serious  |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 3 (33.3%, minimum 100%)
+
+
+exit=2
+
+### precise shell exclude
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app
+Analyzing...
+
+Results:
+
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| File                                                                                                                                             | Line | Function | Implicit Inputs              | Implicit Outputs | Severity |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/app/src/Billing/Command/Message.php | 2    | core     | read from superglobal $_POST |                  | Serious  |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 2 (50.0%, minimum 100%)
+
+
+exit=2
+
+### bare shell exclude
+$ php <repo>/bin/explicitness-checker --strict --exclude=Command --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app
+No implicit inputs or outputs found.
+Explicit function-likes: 1 of 1 (100.0%, minimum 100%)
+
+exit=0
+
+### single excluded file
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app/src/Command/Run.php
+Analyzing...
+
+Results:
+
++--------------------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+----------------------------------+----------+
+| File                                                                                                                                 | Line | Function | Implicit Inputs             | Implicit Outputs                 | Severity |
++--------------------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+----------------------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/app/src/Command/Run.php | 2    | shell    | read from superglobal $_GET | writes to standard output (echo) | Serious  |
++--------------------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+----------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 0 of 1 (0.0%, minimum 100%)
+
+
+exit=2
+
+### relative root exclude
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app/src/Command
+No PHP files found in <repo>/build/exploratory-2026-10-24/fixtures/app/src/Command
+
+exit=0
+
+### gate 66.66
+$ php <repo>/bin/explicitness-checker --min-explicitness=66.66 <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 2 of 3 (66.6%, minimum 66.66%)
+
+
+exit=0
+
+### gate 66.67
+$ php <repo>/bin/explicitness-checker --min-explicitness=66.67 <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 2 of 3 (66.6%, minimum 66.67%)
+
+
+exit=2
+
+### gate 0
+$ php <repo>/bin/explicitness-checker --min-explicitness=0 <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 2 of 3 (66.6%, minimum 0%)
+
+
+exit=0
+
+### gate 100
+$ php <repo>/bin/explicitness-checker --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 2 of 3 (66.6%, minimum 100%)
+
+
+exit=2
+
+### gate parse failure
+$ php <repo>/bin/explicitness-checker --min-explicitness=0 <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 2 of 3 (66.6%, minimum 0%)
+
+Parse error in <repo>/build/exploratory-2026-10-24/fixtures/gate/broken.php: Syntax error, unexpected EOF, expecting T_VARIABLE on line 3
+
+exit=2
+
+### exclude broken
+$ php <repo>/bin/explicitness-checker --min-explicitness=0 --exclude-pattern=broken <repo>/build/exploratory-2026-10-24/fixtures/gate
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                                                                                                                      | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/gate/bad.php | 2    | bad      | read from superglobal $_GET |                  | Serious  |
++---------------------------------------------------------------------------------------------------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 2 of 3 (66.6%, minimum 0%)
+
+
+exit=0
+
+### include only pure
+$ php <repo>/bin/explicitness-checker --min-explicitness=100 --include-pattern=good <repo>/build/exploratory-2026-10-24/fixtures/gate
+No implicit inputs or outputs found.
+Explicit function-likes: 2 of 2 (100.0%, minimum 100%)
+
+exit=0
+
+### invalid filter
+$ php <repo>/bin/explicitness-checker --min-explicitness=0 --include-pattern=( <repo>/build/exploratory-2026-10-24/fixtures/gate
+Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 1
+Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project
+
+exit=2
+
+### closure deprecation replay 1
+$ php <repo>/bin/explicitness-checker <repo>/build/exploratory-2026-10-24/fixtures/closure.php
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+No implicit inputs or outputs found.
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+exit=0
+
+### closure deprecation replay 2
+$ php <repo>/bin/explicitness-checker <repo>/build/exploratory-2026-10-24/fixtures/closure.php
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+No implicit inputs or outputs found.
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+exit=0
+
+### traditional closure deprecation
+$ php <repo>/bin/explicitness-checker <repo>/build/exploratory-2026-10-24/fixtures/traditional-closure.php
+
+Deprecated: Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+No implicit inputs or outputs found.
+PHP Deprecated:  Using null as an array offset is deprecated, use an empty string instead in <repo>/src/Scope/FunctionLikeCollector.php on line 104
+
+exit=0
+
+### import propagation
+$ php <repo>/bin/explicitness-checker --transitive --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/imports
+Analyzing...
+
+Results:
+
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+-------------------------------------------------------+-------------------------------------------------------+----------+
+| File                                                                                                                             | Line | Function       | Implicit Inputs                                       | Implicit Outputs                                      | Severity |
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+-------------------------------------------------------+-------------------------------------------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/actions.php | 3    | Domain\source  | read from superglobal $_GET                           |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/actions.php | 4    | Domain\write   |                                                       | wrote to superglobal $_SESSION                        | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 5    | Entry\imported | calls action Domain\source() (line 3): implicit input |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 6    | Entry\grouped  |                                                       | calls action Domain\write() (line 4): implicit output | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 7    | Entry\full     | calls action Domain\source() (line 3): implicit input |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 8    | Entry\local    | calls action Entry\sub() (line 9): implicit input     |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 9    | Entry\sub      | read from superglobal $_POST                          |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 10   | Entry\fallback | calls action globalSource() (line 2): implicit input  |                                                       | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/global.php  | 2    | globalSource   | read from superglobal $_COOKIE                        |                                                       | Serious  |
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+-------------------------------------------------------+-------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 9 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 0 of 9 (0.0%, minimum 100%)
+
+
+exit=2
+
+### excluded targets
+$ php <repo>/bin/explicitness-checker --transitive --exclude-pattern=actions --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/imports
+Analyzing...
+
+Results:
+
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+------------------------------------------------------+------------------+----------+
+| File                                                                                                                             | Line | Function       | Implicit Inputs                                      | Implicit Outputs | Severity |
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+------------------------------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 8    | Entry\local    | calls action Entry\sub() (line 9): implicit input    |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 9    | Entry\sub      | read from superglobal $_POST                         |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/callers.php | 10   | Entry\fallback | calls action globalSource() (line 2): implicit input |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/imports/global.php  | 2    | globalSource   | read from superglobal $_COOKIE                       |                  | Serious  |
++----------------------------------------------------------------------------------------------------------------------------------+------+----------------+------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 3 of 7 (42.8%, minimum 100%)
+
+
+exit=2
+
+### mode default
+$ php <repo>/bin/explicitness-checker --transitive --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/modes.php
+Analyzing...
+
+Results:
+
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+-----------------+----------------------------------------------------------+----------+
+| File                                                                                                                   | Line | Function        | Implicit Inputs | Implicit Outputs                                         | Severity |
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+-----------------+----------------------------------------------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 4    | Service::change |                 | wrote to object property $this->data                     | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 5    | Service::caller |                 | calls action Service::change() (line 4): implicit output | Serious  |
++------------------------------------------------------------------------------------------------------------------------+------+-----------------+-----------------+----------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 5 of 7 (71.4%, minimum 100%)
+
+
+exit=2
+
+### mode strict props
+$ php <repo>/bin/explicitness-checker --strict --props --transitive --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/modes.php
+Analyzing...
+
+Results:
+
++------------------------------------------------------------------------------------------------------------------------+------+----------------------+-------------------------------------------------------+----------------------------------------------------------+----------+
+| File                                                                                                                   | Line | Function             | Implicit Inputs                                       | Implicit Outputs                                         | Severity |
++------------------------------------------------------------------------------------------------------------------------+------+----------------------+-------------------------------------------------------+----------------------------------------------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 3    | Service::__construct |                                                       | wrote to object property $this->data                     | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 4    | Service::change      |                                                       | wrote to object property $this->data                     | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 5    | Service::caller      |                                                       | calls action Service::change() (line 4): implicit output | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 6    | Service::read        | read from object property $this->data                 |                                                          | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 7    | Service::reader      | calls action Service::read() (line 6): implicit input |                                                          | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 9    | clock                | reads system time (time)                              |                                                          | Critical |
+| <repo>/build/exploratory-2026-10-24/fixtures/modes.php | 10   | callClock            | calls action clock() (line 9): implicit input         |                                                          | Serious  |
++------------------------------------------------------------------------------------------------------------------------+------+----------------------+-------------------------------------------------------+----------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 6 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+  Explicit function-likes: 0 of 7 (0.0%, minimum 100%)
+
+
+exit=3
+
+### trait override boundary
+$ php <repo>/bin/explicitness-checker --transitive --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/trait.php
+Analyzing...
+
+Results:
+
++------------------------------------------------------------------------------------------------------------------------+------+--------------------------+------------------------------------------------------------------+------------------+----------+
+| File                                                                                                                   | Line | Function                 | Implicit Inputs                                                  | Implicit Outputs | Severity |
++------------------------------------------------------------------------------------------------------------------------+------+--------------------------+------------------------------------------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/trait.php | 2    | ParentService::calculate | read from superglobal $_GET                                      |                  | Serious  |
+| <repo>/build/exploratory-2026-10-24/fixtures/trait.php | 6    | ChildService::run        | calls action ParentService::calculate() (line 2): implicit input |                  | Serious  |
++------------------------------------------------------------------------------------------------------------------------+------+--------------------------+------------------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 3 (33.3%, minimum 100%)
+
+
+exit=2
+
+### shell root spelling <repo>/build/exploratory-2026-10-24/fixtures/app
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 <repo>/build/exploratory-2026-10-24/fixtures/app
+Analyzing...
+
+Results:
+
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| File                                                                                                                                             | Line | Function | Implicit Inputs              | Implicit Outputs | Severity |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| <repo>/build/exploratory-2026-10-24/fixtures/app/src/Billing/Command/Message.php | 2    | core     | read from superglobal $_POST |                  | Serious  |
++--------------------------------------------------------------------------------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 2 (50.0%, minimum 100%)
+
+
+exit=2
+
+### shell root spelling build/exploratory-2026-10-24/fixtures/app
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 build/exploratory-2026-10-24/fixtures/app
+Analyzing...
+
+Results:
+
++---------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| File                                                                      | Line | Function | Implicit Inputs              | Implicit Outputs | Severity |
++---------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| build/exploratory-2026-10-24/fixtures/app/src/Billing/Command/Message.php | 2    | core     | read from superglobal $_POST |                  | Serious  |
++---------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 2 (50.0%, minimum 100%)
+
+
+exit=2
+
+### shell root spelling ./build/exploratory-2026-10-24/fixtures/app
+$ php <repo>/bin/explicitness-checker --strict --exclude=src/Command --min-explicitness=100 ./build/exploratory-2026-10-24/fixtures/app
+Analyzing...
+
+Results:
+
++-----------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| File                                                                        | Line | Function | Implicit Inputs              | Implicit Outputs | Severity |
++-----------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+| ./build/exploratory-2026-10-24/fixtures/app/src/Billing/Command/Message.php | 2    | core     | read from superglobal $_POST |                  | Serious  |
++-----------------------------------------------------------------------------+------+----------+------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+  Explicit function-likes: 1 of 2 (50.0%, minimum 100%)
+
+
+exit=2
+
+### empty selection
+$ php <repo>/bin/explicitness-checker --min-explicitness=100 --include-pattern=nomatch <repo>/build/exploratory-2026-10-24/fixtures/app
+No PHP files found in <repo>/build/exploratory-2026-10-24/fixtures/app
+
+exit=0
+
+### PHPStan shell ordinary
+$ php -d memory_limit=1G <repo>/vendor/bin/phpstan analyse -c <repo>/build/exploratory-2026-10-24/probe.neon --no-progress --error-format=table
+ ------ -------------------------------------------------------------------- 
+  Line   Command/Shell.php                                                   
+ ------ -------------------------------------------------------------------- 
+  6      Demo\Shell::execute may read via static method Demo\Clock::get().   
+         🪪  explicitness.staticCall                                         
+  6      Demo\Shell::execute may write via static method Demo\Clock::get().  
+         🪪  explicitness.staticCall                                         
+  6      Demo\Shell::execute read from object property $this->value.         
+         🪪  explicitness.objectProperty                                     
+ ------ -------------------------------------------------------------------- 
+
+
+ [ERROR] Found 3 errors                                                         
+
+Instructions for interpreting errors
+---------
+
+Each error has an associated identifier, like `argument.type`
+or `return.missing`.
+
+Each error identifier has documentation at URL https://phpstan.org/error-identifiers/<identifier>
+This page contains code example, explanation why is this an error
+and instruction how to fix it.
+Before fixing the error, fetch the documentation page for its identifier.
+
+The error usually indicates a real bug or incorrect type in the code. Fix the underlying cause, do not just make the error go away.
+Do not add `@phpstan-ignore` comments, `@phpstan-ignore-next-line` comments, or baseline entries to suppress the error.
+Do not use assert() or inline @var PHPDoc tag to override PHPStan's inferred type.
+Do not add type casts just to silence errors.
+Do not widen parameter or return types just to make the error go away.
+
+exit=1
+
+### PHPStan shell exempted
+$ php -d memory_limit=1G <repo>/vendor/bin/phpstan analyse -c <repo>/build/exploratory-2026-10-24/probe.neon --no-progress --error-format=table
+
+ [OK] No errors                                                                 
+
+
+exit=0
+
+### PHPStan typo still checked
+$ php -d memory_limit=1G <repo>/vendor/bin/phpstan analyse -c <repo>/build/exploratory-2026-10-24/probe.neon --no-progress --error-format=table
+ ------ ---------------------------------------------------- 
+  Line   Command/Shell.php                                   
+ ------ ---------------------------------------------------- 
+  6      Call to an undefined method Demo\Shell::missing().  
+         🪪  method.notFound                                 
+ ------ ---------------------------------------------------- 
+
+
+ [ERROR] Found 1 error                                                          
+
+Instructions for interpreting errors
+---------
+
+Each error has an associated identifier, like `argument.type`
+or `return.missing`.
+
+Each error identifier has documentation at URL https://phpstan.org/error-identifiers/<identifier>
+This page contains code example, explanation why is this an error
+and instruction how to fix it.
+Before fixing the error, fetch the documentation page for its identifier.
+
+The error usually indicates a real bug or incorrect type in the code. Fix the underlying cause, do not just make the error go away.
+Do not add `@phpstan-ignore` comments, `@phpstan-ignore-next-line` comments, or baseline entries to suppress the error.
+Do not use assert() or inline @var PHPDoc tag to override PHPStan's inferred type.
+Do not add type casts just to silence errors.
+Do not widen parameter or return types just to make the error go away.
+
+exit=1

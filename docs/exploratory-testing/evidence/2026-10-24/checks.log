@@ -1,0 +1,68 @@
+Original default PHP 8.5 baseline (unmodified configuration):
+PHPUnit 9.6.36 by Sebastian Bergmann and contributors.
+FPHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /Users/jonathanbaldie/Code-2/github.com/jonbaldie/explicitness-checker/vendor/nikic/php-parser/lib/PhpParser/ParserAbstract.php on line 492
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /Users/jonathanbaldie/Code-2/github.com/jonbaldie/explicitness-checker/vendor/nikic/php-parser/lib/PhpParser/ParserAbstract.php on line 492
+exit=255
+
+
+### install
+Installing dependencies from lock file (including require-dev)
+Verifying lock file contents can be installed on current platform.
+Nothing to install, update or remove
+Generating autoload files
+39 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+
+exit=0
+
+### tests-php83
+PHPUnit 9.6.36 by Sebastian Bergmann and contributors.
+
+.............................................................   61 / 1082 (  5%)
+.............................................................  122 / 1082 ( 11%)
+.............................................................  183 / 1082 ( 16%)
+.............................................................  244 / 1082 ( 22%)
+.............................................................  305 / 1082 ( 28%)
+.............................................................  366 / 1082 ( 33%)
+.............................................................  427 / 1082 ( 39%)
+.............................................................  488 / 1082 ( 45%)
+.............................................................  549 / 1082 ( 50%)
+.............................................................  610 / 1082 ( 56%)
+.............................................................  671 / 1082 ( 62%)
+.............................................................  732 / 1082 ( 67%)
+.............................................................  793 / 1082 ( 73%)
+.............................................................  854 / 1082 ( 78%)
+.............................................................  915 / 1082 ( 84%)
+.............................................................  976 / 1082 ( 90%)
+............................................................. 1037 / 1082 ( 95%)
+.............................................                 1082 / 1082 (100%)
+
+Time: 00:56.266, Memory: 120.50 MB
+
+OK (1082 tests, 3385 assertions)
+
+exit=0
+
+### phpstan
+Note: Using configuration file <repo>/phpstan.neon.dist.
+  0/96 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%
+ 96/96 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
+
+
+ [OK] No errors                                                                 
+
+
+exit=0
+
+### phpmd
+
+exit=0
+
+### standards
+
+exit=0
+
+### explicitness
+No implicit inputs or outputs found.
+
+exit=0
