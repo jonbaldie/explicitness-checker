@@ -101,7 +101,8 @@ class FunctionLikeCollector
      */
     protected function className(): ?string
     {
-        $className = $this->classes[array_key_last($this->classes)] ?? null;
+        $lastClass = array_key_last($this->classes);
+        $className = $lastClass === null ? null : $this->classes[$lastClass];
         if ($className !== null) {
             return $className;
         }
