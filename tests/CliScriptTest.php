@@ -40,6 +40,37 @@ class CliScriptTest extends TestCase
         self::assertSame($expectedExitCode, $exitCode, $output);
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function cleanFunctionLikes(): iterable
+    {
+        yield 'arrow' => ['clean-arrow.php'];
+        yield 'closure' => ['clean-closure.php'];
+    }
+
+    /**
+     * #187: PHP 8.5 must not emit null-array-offset deprecations while naming
+     * closures and arrows outside classes, even with all diagnostics enabled.
+     *
+     * @dataProvider cleanFunctionLikes
+     */
+    public function testCleanFunctionLikesEmitNoDiagnostics(string $fixture): void
+    {
+        self::assertSame(
+            [0, "No implicit inputs or outputs found.\n", ''],
+            Process::run([
+                PHP_BINARY,
+                '-d', 'error_reporting=' . E_ALL,
+                '-d', 'display_errors=1',
+                '-d', 'log_errors=1',
+                '-d', 'error_log=',
+                Process::ROOT . '/bin/explicitness-checker',
+                Process::ROOT . '/tests/Fixtures/' . $fixture,
+            ]),
+        );
+    }
+
     public function testCliWithoutPathPrintsUsage(): void
     {
         [$exitCode, $output] = $this->combined(Process::cli([]));
