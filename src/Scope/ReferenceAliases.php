@@ -11,19 +11,17 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
 /**
- * Tracks local variables that currently reference a `$GLOBALS[...]` entry.
- *
- * The state belongs to one function-like walk. It is deliberately syntactic:
- * a by-reference assignment records a known target, another reference
- * assignment replaces it, and unsetting the alias removes it after the unset
- * has been visited as a write.
+ * Possible GLOBALS-reference bindings within one function-like walk.
+ * JoinMap owns all fork snapshots and merges; this value owns only binding
+ * events and alternative union. Missing names mean no GLOBALS reference.
+ * Unset forgets the local binding without reporting the unset as a write.
  */
 class ReferenceAliases
 {
-    /** @var array<string, string> alias name => globals-array subject */
+    /** @var array<string, list<string|null>> Possible subjects; null means no GLOBALS reference. */
     protected array $aliases = [];
 
-    public function enter(Node $node): self
+    public function enter(Node $node, ?Node $parent): self
     {
         $next = clone $this;
         if ($node instanceof Expr\AssignRef) {
@@ -40,8 +38,8 @@ class ReferenceAliases
             return $next;
         }
 
-        if ($node instanceof Stmt\Foreach_ && $node->byRef) {
-            $next = $next->forget($node->valueVar);
+        if ($parent instanceof Stmt\Foreach_ && $parent->byRef && $node === $parent->valueVar) {
+            $next = $next->forget($node);
         }
         return $next;
     }
@@ -61,11 +59,30 @@ class ReferenceAliases
         return $next;
     }
 
-    public function targetOf(Node $node): ?string
+    /** @return list<string|null> */
+    public function alternatives(Node $node): array
     {
         $name = VariableName::of($node);
 
-        return $name === null ? null : ($this->aliases[$name] ?? null);
+        return $name === null ? [null] : ($this->aliases[$name] ?? [null]);
+    }
+
+    public function mayBeOrdinary(Node $node): bool
+    {
+        return in_array(null, $this->alternatives($node), true);
+    }
+
+    public function merge(self $other): self
+    {
+        $next = clone $this;
+        foreach (array_unique(array_merge(array_keys($this->aliases), array_keys($other->aliases))) as $name) {
+            $next->aliases[$name] = array_values(array_unique(array_merge(
+                $this->aliases[$name] ?? [null],
+                $other->aliases[$name] ?? [null],
+            ), SORT_REGULAR));
+        }
+
+        return $next;
     }
 
     protected function assignReference(Expr\AssignRef $node): self
@@ -83,7 +100,7 @@ class ReferenceAliases
             return $next;
         }
 
-        $next->aliases[$name] = $target;
+        $next->aliases[$name] = [$target];
         return $next;
     }
 
@@ -92,7 +109,7 @@ class ReferenceAliases
         $next = clone $this;
         $name = VariableName::of($node);
         if ($name !== null) {
-            unset($next->aliases[$name]);
+            $next->aliases[$name] = [null];
         }
         return $next;
     }

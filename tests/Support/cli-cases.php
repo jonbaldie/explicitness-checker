@@ -144,6 +144,8 @@ return $cases + [
 
     // #92: assigning $GLOBALS entries by reference to properties or array
     // elements writes to that target and reads+writes the global entry.
+    'reference-joins.default' => ['tests/Fixtures/reference-joins.php'],
+    'zero-reference-loop.default' => ['tests/Fixtures/zero-reference-loop.php'],
     'reference-global-target.default' => ['tests/Fixtures/reference-global-target.php'],
     'reference-global-target.props' => ['--props', 'tests/Fixtures/reference-global-target.php'],
 

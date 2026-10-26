@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Scope;
 
-use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
 
 /**
- * Walk-ordered caller origins, with independent arms and conservative joins.
+ * Walk-ordered value origins and reference alternatives, with shared forks.
  *
  * Each arm starts from the saved map and collects its result separately.
  * At the fork's exit all possible origins, including the zero-execution
@@ -51,7 +50,12 @@ class JoinMap
     /** @var array<string, array<string, string>> */
     protected array $roots;
 
-    /** @var list<array{saved: array<string, array<string, string>>, owner: int}> */
+    protected ReferenceAliases $aliases;
+
+    /** @var array<int, ReferenceAliases> */
+    protected array $aliasOutcomes = [];
+
+    /** @var list<array{saved: array<string, array<string, string>>, aliases: ReferenceAliases, owner: int}> */
     protected array $joins = [];
 
     /** @var array<int, array<string, array<string, string>>> */
@@ -73,6 +77,12 @@ class JoinMap
     public function __construct(array $roots)
     {
         $this->roots = $roots;
+        $this->aliases = new ReferenceAliases();
+    }
+
+    public function aliases(): ReferenceAliases
+    {
+        return $this->aliases;
     }
 
     /** @return array<string, string> */
@@ -97,7 +107,7 @@ class JoinMap
     public function killBound(Node $node): self
     {
         $next = clone $this;
-        foreach ($next->boundNames($node) as $name) {
+        foreach (BoundNames::of($node) as $name) {
             unset($next->roots[$name]);
         }
         return $next;
@@ -111,7 +121,17 @@ class JoinMap
             $parent = $next->stack[array_key_last($next->stack)];
             $next = $next->enterSlot($parent, $node);
         }
+        $next->aliases = $next->aliases->enter($node, $next->parent());
         $next->stack[] = $node;
+        return $next;
+    }
+
+    /** Release aliases before ordinary unset binding events, without closing arms. */
+    public function leaveBindings(Node $node): self
+    {
+        $next = clone $this;
+        $next->aliases = $next->aliases->leave($node);
+
         return $next;
     }
 
@@ -131,34 +151,10 @@ class JoinMap
         if (isset($next->outcomes[$id])) {
             $next->roots = self::merge($next->roots, $next->outcomes[$id]);
             unset($next->outcomes[$id]);
+            $next->aliases = $next->aliases->merge($next->aliasOutcomes[$id]);
+            unset($next->aliasOutcomes[$id]);
         }
         return $next;
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function boundNames(Node $node): array
-    {
-        $name = VariableName::of($node);
-        if ($name !== null) {
-            return [$name];
-        }
-        if (!$node instanceof \PhpParser\Node\Expr\List_) {
-            return [];
-        }
-
-        $names = [];
-        foreach ($node->items as $item) {
-            if ($item === null) {
-                continue;
-            }
-            foreach ($this->boundNames($item->value) as $bound) {
-                $names[] = $bound;
-            }
-        }
-
-        return $names;
     }
 
     protected function enterSlot(Node $parent, Node $child): self
@@ -183,6 +179,9 @@ class JoinMap
         if ($slot === self::CASCADE) {
             // Fallthrough and exceptions can reach the next arm with earlier bindings.
             $next->roots = self::merge($next->roots, $next->outcomes[$id] ?? []);
+            if (isset($next->aliasOutcomes[$id])) {
+                $next->aliases = $next->aliases->merge($next->aliasOutcomes[$id]);
+            }
         }
         if ($slot !== self::EACH && $slot !== self::CASCADE) {
             return $next;
@@ -249,7 +248,7 @@ class JoinMap
     protected function openJoin(int $owner): self
     {
         $next = clone $this;
-        $next->joins[] = ['saved' => $next->roots, 'owner' => $owner];
+        $next->joins[] = ['saved' => $next->roots, 'aliases' => $next->aliases, 'owner' => $owner];
         return $next;
     }
 
@@ -263,7 +262,10 @@ class JoinMap
 
         $owner = $join['owner'];
         $next->outcomes[$owner] = self::merge($next->outcomes[$owner] ?? [], $next->roots);
+        $next->aliasOutcomes[$owner] = isset($next->aliasOutcomes[$owner])
+            ? $next->aliasOutcomes[$owner]->merge($next->aliases) : $next->aliases;
         $next->roots = $join['saved'];
+        $next->aliases = $join['aliases'];
         return $next;
     }
 

@@ -15,31 +15,28 @@ use PhpParser\Node\Expr;
  */
 class Denotation
 {
-    public const GLOBALS_ALIAS = 'globalsAlias';
-
-    protected ReferenceAliases $aliases;
     protected JoinMap $joinMap;
     protected ValueOrigins $values;
     protected ValueBindings $events;
 
     public function __construct(protected Bindings $bindings)
     {
-        $this->aliases = new ReferenceAliases();
         $this->joinMap = new JoinMap(ValueOrigins::initial($bindings));
-        $this->values = new ValueOrigins($bindings, $this->aliases, $this->joinMap);
+        $this->values = new ValueOrigins($bindings, $this->joinMap->aliases(), $this->joinMap);
         $this->events = new ValueBindings();
     }
 
-    /** @return array{kind: Bindings::*|self::GLOBALS_ALIAS|null, subject: string|null} */
+    /** @return array{kind: Bindings::*|null, subjects: list<string>, ordinary: bool} */
     public function channel(Node $node): array
     {
-        $subject = $this->aliases->targetOf($node);
-        if ($subject !== null) {
-            return ['kind' => self::GLOBALS_ALIAS, 'subject' => $subject];
-        }
+        $aliases = $this->joinMap->aliases();
         $name = VariableName::of($node);
 
-        return ['kind' => $name === null ? null : $this->bindings->kindOf($name), 'subject' => null];
+        return [
+            'kind' => $name === null ? null : $this->bindings->kindOf($name),
+            'subjects' => array_values(array_filter($aliases->alternatives($node), static fn (?string $subject): bool => $subject !== null)),
+            'ordinary' => $aliases->mayBeOrdinary($node),
+        ];
     }
 
     /** @return list<string> */
@@ -50,7 +47,7 @@ class Denotation
         }
         $name = VariableName::of($node);
         if ($name !== null) {
-            return $this->aliases->targetOf($node) === null
+            return $this->joinMap->aliases()->mayBeOrdinary($node)
                 && $this->bindings->kindOf($name) === Bindings::BY_REFERENCE_PARAMETER ? [$name] : [];
         }
         if (!$node instanceof Expr\PropertyFetch) {
@@ -67,11 +64,9 @@ class Denotation
     {
         $next = clone $this;
         $parent = $this->joinMap->parent();
-        $aliases = $this->aliases->enter($node);
         $map = $this->joinMap->enter($node);
-        $values = $this->values->withContext($aliases, $map);
+        $values = $this->values->withContext($map->aliases(), $map);
         [$events, $values] = $this->events->enter($node, $parent, $values);
-        $next->aliases = $aliases;
         $next->joinMap = $values->getMap();
         $next->values = $values;
         $next->events = $events;
@@ -82,13 +77,12 @@ class Denotation
     public function leave(Node $node): self
     {
         $next = clone $this;
-        $aliases = $this->aliases->leave($node);
-        $values = $this->values->withContext($aliases, $this->joinMap);
+        $map = $this->joinMap->leaveBindings($node);
+        $values = $this->values->withContext($map->aliases(), $map);
         [$events, $values] = $this->events->leave($node, $values);
         $map = $values->getMap()->leave($node);
-        $next->aliases = $aliases;
         $next->joinMap = $map;
-        $next->values = $values->withContext($aliases, $map);
+        $next->values = $values->withContext($map->aliases(), $map);
         $next->events = $events;
 
         return $next;

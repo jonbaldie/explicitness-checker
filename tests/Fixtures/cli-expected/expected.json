@@ -1,4 +1,12 @@
 {
+    "reference-joins.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
+    "zero-reference-loop.default": {
+        "exitCode": 2,
+        "stderr": ""
+    },
     "argument-origins.default": {
         "exitCode": 2,
         "stderr": ""
