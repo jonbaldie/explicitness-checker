@@ -441,6 +441,19 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         }
     }
 
+    /** #190: branch joins preserve reference and ordinary alternatives. */
+    public function testReferenceJoinsPreserveEveryPossibleChannel(): void
+    {
+        $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/reference-joins.php', [
+            [9, 'globalsArray', "joinedTargets wrote to \$GLOBALS['first']."],
+            [9, 'globalsArray', "joinedTargets wrote to \$GLOBALS['second']."],
+            [17, 'globalsArray', "siblingUnset wrote to \$GLOBALS['first']."],
+            [24, 'globalsArray', "emptyReferenceLoop wrote to \$GLOBALS['first']."],
+            [31, 'globalsArray', "optionalReferenceParameter wrote to \$GLOBALS['first']."],
+            [31, 'argumentMutation', 'optionalReferenceParameter wrote to argument $p.'],
+        ]);
+    }
+
     /**
      * #45: the PHPStan rule follows global channels through reference aliases,
      * including rebinds and read/write operators.

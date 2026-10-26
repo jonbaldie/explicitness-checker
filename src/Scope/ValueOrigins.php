@@ -61,7 +61,7 @@ class ValueOrigins
     {
         $name = VariableName::of($node);
         if ($name !== null) {
-            return $this->aliases->targetOf($node) === null ? $this->map->origins($name) : [];
+            return $this->aliases->mayBeOrdinary($node) ? $this->map->origins($name) : [];
         }
         return $this->selections->of($node, $this);
     }
@@ -124,7 +124,7 @@ class ValueOrigins
         $kind = $this->bindings->kindOf($name);
 
         return ($kind === null || $kind === Bindings::PARAMETER)
-            && $this->aliases->targetOf($target) === null;
+            && $this->aliases->mayBeOrdinary($target);
     }
 
 }

@@ -1,0 +1,19 @@
+Analyzing...
+
+Results:
+
++------------------------------------+------+----------------------------+-----------------+---------------------------------------------------------+----------+
+| File                               | Line | Function                   | Implicit Inputs | Implicit Outputs                                        | Severity |
++------------------------------------+------+----------------------------+-----------------+---------------------------------------------------------+----------+
+| tests/Fixtures/reference-joins.php | 3    | joinedTargets              |                 | wrote to $GLOBALS['first']; wrote to $GLOBALS['second'] | Serious  |
+| tests/Fixtures/reference-joins.php | 12   | siblingUnset               |                 | wrote to $GLOBALS['first']                              | Serious  |
+| tests/Fixtures/reference-joins.php | 21   | emptyReferenceLoop         |                 | wrote to $GLOBALS['first']                              | Serious  |
+| tests/Fixtures/reference-joins.php | 27   | optionalReferenceParameter |                 | wrote to $GLOBALS['first']; wrote to argument $p        | Serious  |
++------------------------------------+------+----------------------------+-----------------+---------------------------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 4 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+

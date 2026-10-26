@@ -50,9 +50,10 @@ class VariableDetector implements Detector
         }
 
         $target = $this->denotation->channel($node);
-        if ($target['subject'] !== null) {
-            $findings = $findings->access($isWrite, $target['subject'], Category::GLOBALS_ARRAY, $node);
-
+        foreach ($target['subjects'] as $subject) {
+            $findings = $findings->access($isWrite, $subject, Category::GLOBALS_ARRAY, $node);
+        }
+        if (!$target['ordinary']) {
             return $findings;
         }
 
