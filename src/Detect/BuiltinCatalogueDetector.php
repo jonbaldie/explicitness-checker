@@ -10,7 +10,6 @@ use JonBaldie\ExplicitnessChecker\LiteralCallable;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
-use PhpParser\Node\Stmt;
 
 /**
  * Strict mode: the PHP built-ins that perform side effects or read ambient
@@ -64,12 +63,10 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected const EXIT_NAMES = ['exit', 'die'];
 
-    /**
-     * Output construct => its name.
-     */
-    protected const OUTPUT_CONSTRUCTS = [
-        Stmt\Echo_::class => 'echo',
-        Expr\Print_::class => 'print',
+    protected const CONSTRUCT_NAMES = [
+        'Stmt_Echo' => 'echo',
+        'Expr_Print' => 'print',
+        'Expr_ShellExec' => 'shell_exec',
     ];
 
     /**
@@ -336,18 +333,17 @@ class BuiltinCatalogueDetector implements Detector
      */
     protected function classifyConstruct(Node $node): ?array
     {
-        foreach (self::OUTPUT_CONSTRUCTS as $class => $construct) {
-            if ($node instanceof $class) {
-                return [$construct, [self::STDOUT]];
-            }
+        $construct = self::CONSTRUCT_NAMES[$node->getType()] ?? null;
+        if ($construct !== null) {
+            return [$construct, match ($construct) {
+                'echo', 'print' => [self::STDOUT],
+                default => $this->catalogueEntries($construct),
+            }];
         }
         if ($node instanceof Expr\Exit_) {
             $kind = $node->getAttribute('kind', Expr\Exit_::KIND_EXIT);
 
             return [$kind === Expr\Exit_::KIND_DIE ? 'die' : 'exit', $this->exitEntries(new CallArguments($node))];
-        }
-        if ($node instanceof Expr\ShellExec) {
-            return ['shell_exec', $this->catalogueEntries('shell_exec')];
         }
         if ($node instanceof Expr\Include_) {
             $name = self::INCLUDES[$node->type];
