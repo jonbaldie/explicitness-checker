@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Scope;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use PhpParser\Node;
 
 /**

@@ -7,7 +7,6 @@ namespace JonBaldie\ExplicitnessChecker\Tests;
 use JonBaldie\ExplicitnessChecker\Tests\Support\Process;
 use JonBaldie\ExplicitnessChecker\Tests\Support\RuleList;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;
-use JonBaldie\ExplicitnessChecker\Walk\SubNodes;
 use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -57,10 +56,10 @@ class AccessRulesTest extends TestCase
     {
         $call = $this->firstStatement('f($a, $b);');
         self::assertInstanceOf(Stmt\Expression::class, $call);
-        [$name, $first, $second] = SubNodes::of($call->expr);
+        self::assertInstanceOf(Expr\FuncCall::class, $call->expr);
 
         self::assertSame(
-            [[$name, true], [$first, true], [$second, true]],
+            [[$call->expr->name, true], [$call->expr->args[0], true], [$call->expr->args[1], true]],
             (new AccessRules())->childrenOf($call->expr, true),
         );
     }

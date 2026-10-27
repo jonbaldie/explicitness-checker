@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use JonBaldie\ExplicitnessChecker\LiteralCallable;
-use JonBaldie\ExplicitnessChecker\Scope\ChildNodes;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 

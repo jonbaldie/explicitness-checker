@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Project;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
@@ -32,7 +33,7 @@ final class ProjectCalls
         if ($callee !== null) {
             $edges[$callee->getId()] = new CallEdge($callee, $node->getStartLine());
         }
-        foreach (NodeChildren::of($node) as $child) {
+        foreach (ChildNodes::of($node) as $child) {
             $edges += self::scan($child, $class, $index);
         }
 

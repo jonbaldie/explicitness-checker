@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use PhpParser\Node;
 
 /**
@@ -19,7 +20,7 @@ class SubNodesRule implements ChildAccessRule
     public function children(Node $node, bool $isWrite): array
     {
         $children = [];
-        foreach (SubNodes::of($node) as $child) {
+        foreach (ChildNodes::of($node) as $child) {
             $children[] = [$child, $isWrite];
         }
 

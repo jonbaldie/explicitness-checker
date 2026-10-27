@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JonBaldie\ExplicitnessChecker\Scope;
+namespace JonBaldie\ExplicitnessChecker;
 
 use PhpParser\Node;
 

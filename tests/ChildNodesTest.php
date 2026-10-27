@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Tests;
 
-use JonBaldie\ExplicitnessChecker\Scope\ChildNodes;
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
