@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use JonBaldie\ExplicitnessChecker\Scope\ScopeBoundary;
 use JonBaldie\ExplicitnessChecker\VariableName;
 use PhpParser\Node;
@@ -68,7 +69,7 @@ class GlobalDeclarations
                 continue;
             }
 
-            foreach (SubNodes::of($node) as $child) {
+            foreach (ChildNodes::of($node) as $child) {
                 $queue->enqueue($child);
             }
         }

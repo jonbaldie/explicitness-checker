@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Project;
 
+use JonBaldie\ExplicitnessChecker\ChildNodes;
 use JonBaldie\ExplicitnessChecker\Cli\FileCheckResult;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
@@ -59,7 +60,7 @@ final class ProjectClasses
             $class = null;
         }
         $contexts = $node instanceof Node\FunctionLike ? [spl_object_id($node) => $class] : [];
-        foreach (NodeChildren::of($node) as $child) {
+        foreach (ChildNodes::of($node) as $child) {
             [$childContexts, $childParents] = self::collect($child, $class);
             $contexts += $childContexts;
             foreach ($childParents as $name => $entries) {
