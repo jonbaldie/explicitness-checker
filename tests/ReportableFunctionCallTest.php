@@ -104,15 +104,43 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
             self::assertSame($claimed, (new BuiltinCatalogueDetector())->wouldReportEmptyCall($name));
         }
 
+        public function testEmptyFunctionNameIsRejected(): void
+        {
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Name cannot be empty');
+
+            (new BuiltinCatalogueDetector())->wouldReportEmptyCall('');
+        }
+
         public static function emptyCallClaims(): array
         {
             return [
                 ['time', true],
                 ['TIME', true],
                 ['date', true],
+                ['gmdate', true],
+                ['idate', true],
+                ['getdate', true],
+                ['localtime', true],
+                ['mktime', true],
+                ['gmmktime', true],
+                ['date_create', true],
+                ['date_create_immutable', true],
+                ['strtotime', true],
+                ['date_create_from_format', false],
+                ['date_create_immutable_from_format', false],
+                ['DATE_CREATE_FROM_FORMAT', false],
                 ['session_id', true],
+                ['session_name', true],
+                ['session_save_path', true],
+                ['session_module_name', true],
+                ['session_cache_limiter', true],
+                ['session_cache_expire', true],
                 ['error_reporting', true],
                 ['ignore_user_abort', true],
+                ['libxml_use_internal_errors', true],
+                ['mb_internal_encoding', true],
+                ['umask', true],
                 ['http_response_code', true],
                 ['fopen', true],
                 ['print_r', true],
@@ -120,7 +148,17 @@ namespace JonBaldie\ExplicitnessChecker\Tests {
                 ['exit', true],
                 ['die', true],
                 ['mysqli_not_a_real_function', true],
+                ['pg_not_a_real_function', true],
+                ['odbc_not_a_real_function', true],
+                ['sqlsrv_not_a_real_function', true],
+                ['oci_not_a_real_function', true],
+                ['socket_not_a_real_function', true],
+                ['ftp_not_a_real_function', true],
+                ['OB_CUSTOM', true],
                 ['ob_get_level', true],
+                ['\\time', false],
+                ['Time\\auth', false],
+                ['App\\mysqli_query', false],
                 ['strlen', false],
                 ['auth', false],
                 ['collect', false],
