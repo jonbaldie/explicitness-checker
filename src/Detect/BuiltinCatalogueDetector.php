@@ -9,7 +9,6 @@ use JonBaldie\ExplicitnessChecker\FindingCollector;
 use JonBaldie\ExplicitnessChecker\LiteralCallable;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Name;
 
 /**
  * Strict mode: the PHP built-ins that perform side effects or read ambient
@@ -266,9 +265,22 @@ class BuiltinCatalogueDetector implements Detector
 
     public function wouldReportEmptyCall(string $resolvedName): bool
     {
-        $entries = $this->classify(new Expr\FuncCall(new Name($resolvedName), []))[1] ?? [];
+        if ($resolvedName === '') {
+            throw new \InvalidArgumentException('Name cannot be empty');
+        }
+        $lowerName = strtolower($resolvedName);
 
-        return $entries !== [];
+        return match (true) {
+            isset(self::SESSION_PARAMETERS[$lowerName]),
+            isset(self::CONFIG_PARAMETERS[$lowerName]),
+            in_array($lowerName, self::EXIT_NAMES, true),
+            in_array($lowerName, [
+                'date_create', 'date_create_immutable', 'strtotime',
+                'date', 'gmdate', 'idate', 'getdate', 'localtime', 'mktime', 'gmmktime',
+                'fopen', 'print_r', 'var_export', 'error_reporting', 'http_response_code',
+            ], true) => true,
+            default => $this->catalogueEntries($lowerName) !== [],
+        };
     }
 
     public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
