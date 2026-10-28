@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use PhpParser\Node;
 
 class FunctionCallDetector implements Detector
@@ -17,7 +18,7 @@ class FunctionCallDetector implements Detector
         $this->reportable = $reportable ?? new ReportableFunctionCall();
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         $name = $this->reportable->spelling($node);
         if ($name === null) {

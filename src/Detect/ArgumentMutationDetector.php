@@ -19,13 +19,9 @@ use PhpParser\Node;
  */
 class ArgumentMutationDetector implements Detector
 {
-    public function __construct(protected Denotation $denotation)
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
-    }
-
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
-    {
-        foreach ($this->denotation->mutatedParameters($node, $isWrite) as $parameter) {
+        foreach ($denotation->mutatedParameters($node, $isWrite) as $parameter) {
             $findings = $findings->output('wrote to argument $' . $parameter, Category::ARGUMENT_MUTATION, $node, $parameter);
         }
         return $findings;

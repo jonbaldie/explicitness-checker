@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\GlobalsArray;
 use PhpParser\Node;
 
@@ -14,7 +15,7 @@ use PhpParser\Node;
  */
 class GlobalsArrayDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         $subject = GlobalsArray::subjectOf($node);
         if ($subject === null) {

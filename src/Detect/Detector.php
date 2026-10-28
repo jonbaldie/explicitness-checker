@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use PhpParser\Node;
 
 /**
@@ -16,5 +17,5 @@ interface Detector
     /**
      * @param bool $isWrite whether the walk reached this node as a write target
      */
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector;
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector;
 }

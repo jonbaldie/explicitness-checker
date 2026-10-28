@@ -9,14 +9,13 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
 
 /**
- * What the arguments of a call, `new` expression, exit construct or pipe say,
+ * What the arguments of a call, `new` expression or exit construct say,
  * from literals only. A parameter is found by position or by name; the exit
- * construct's one optional expression, and the value a pipe passes, is its
- * first positional argument.
+ * construct's one optional expression is its first positional argument.
  */
 class CallArguments
 {
-    public function __construct(protected Expr\FuncCall|Expr\StaticCall|Expr\New_|Expr\Exit_|Expr\BinaryOp\Pipe $node)
+    public function __construct(protected Expr\FuncCall|Expr\StaticCall|Expr\New_|Expr\Exit_ $node)
     {
     }
 
@@ -131,9 +130,6 @@ class CallArguments
      */
     protected function args(): array
     {
-        if ($this->node instanceof Expr\BinaryOp\Pipe) {
-            return [new Node\Arg($this->node->left)];
-        }
         if (!$this->node instanceof Expr\Exit_) {
             return $this->node->args;
         }

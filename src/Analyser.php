@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker;
 
-use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
 use JonBaldie\ExplicitnessChecker\Scope\BindingsCollector;
 use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\Walk\AccessRules;

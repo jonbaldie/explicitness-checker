@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Walk;
 
+use JonBaldie\ExplicitnessChecker\Detect\Detector;
 use JonBaldie\ExplicitnessChecker\Detect\DetectorSet;
 use JonBaldie\ExplicitnessChecker\Detect\ReportableFunctionCall;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
@@ -15,23 +16,24 @@ use PhpParser\Node;
 /** Threads immutable findings and binding snapshots through the access walk. */
 class BodyWalker
 {
-    protected ReportableFunctionCall $reportable;
+    /** @var list<Detector> */
+    protected array $detectors;
     public function __construct(
-        protected Bindings $bindings,
-        protected Mode $mode,
+        Bindings $bindings,
+        Mode $mode,
         protected AccessRules $rules,
-        protected ByReferenceParameters $parameters,
-        protected bool $constructor = false,
+        ByReferenceParameters $parameters,
+        bool $constructor = false,
     ) {
-        $this->reportable = new ReportableFunctionCall($parameters);
+        $this->detectors = (new DetectorSet())->select($bindings, $mode, new ReportableFunctionCall($parameters), $constructor);
     }
 
     /** @return array{FindingCollector, Denotation} */
     public function walk(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): array
     {
         $denotation = $denotation->enter($node);
-        foreach ((new DetectorSet())->select($this->bindings, $this->mode, $denotation, $this->reportable, $this->constructor) as $detector) {
-            $findings = $detector->detect($node, $isWrite, $findings);
+        foreach ($this->detectors as $detector) {
+            $findings = $detector->detect($node, $isWrite, $findings, $denotation);
         }
         foreach ($this->rules->childrenOf($node, $isWrite) as [$child, $childIsWrite]) {
             [$findings, $denotation] = $this->walk($child, $childIsWrite, $findings, $denotation);
