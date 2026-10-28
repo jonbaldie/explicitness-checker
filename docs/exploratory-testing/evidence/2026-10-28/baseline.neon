@@ -1,0 +1,25 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^env read from superglobal \$_ENV\.$#'
+			identifier: explicitness.superglobal
+			count: 1
+			path: src/input.php
+
+		-
+			message: '#^user read from superglobal \$_GET\.$#'
+			identifier: explicitness.superglobal
+			count: 1
+			path: src/input.php
+
+		-
+			message: '#^emit writes to standard output \(print_r\)\.$#'
+			identifier: explicitness.standardOutput
+			count: 1
+			path: src/output.php
+
+		-
+			message: '#^out writes to standard output \(echo\)\.$#'
+			identifier: explicitness.standardOutput
+			count: 1
+			path: src/output.php

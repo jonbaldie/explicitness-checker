@@ -1,5 +1,7 @@
 # Exploratory testing: transitive calls, shell exemptions and the percentage gate (2026-10-24)
 
+The subsequent [output, severity, and PHPStan baseline pass](2026-10-28-output-severity-and-baselines.md) covers additional journeys.
+
 AFK pass against `main` at `1cd19f9cd51bc1b2cbadadbdef8d5bf6042e4e82`. One confirmed bug: [#187 — PHP 8.5 closure/arrow deprecations](https://github.com/jonbaldie/explicitness-checker/issues/187). No product fixes were made.
 
 The previous pass, [2026-10-10](2026-10-10-pipe-bindings-and-catalogue.md), covered pipe calls, shared-state writes and catalogue direction. This pass instead drove the CLI's newer transitive analysis, the shell-exemption guide, and file selection with the percentage gate.

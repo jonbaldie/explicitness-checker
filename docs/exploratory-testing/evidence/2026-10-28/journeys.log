@@ -1,0 +1,172 @@
+$ php bin/explicitness-checker .scratch/journeys/src/output.php
+No implicit inputs or outputs found.
+exit=0
+$ php bin/explicitness-checker --strict .scratch/journeys/src/output.php
+Analyzing...
+
+Results:
+
++----------------------------------+------+----------+-----------------+-------------------------------------+----------+
+| File                             | Line | Function | Implicit Inputs | Implicit Outputs                    | Severity |
++----------------------------------+------+----------+-----------------+-------------------------------------+----------+
+| .scratch/journeys/src/output.php | 3    | out      |                 | writes to standard output (echo)    | Minor    |
+| .scratch/journeys/src/output.php | 5    | emit     |                 | writes to standard output (print_r) | Minor    |
++----------------------------------+------+----------+-----------------+-------------------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 2 (exit code 1)
+  Exit code: 1
+
+exit=1
+$ php bin/explicitness-checker .scratch/journeys/src/input.php
+Analyzing...
+
+Results:
+
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                            | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+| .scratch/journeys/src/input.php | 2    | user     | read from superglobal $_GET |                  | Serious  |
+| .scratch/journeys/src/input.php | 3    | env      | read from superglobal $_ENV |                  | Critical |
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
+exit=3
+$ php bin/explicitness-checker --min-explicitness=0 .scratch/journeys/src/input.php
+Analyzing...
+
+Results:
+
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+| File                            | Line | Function | Implicit Inputs             | Implicit Outputs | Severity |
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+| .scratch/journeys/src/input.php | 2    | user     | read from superglobal $_GET |                  | Serious  |
+| .scratch/journeys/src/input.php | 3    | env      | read from superglobal $_ENV |                  | Critical |
++---------------------------------+------+----------+-----------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 1 (exit code 3)
+  Serious violations: 1 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 0
+  Explicit function-likes: 0 of 2 (0.0%, minimum 0%)
+
+exit=0
+$ php vendor/bin/phpstan analyse -c .scratch/journeys/phpstan.neon --no-progress
+Instructions for interpreting errors
+---------
+
+Each error has an associated identifier, like `argument.type`
+or `return.missing`.
+
+Each error identifier has documentation at URL https://phpstan.org/error-identifiers/<identifier>
+This page contains code example, explanation why is this an error
+and instruction how to fix it.
+Before fixing the error, fetch the documentation page for its identifier.
+
+The error usually indicates a real bug or incorrect type in the code. Fix the underlying cause, do not just make the error go away.
+Do not add `@phpstan-ignore` comments, `@phpstan-ignore-next-line` comments, or baseline entries to suppress the error.
+Do not use assert() or inline @var PHPDoc tag to override PHPStan's inferred type.
+Do not add type casts just to silence errors.
+Do not widen parameter or return types just to make the error go away.
+ ------ -----------------------------------
+  Line   input.php
+ ------ -----------------------------------
+  2      user read from superglobal $_GET.
+         🪪  explicitness.superglobal
+  3      env read from superglobal $_ENV.
+         🪪  explicitness.superglobal
+ ------ -----------------------------------
+
+ ------ -------------------------------------------
+  Line   output.php
+ ------ -------------------------------------------
+  3      out writes to standard output (echo).
+         🪪  explicitness.standardOutput
+  5      emit writes to standard output (print_r).
+         🪪  explicitness.standardOutput
+ ------ -------------------------------------------
+
+ [ERROR] Found 4 errors
+
+exit=1
+$ php vendor/bin/phpstan analyse -c .scratch/journeys/phpstan.neon --no-progress --generate-baseline
+
+ [OK] Baseline generated with 4 errors.
+
+exit=0
+$ baseline
+$ generated baseline (moved to fixture directory)
+$ php vendor/bin/phpstan analyse -c .scratch/journeys/phpstan.neon --no-progress
+Invalid entries in ignoreErrors:
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/input.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/input.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/output.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/output.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+To ignore non-existent paths in ignoreErrors,
+set reportUnmatchedIgnoredErrors: false in your configuration file.
+
+exit=1
+$ add newer reading $_POST and rerun
+Invalid entries in ignoreErrors:
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/input.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/input.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/output.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+Path "/tmp/explicitness-explore-20261028/.scratch/journeys/.scratch/journeys/src/output.php" is neither a directory, nor a file path, nor a fnmatch pattern.
+
+To ignore non-existent paths in ignoreErrors,
+set reportUnmatchedIgnoredErrors: false in your configuration file.
+
+exit=1
+$ repair driver: generate baseline in its final directory
+
+ [OK] Baseline generated with 4 errors.
+
+exit=0
+$ rerun with generated baseline
+
+ [OK] No errors
+
+exit=0
+$ add newer reading $_POST and rerun
+Instructions for interpreting errors
+---------
+
+Each error has an associated identifier, like `argument.type`
+or `return.missing`.
+
+Each error identifier has documentation at URL https://phpstan.org/error-identifiers/<identifier>
+This page contains code example, explanation why is this an error
+and instruction how to fix it.
+Before fixing the error, fetch the documentation page for its identifier.
+
+The error usually indicates a real bug or incorrect type in the code. Fix the underlying cause, do not just make the error go away.
+Do not add `@phpstan-ignore` comments, `@phpstan-ignore-next-line` comments, or baseline entries to suppress the error.
+Do not use assert() or inline @var PHPDoc tag to override PHPStan's inferred type.
+Do not add type casts just to silence errors.
+Do not widen parameter or return types just to make the error go away.
+ ------ -------------------------------------
+  Line   input.php
+ ------ -------------------------------------
+  4      newer read from superglobal $_POST.
+         🪪  explicitness.superglobal
+ ------ -------------------------------------
+
+
+ [ERROR] Found 1 error
+
+exit=1
