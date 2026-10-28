@@ -12,7 +12,8 @@ use PhpParser\Node\Scalar;
  * A call that invokes a named function through a literal callable: a string
  * callee, `('name')(...)`; an immediate call of a first-class callable,
  * `(name(...))(...)`; or call_user_func of a string literal,
- * `call_user_func('name', ...)`. Each is the direct call `name(...)` with the
+ * `call_user_func('name', ...)`; or a pipe into a first-class callable.
+ * Each is the direct call `name(...)` with the
  * invocation's arguments. A callable held in a variable names no function,
  * and a first-class callable that is only created calls nothing.
  */
@@ -28,6 +29,9 @@ class LiteralCallable
      */
     public function directCall(): ?Expr\FuncCall
     {
+        if ($this->node instanceof Expr\BinaryOp\Pipe) {
+            return $this->pipedCall($this->node);
+        }
         if (!$this->node instanceof Expr\FuncCall || $this->node->isFirstClassCallable()) {
             return null;
         }
@@ -43,6 +47,16 @@ class LiteralCallable
         ));
 
         return new Expr\FuncCall(new Node\Name($name), $args, $this->node->getAttributes());
+    }
+
+    protected function pipedCall(Expr\BinaryOp\Pipe $pipe): ?Expr\FuncCall
+    {
+        $callable = $pipe->right;
+        if ($callable instanceof Expr\FuncCall && $callable->name instanceof Node\Name && $callable->isFirstClassCallable()) {
+            return new Expr\FuncCall($callable->name, [new Node\Arg($pipe->left)]);
+        }
+
+        return null;
     }
 
     /**

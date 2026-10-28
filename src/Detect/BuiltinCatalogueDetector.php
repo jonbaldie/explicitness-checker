@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use JonBaldie\ExplicitnessChecker\LiteralCallable;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -283,7 +284,7 @@ class BuiltinCatalogueDetector implements Detector
         };
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         $classified = $this->classify($node);
         if ($classified === null) {
@@ -317,27 +318,7 @@ class BuiltinCatalogueDetector implements Detector
         return $this->classifyConstruct($node)
             ?? DateFormatCall::classify($node)
             ?? $this->classifyNamedInvocation((new LiteralCallable($node))->directCall())
-            ?? $this->classifyNamedInvocation($node)
-            ?? $this->classifyPipe($node);
-    }
-
-    /**
-     * `$value |> name(...)` calls name with $value. A first-class callable
-     * that is only created calls nothing, so classifyNamedInvocation skips it.
-     *
-     * @return array{string, list<array{string, bool, string}>}|null
-     */
-    protected function classifyPipe(Node $node): ?array
-    {
-        if (!$node instanceof Expr\BinaryOp\Pipe) {
-            return null;
-        }
-        $callable = $node->right;
-        if ($callable instanceof Expr\FuncCall && $callable->name instanceof Node\Name && $callable->isFirstClassCallable()) {
-            return $this->classifyFunction($callable->name->toString(), new CallArguments($node));
-        }
-
-        return null;
+            ?? $this->classifyNamedInvocation($node);
     }
 
     /**

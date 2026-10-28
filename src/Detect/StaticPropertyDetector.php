@@ -6,6 +6,7 @@ namespace JonBaldie\ExplicitnessChecker\Detect;
 
 use JonBaldie\ExplicitnessChecker\Category;
 use JonBaldie\ExplicitnessChecker\FindingCollector;
+use JonBaldie\ExplicitnessChecker\Scope\Denotation;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 
@@ -15,7 +16,7 @@ use PhpParser\Node\Expr;
  */
 class StaticPropertyDetector implements Detector
 {
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         if (!$node instanceof Expr\StaticPropertyFetch) {
             return $findings;

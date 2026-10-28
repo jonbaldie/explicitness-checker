@@ -29,27 +29,27 @@ class VariableDetector implements Detector
         Bindings::CAPTURED_REFERENCE => ['captured reference $', Category::CAPTURED_REFERENCE],
     ];
 
-    public function __construct(protected Bindings $bindings, protected Denotation $denotation)
+    public function __construct(protected Bindings $bindings)
     {
     }
 
-    public function detect(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    public function detect(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         if ($this->bindings->hasDynamicGlobal() && $node instanceof Expr\Variable && !is_string($node->name)) {
             return $findings->access($isWrite, 'global variable $...', Category::GLOBAL_VARIABLE, $node);
         }
 
-        return $this->detectNamedVariable($node, $isWrite, $findings);
+        return $this->detectNamedVariable($node, $isWrite, $findings, $denotation);
     }
 
-    protected function detectNamedVariable(Node $node, bool $isWrite, FindingCollector $findings): FindingCollector
+    protected function detectNamedVariable(Node $node, bool $isWrite, FindingCollector $findings, Denotation $denotation): FindingCollector
     {
         $name = VariableName::of($node);
         if ($name === null) {
             return $findings;
         }
 
-        $target = $this->denotation->channel($node);
+        $target = $denotation->channel($node);
         foreach ($target['subjects'] as $subject) {
             $findings = $findings->access($isWrite, $subject, Category::GLOBALS_ARRAY, $node);
         }
