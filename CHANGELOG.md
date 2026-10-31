@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-31
+
+### Fixed
+
+- Join `$GLOBALS` reference alternatives across branches and loops, retaining possible targets and ordinary argument mutations (#191). This can add findings and change the exit code.
+- Avoid null-offset deprecation messages on PHP 8.5 when analysing closures and arrow functions outside classes (#189).
+
+### Changed
+
+- Consolidate AST child enumeration, query the built-in catalogue without synthetic AST nodes, and reuse detector pipelines across each function walk (#192, #193, #195). Findings and CLI behavior are intended to remain unchanged. The internal `Project\NodeChildren`, `Scope\ChildNodes`, and `Walk\SubNodes` classes were removed in favor of `ChildNodes`; internal detector interfaces also changed.
+
 ## [1.4.0] - 2026-10-12
 
 ### Added
@@ -161,7 +172,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.0...v1.3.1
