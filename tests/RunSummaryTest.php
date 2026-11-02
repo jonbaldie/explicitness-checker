@@ -38,6 +38,25 @@ class RunSummaryTest extends TestCase
         self::assertSame(0, $summary->getExitCode());
     }
 
+    public function testPreservesFunctionOrderAcrossCleanAndViolatingFiles(): void
+    {
+        $checker = new SourceChecker();
+        $mode = new Mode(true, false);
+        $first = new FileCheckResult('first.php', $checker->check('<?php function a() { echo 1; } function b() { echo 2; }', $mode));
+        $clean = new FileCheckResult('clean.php', $checker->check('<?php function c() { return 1; }', $mode));
+        $last = new FileCheckResult('last.php', $checker->check('<?php function d() { echo 3; }', $mode));
+        $summary = RunSummary::of(new DiscoveredFiles([]), [$first, $clean, $last], null);
+
+        self::assertSame(
+            [['first.php', 'a'], ['first.php', 'b'], ['last.php', 'd']],
+            array_map(static fn (Violation $violation): array => [$violation->getFile(), $violation->getFunction()], $summary->getViolations()),
+        );
+        self::assertSame(4, $summary->getCheckedCount());
+        self::assertSame(1, $summary->getExplicitCount());
+        self::assertSame(['minor' => 3, 'serious' => 0, 'critical' => 0], $summary->getSeverityCounts());
+        self::assertSame(1, $summary->getExitCode());
+    }
+
     public function testPreservesDiscoveryThenFileFailureOrder(): void
     {
         $directory = new UncheckedInput('locked', UncheckedInput::UNREADABLE_DIRECTORY);
