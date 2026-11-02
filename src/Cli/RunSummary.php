@@ -36,7 +36,9 @@ class RunSummary
         $unchecked = $discovered->getUnchecked();
         $checked = 0;
         foreach ($results as $result) {
-            $violations = array_merge($violations, $result->getViolations());
+            foreach ($result->getViolations() as $violation) {
+                $violations[] = $violation;
+            }
             $fileUnchecked = $result->getUnchecked();
             if ($fileUnchecked !== null) {
                 $unchecked[] = $fileUnchecked;
