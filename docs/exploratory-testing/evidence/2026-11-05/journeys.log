@@ -1,0 +1,121 @@
+Fixture hashes before analysis:
+c05819f033416a934f721b5279c099b7155115f2a462761e5b2fe91d165b0a20  .run/journeys/project/core/cart.php
+2d1f2b42f4d61076bba9e02caba991cbb3f8f4e9e8ab97c26904e81633883a33  .run/journeys/project/core/clock.php
+fa64f8ffa6ca74599170b7d5d6b323a1efa77f67cd4f72a731e7a94131cd99a5  .run/journeys/project/vendor/vendor.php
+ad713b3e897d549d181c0432372744fe8ba11c177b4f32384c46c0635d7c23e1  .run/journeys/project/generated/generated.php
+
+$ bin/explicitness-checker --strict .run/journeys/project/core/clock.php
+Analyzing...
+
+Results:
+
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+| File                                 | Line | Function       | Implicit Inputs                                         | Implicit Outputs | Severity |
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+| .run/journeys/project/core/clock.php | 3    | relative_date  | reads system time (DateTimeImmutable)                   |                  | Critical |
+| .run/journeys/project/core/clock.php | 5    | partial_format | reads system time (DateTimeImmutable::createFromFormat) |                  | Critical |
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 2 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
+exit=3
+
+$ bin/explicitness-checker .run/journeys/project/core/cart.php
+Analyzing...
+
+Results:
+
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+| File                                | Line | Function       | Implicit Inputs | Implicit Outputs        | Severity |
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+| .run/journeys/project/core/cart.php | 3    | shared_object  |                 | wrote to argument $cart | Serious  |
+| .run/journeys/project/core/cart.php | 4    | reference_sort |                 | wrote to argument $cart | Serious  |
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
+exit=2
+
+$ bin/explicitness-checker .run/journeys/project
+Analyzing...
+
+Results:
+
++-----------------------------------------------+------+-----------------+------------------------------+-------------------------+----------+
+| File                                          | Line | Function        | Implicit Inputs              | Implicit Outputs        | Severity |
++-----------------------------------------------+------+-----------------+------------------------------+-------------------------+----------+
+| .run/journeys/project/core/cart.php           | 3    | shared_object   |                              | wrote to argument $cart | Serious  |
+| .run/journeys/project/core/cart.php           | 4    | reference_sort  |                              | wrote to argument $cart | Serious  |
+| .run/journeys/project/generated/generated.php | 2    | generated_input | read from superglobal $_POST |                         | Serious  |
++-----------------------------------------------+------+-----------------+------------------------------+-------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 3 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
+exit=2
+
+$ bin/explicitness-checker --exclude=generated .run/journeys/project
+Analyzing...
+
+Results:
+
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+| File                                | Line | Function       | Implicit Inputs | Implicit Outputs        | Severity |
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+| .run/journeys/project/core/cart.php | 3    | shared_object  |                 | wrote to argument $cart | Serious  |
+| .run/journeys/project/core/cart.php | 4    | reference_sort |                 | wrote to argument $cart | Serious  |
++-------------------------------------+------+----------------+-----------------+-------------------------+----------+
+
+Summary:
+  Critical violations: 0 (exit code 3)
+  Serious violations: 2 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 2
+
+exit=2
+
+$ bin/explicitness-checker --include-pattern=clock\.php$ --include-pattern=cart\.php$ --exclude-pattern=cart\.php$ .run/journeys/project
+No implicit inputs or outputs found.
+exit=0
+
+$ bin/explicitness-checker --strict --include-pattern=clock\.php$ --include-pattern=cart\.php$ --exclude-pattern=cart\.php$ .run/journeys/project
+Analyzing...
+
+Results:
+
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+| File                                 | Line | Function       | Implicit Inputs                                         | Implicit Outputs | Severity |
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+| .run/journeys/project/core/clock.php | 3    | relative_date  | reads system time (DateTimeImmutable)                   |                  | Critical |
+| .run/journeys/project/core/clock.php | 5    | partial_format | reads system time (DateTimeImmutable::createFromFormat) |                  | Critical |
++--------------------------------------+------+----------------+---------------------------------------------------------+------------------+----------+
+
+Summary:
+  Critical violations: 2 (exit code 3)
+  Serious violations: 0 (exit code 2)
+  Minor violations: 0 (exit code 1)
+  Exit code: 3
+
+exit=3
+
+$ bin/explicitness-checker --include-pattern=( .run/journeys/project
+Invalid --include-pattern: Compilation failed: missing closing parenthesis at offset 1
+Usage: explicitness-checker [-h|--help] [-v|--verbose] [--strict] [--props] [--transitive] [--exclude=dir] [--include-pattern=pattern] [--exclude-pattern=pattern] [--min-explicitness=percent] /path/to/project
+exit=2
+
+Fixture hashes after analysis:
+c05819f033416a934f721b5279c099b7155115f2a462761e5b2fe91d165b0a20  .run/journeys/project/core/cart.php
+2d1f2b42f4d61076bba9e02caba991cbb3f8f4e9e8ab97c26904e81633883a33  .run/journeys/project/core/clock.php
+fa64f8ffa6ca74599170b7d5d6b323a1efa77f67cd4f72a731e7a94131cd99a5  .run/journeys/project/vendor/vendor.php
+ad713b3e897d549d181c0432372744fe8ba11c177b4f32384c46c0635d7c23e1  .run/journeys/project/generated/generated.php

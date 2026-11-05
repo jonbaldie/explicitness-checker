@@ -1,6 +1,6 @@
 # Exploratory testing: output, severity, and PHPStan baselines (2026-10-28)
 
-This pass tested `main` at `5d6c9dbf930fbad2f15e37e4c1a1066ad0fc4bb2`. It found no confirmed product bugs. The previous [transitive, shell, and gate pass](2026-10-24-transitive-shell-and-gate.md) covered different scenarios.
+This pass tested `main` at `5d6c9dbf930fbad2f15e37e4c1a1066ad0fc4bb2`. It found no confirmed product bugs. The previous [transitive, shell, and gate pass](2026-10-24-transitive-shell-and-gate.md) covered different scenarios. The later [clock, mutation, and file selection pass](2026-11-05-clock-mutation-and-selection.md) covers additional CLI journeys.
 
 ## Setup and evidence
 
