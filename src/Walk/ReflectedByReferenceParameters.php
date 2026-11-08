@@ -16,12 +16,7 @@ use PhpParser\Node\Expr;
  */
 class ReflectedByReferenceParameters implements ByReferenceParameters
 {
-    /**
-     * @var array<string, list<\ReflectionParameter>|null> by lower-case function
-     *                                                     name; null for functions
-     *                                                     that aren't built-ins
-     */
-    protected array $parameters = [];
+    protected ?ReflectedParameterCache $cache = null;
 
     public function isBuiltin(string $function): bool
     {
@@ -40,18 +35,20 @@ class ReflectedByReferenceParameters implements ByReferenceParameters
     {
         $key = strtolower($function);
 
-        return array_key_exists($key, $this->parameters) ? $this->parameters[$key] : $this->reflect($function);
+        $entry = $this->cache?->find($key);
+
+        return $entry === null ? $this->reflect($function) : $entry[0];
     }
 
     /** Cache advancement is explicit; existing snapshots never change. */
     public function withFunction(string $function): self
     {
         $key = strtolower($function);
-        if (array_key_exists($key, $this->parameters)) {
+        if ($this->cache?->find($key) !== null) {
             return $this;
         }
         $next = clone $this;
-        $next->parameters[$key] = $next->reflect($function);
+        $next->cache = ($this->cache ?? new ReflectedParameterCache())->with($key, $next->reflect($function));
 
         return $next;
     }
