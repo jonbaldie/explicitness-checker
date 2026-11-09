@@ -15,8 +15,9 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\VariadicPlaceholder;
 
 /**
- * Check every installed php-parser node class with one fabricated instance,
- * plus selected call and variable shapes, in both read and write modes.
+ * Check every concrete node class in php-parser's PhpParser/Node directory
+ * with one fabricated instance, plus selected call and variable shapes, in
+ * both read and write modes.
  * This is a finite sample of node shapes, not a proof over all instances.
  *
  * Exit 0 means no checked instance was claimed by more than one rule. Exit 1
@@ -62,7 +63,7 @@ class FixedByReferenceParameters implements ByReferenceParameters
 }
 
 /**
- * Builds one instance of every concrete php-parser node class.
+ * Builds one instance of every concrete node class in php-parser's Node directory.
  */
 class NodeWitnessFactory
 {
@@ -72,7 +73,7 @@ class NodeWitnessFactory
     protected array $building = [];
 
     /**
-     * @return list<Node> one witness for each concrete PhpParser\Node class
+     * @return list<Node> one witness per concrete class in php-parser's Node directory
      */
     public function allWitnesses(): array
     {

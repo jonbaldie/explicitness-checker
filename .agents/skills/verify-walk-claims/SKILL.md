@@ -7,7 +7,7 @@ description: "Check access-walk rule overlaps after changing claim rules or thei
 
 `AccessRules` walks a node with the first claim rule that returns a children list. The rules are meant to claim disjoint kinds of node, so the order of the rule list decides nothing (`src/Walk/AccessRules.php` says so, issue #57). When two rules claim the same node, the first wins silently. The checker can then report the wrong implicit reads and writes.
 
-`tests/AccessRulesTest.php` checks node instances in `tests/Fixtures` and `src`. `tools/verify-walk-claims.php` also checks one fabricated instance of every concrete node class in the installed `nikic/php-parser`, plus selected call and variable shapes. This is a bounded check, not a proof for every possible node instance.
+`tests/AccessRulesTest.php` checks node instances in `tests/Fixtures` and `src`. `tools/verify-walk-claims.php` also checks one fabricated instance of every concrete node class under the installed `nikic/php-parser/lib/PhpParser/Node` directory, plus selected call and variable shapes. This is a bounded check, not a proof for every possible node instance.
 
 ## Run it
 
@@ -24,7 +24,7 @@ Run it and review the claim predicates when you change any of these:
 - a helper those predicates call: `src/GlobalsArray.php` (`isFetch`), `src/VariableName.php` (`of`), `src/Superglobals.php` (`includes`), `src/LiteralCallable.php` (`referenceForwardingFunction`, `directCall`, `callback`), `src/Scope/ScopeBoundary.php` (`opensScope`), `src/Walk/ReferenceDestructuring.php` (`bindsReference`)
 - `src/Walk/ByReferenceParameters.php` or `src/Walk/ReflectedByReferenceParameters.php` (the harness pins its own catalogue, but a signature change here breaks the harness compile)
 
-Rerun it after `composer update` changes `nikic/php-parser`. The check enumerates concrete node classes in the installed vendor tree. If a new class cannot be fabricated, update the factory before relying on the result.
+Rerun it after `composer update` changes `nikic/php-parser`. If a new class in that directory cannot be fabricated, update the factory before relying on the result.
 
 ## Read a failure
 
@@ -44,6 +44,7 @@ Sync commit: `591fcad`, confirmed 2026-11-08 against `nikic/php-parser` v5.9.0 f
 
 The check calls `children()` on the 13 claim rules listed above. At the sync commit, `ByReferenceCallRule` is the only rule whose decision to claim depends on node properties rather than class. The other listed helpers affect the returned children, not the decision to claim. The check does not cover:
 
+- node classes outside the parser's `PhpParser/Node` directory, such as pretty-printer internals
 - all node property combinations, custom node subclasses, or functions outside the fixed catalogue
 - custom `RuleChain::children()` implementations, because the check flattens chains under the base first-match semantics
 - whether a claiming rule returns the correct reads and writes
