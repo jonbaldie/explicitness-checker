@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JonBaldie\ExplicitnessChecker\Cli;
 
+use ErrorException;
+
 /**
  * Which PHP files to check: excluded directories (`--exclude`) and the
  * `--include-pattern` / `--exclude-pattern` regular expressions.
@@ -176,13 +178,21 @@ class FileFilter
      */
     protected function compileError(string $delimited): ?string
     {
-        if (@preg_match($delimited, '') !== false) {
-            return null;
-        }
-        $message = error_get_last()['message'] ?? '';
+        set_error_handler(static function (int $severity, string $message): void {
+            throw new ErrorException($message, 0, $severity);
+        }, E_WARNING);
+        try {
+            preg_match($delimited, '');
 
-        return str_starts_with($message, self::WARNING_PREFIX)
-            ? substr($message, strlen(self::WARNING_PREFIX))
-            : $message;
+            return null;
+        } catch (ErrorException $error) {
+            $message = $error->getMessage();
+
+            return str_starts_with($message, self::WARNING_PREFIX)
+                ? substr($message, strlen(self::WARNING_PREFIX))
+                : $message;
+        } finally {
+            restore_error_handler();
+        }
     }
 }
