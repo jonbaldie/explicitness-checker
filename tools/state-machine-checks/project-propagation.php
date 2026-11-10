@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use JonBaldie\ExplicitnessChecker\Cli\FileCheckResult;
+use JonBaldie\ExplicitnessChecker\FunctionResult;
 use JonBaldie\ExplicitnessChecker\Mode;
 use JonBaldie\ExplicitnessChecker\Project\ProjectAnalysis;
 use JonBaldie\ExplicitnessChecker\SourceChecker;
@@ -36,6 +37,9 @@ function verifyGraph(int $size, int $edges, int $seedBits): void
     $ast = $checker->parse($source);
     $file = new FileCheckResult('generated.php', $checker->checkAst($ast, new Mode(false, false)), null, $ast);
     $result = (new ProjectAnalysis())->propagate([$file])[0]->getFunctions();
+    $expectedNames = array_map(static fn (int $position): string => 'n' . $position, range(0, $size - 1));
+    $actualNames = array_map(static fn (FunctionResult $function): string => $function->getName(), $result);
+    expectSame("size={$size} edges={$edges} seeds={$seedBits} functions", $expectedNames, $actualNames);
     foreach ($result as $start => $function) {
         $seen = [];
         $pending = [$start];
