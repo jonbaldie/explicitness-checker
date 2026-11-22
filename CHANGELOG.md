@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-11-22
+
+### Fixed
+
+- Preserve useful invalid include and exclude regex diagnostics when the checker runs under a caller's error handler (#205).
+
+### Changed
+
+- Avoid copying cached reflected parameter snapshots during repeated lookups (#202). Findings remain unchanged.
+
 ## [1.4.2] - 2026-11-05
 
 ### Changed
@@ -178,7 +188,8 @@ First tagged release of the CLI and the PHPStan extension.
 - Repeated `--exclude-pattern` / `--include-pattern` flags accumulate (#26)
 - PHP 8.4 property hooks are named after their property and hook instead of `{closure}` (#27)
 
-[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/jonbaldie/explicitness-checker/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jonbaldie/explicitness-checker/compare/v1.3.2...v1.4.0
