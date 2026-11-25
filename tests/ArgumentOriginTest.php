@@ -53,6 +53,7 @@ class ArgumentOriginTest extends TestCase
         yield 'clone chain' => ['$first = clone $param; $local = $first; $local->x = 1;'];
         yield 'fresh other branch' => ['$local = new stdClass(); if ($flag) { $local = $param; } else { $local->x = 1; }'];
         yield 'conditional clone top level' => ['$local = $flag ? clone $param : new stdClass(); $local->x = 1;'];
+        yield 'match clone and new arms' => ['$local = match ($flag) { 1 => clone $param, default => new stdClass() }; $local->x = 1;'];
         yield 'unknown return' => ['$local = id($param); $local->x = 1;'];
     }
 
@@ -85,6 +86,10 @@ class ArgumentOriginTest extends TestCase
         yield 'try finally' => ['try { $local = $param; } finally { $local->x = 1; }', ['param']];
         yield 'catch possible prior assignment' => ['try { $local = $param; } catch (Exception $error) { $local->x = 1; }', ['param']];
         yield 'nested branches' => ['if ($flag) { if ($flag) { $local = $param; } else { $local = $other; } } $local->x = 1;', ['param', 'other']];
+        yield 'match arms' => ['$local = match ($flag) { 1 => $param, default => $other }; $local->x = 1;', ['param', 'other']];
+        yield 'match selections' => ['$local = match ($flag) { 1 => $param->item, default => $param->other }; $local->x = 1;', ['param']];
+        yield 'match subject not selected' => ['$local = match ($param) { 1 => $other, default => $other }; $local->x = 1;', ['other']];
+        yield 'nested match arms' => ['$local = match ($flag) { 1 => match ($flag) { 1 => $param, default => $other }, default => $param }; $local->x = 1;', ['param', 'other']];
         yield 'alias snapshot' => ['$local = $param; $param = clone $param; $local->x = 1;', ['param']];
         yield 'local snapshot' => ['$first = $param; $local = $first; $first = new stdClass(); $local->x = 1;', ['param']];
         yield 'same branch clone suppresses only own writes' => ['$local = $param; if ($flag) { $local = clone $local; $local->x = 1; } $local->parent->x = 1;', ['param']];
