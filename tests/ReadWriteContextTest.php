@@ -24,6 +24,8 @@ class ReadWriteContextTest extends TestCase
 
     protected const KEYED_DESTRUCTURING_FIXTURE = Process::ROOT . '/tests/Fixtures/keyed-destructuring.php';
 
+    protected const CALL_ARGUMENTS_FIXTURE = Process::ROOT . '/tests/Fixtures/call-arguments.php';
+
     protected const DYNAMIC_STATIC_PROPERTY_CLASS_FIXTURE = Process::ROOT . '/test-fixtures/read-write-context/static-class.php';
 
     protected const UNSET_REFERENCE_BINDING_FIXTURE = Process::ROOT . '/tests/Fixtures/unset-reference-binding.php';
@@ -249,6 +251,26 @@ class ReadWriteContextTest extends TestCase
                 'write_global_value' => [[], ['wrote to global variable $out']],
             ],
             $this->reportedRowsAtPath(self::KEYED_DESTRUCTURING_FIXTURE),
+        );
+    }
+
+    /**
+     * #207: arguments of a call whose result is a write target are read;
+     * only a genuine by-reference built-in or a genuine argument write is
+     * reported as written.
+     */
+    public function testCallArgumentsOnWriteTargetAreRead(): void
+    {
+        self::assertSame(
+            [
+                'call_argument_global_write' => [['read from global variable $gg'], []],
+                'call_argument_global_method_write' => [['read from global variable $gg'], []],
+                'call_argument_builtin_write' => [[], ['wrote to argument $r']],
+                'call_argument_property_write' => [[], ['wrote to argument $r']],
+                'call_argument_element_write' => [[], ['wrote to argument $r']],
+                'call_argument_new_global_write' => [['read from global variable $gg'], []],
+            ],
+            $this->reportedRowsAtPath(self::CALL_ARGUMENTS_FIXTURE),
         );
     }
 

@@ -66,6 +66,8 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
 
     protected const KEYED_DESTRUCTURING_FIXTURE = Process::ROOT . '/tests/Fixtures/keyed-destructuring.php';
 
+    protected const CALL_ARGUMENTS_FIXTURE = Process::ROOT . '/tests/Fixtures/call-arguments.php';
+
     protected const RUNTIME_CONFIG_FIXTURE = Process::ROOT . '/tests/Fixtures/runtime-config.php';
 
     protected const STRICT_CATALOGUE_ADDITIONS_FIXTURE = Process::ROOT . '/tests/Fixtures/strict-catalogue-additions.php';
@@ -605,6 +607,24 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
             [48, 'staticProperty', 'read_static_key read from static property KeyedDestructureProbe::$staticKey.'],
             [54, 'globalVariable', 'read_foreach_key read from global variable $key.'],
             [61, 'globalVariable', 'write_global_value wrote to global variable $out.'],
+        ]);
+    }
+
+    /**
+     * #207: the PHPStan rule reads arguments of a call whose result is a
+     * write target, like the CLI.
+     */
+    public function testCallArgumentsOnWriteTargetAreRead(): void
+    {
+        $this->props = true;
+
+        $this->assertErrorsAtPath(self::CALL_ARGUMENTS_FIXTURE, [
+            [36, 'globalVariable', 'call_argument_global_write read from global variable $gg.'],
+            [77, 'globalVariable', 'call_argument_global_method_write read from global variable $gg.'],
+            [103, 'globalVariable', 'call_argument_new_global_write read from global variable $gg.'],
+            [82, 'argumentMutation', 'call_argument_builtin_write wrote to argument $r.'],
+            [87, 'argumentMutation', 'call_argument_property_write wrote to argument $r.'],
+            [92, 'argumentMutation', 'call_argument_element_write wrote to argument $r.'],
         ]);
     }
 
