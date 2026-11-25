@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Call arguments inside a write target are walked as reads, so `make($r)->p = 1` no longer reports `$r` as written to when it is only passed to `make()` (#207). This also covers method, static, nullsafe, and constructor calls. Genuine by-reference built-in argument writes and genuine argument writes are still reported. This removes spurious Serious rows, which can lower a run's exit code from 2 to 0, and a read-only global argument now reports as read from the global variable rather than written to it.
+
 ## [1.4.3] - 2026-11-22
 
 ### Fixed

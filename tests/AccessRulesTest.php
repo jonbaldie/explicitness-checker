@@ -54,13 +54,70 @@ class AccessRulesTest extends TestCase
      */
     public function testUnclaimedNodeWalksEverySubNodeInItsOwnMode(): void
     {
+        $sum = $this->firstStatement('$a + $b;');
+        self::assertInstanceOf(Stmt\Expression::class, $sum);
+        self::assertInstanceOf(Expr\BinaryOp\Plus::class, $sum->expr);
+
+        self::assertSame(
+            [[$sum->expr->left, true], [$sum->expr->right, true]],
+            (new AccessRules())->childrenOf($sum->expr, true),
+        );
+        self::assertSame(
+            [[$sum->expr->left, false], [$sum->expr->right, false]],
+            (new AccessRules())->childrenOf($sum->expr, false),
+        );
+    }
+
+    /**
+     * #207: a call no other rule claims walks every child as a read, even
+     * when the call result is a write target.
+     */
+    public function testUnclaimedCallWalksEverySubNodeAsRead(): void
+    {
+        $rules = new AccessRules();
+
         $call = $this->firstStatement('f($a, $b);');
         self::assertInstanceOf(Stmt\Expression::class, $call);
         self::assertInstanceOf(Expr\FuncCall::class, $call->expr);
-
         self::assertSame(
-            [[$call->expr->name, true], [$call->expr->args[0], true], [$call->expr->args[1], true]],
-            (new AccessRules())->childrenOf($call->expr, true),
+            [[$call->expr->name, false], [$call->expr->args[0], false], [$call->expr->args[1], false]],
+            $rules->childrenOf($call->expr, true),
+        );
+        self::assertSame(
+            [[$call->expr->name, false], [$call->expr->args[0], false], [$call->expr->args[1], false]],
+            $rules->childrenOf($call->expr, false),
+        );
+
+        $method = $this->firstStatement('$o->m($a);');
+        self::assertInstanceOf(Stmt\Expression::class, $method);
+        self::assertInstanceOf(Expr\MethodCall::class, $method->expr);
+        self::assertSame(
+            [[$method->expr->var, false], [$method->expr->name, false], [$method->expr->args[0], false]],
+            $rules->childrenOf($method->expr, true),
+        );
+
+        $nullsafe = $this->firstStatement('$o?->m($a);');
+        self::assertInstanceOf(Stmt\Expression::class, $nullsafe);
+        self::assertInstanceOf(Expr\NullsafeMethodCall::class, $nullsafe->expr);
+        self::assertSame(
+            [[$nullsafe->expr->var, false], [$nullsafe->expr->name, false], [$nullsafe->expr->args[0], false]],
+            $rules->childrenOf($nullsafe->expr, true),
+        );
+
+        $new = $this->firstStatement('new C($a);');
+        self::assertInstanceOf(Stmt\Expression::class, $new);
+        self::assertInstanceOf(Expr\New_::class, $new->expr);
+        self::assertSame(
+            [[$new->expr->class, false], [$new->expr->args[0], false]],
+            $rules->childrenOf($new->expr, true),
+        );
+
+        $static = $this->firstStatement('C::s($a);');
+        self::assertInstanceOf(Stmt\Expression::class, $static);
+        self::assertInstanceOf(Expr\StaticCall::class, $static->expr);
+        self::assertSame(
+            [[$static->expr->class, false], [$static->expr->name, false], [$static->expr->args[0], false]],
+            $rules->childrenOf($static->expr, true),
         );
     }
 
