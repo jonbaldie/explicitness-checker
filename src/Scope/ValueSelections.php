@@ -31,8 +31,22 @@ class ValueSelections
         if ($node instanceof Expr\BinaryOp\Coalesce) {
             return self::merge($values->of($node->left), $values->of($node->right));
         }
+        if ($node instanceof Expr\Match_) {
+            return $this->matchOrigins($node, $values);
+        }
 
         return [];
+    }
+
+    /** @return array<string, string> */
+    protected function matchOrigins(Expr\Match_ $node, ValueOrigins $values): array
+    {
+        $merged = [];
+        foreach ($node->arms as $arm) {
+            $merged = self::merge($merged, $values->of($arm->body));
+        }
+
+        return $merged;
     }
 
     /**
