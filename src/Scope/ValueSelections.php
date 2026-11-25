@@ -25,6 +25,13 @@ class ValueSelections
         if ($node instanceof Expr\ArrayDimFetch) {
             return self::selected($values->of($node->var), true);
         }
+
+        return $this->mergedOrigins($node, $values) ?? [];
+    }
+
+    /** @return array<string, string>|null */
+    protected function mergedOrigins(Node $node, ValueOrigins $values): ?array
+    {
         if ($node instanceof Expr\Ternary) {
             return self::merge($values->of($node->if ?? $node->cond), $values->of($node->else));
         }
@@ -34,8 +41,22 @@ class ValueSelections
         if ($node instanceof Expr\Match_) {
             return $this->matchOrigins($node, $values);
         }
+        if ($node instanceof Expr\Array_) {
+            return $this->arrayOrigins($node, $values);
+        }
 
-        return [];
+        return null;
+    }
+
+    /** @return array<string, string> */
+    protected function arrayOrigins(Expr\Array_ $node, ValueOrigins $values): array
+    {
+        $merged = [];
+        foreach ($node->items as $item) {
+            $merged = self::merge($merged, $values->of($item->value));
+        }
+
+        return $merged;
     }
 
     /** @return array<string, string> */

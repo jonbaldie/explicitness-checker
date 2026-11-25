@@ -54,6 +54,9 @@ class ArgumentOriginTest extends TestCase
         yield 'fresh other branch' => ['$local = new stdClass(); if ($flag) { $local = $param; } else { $local->x = 1; }'];
         yield 'conditional clone top level' => ['$local = $flag ? clone $param : new stdClass(); $local->x = 1;'];
         yield 'match clone and new arms' => ['$local = match ($flag) { 1 => clone $param, default => new stdClass() }; $local->x = 1;'];
+        yield 'literal fresh items' => ['$local = [new stdClass(), new stdClass()][0]; $local->x = 1;'];
+        yield 'literal origin-less items' => ['$local = [1, "x"][0]; $local->x = 1;'];
+        yield 'literal key only' => ['$local = [$param => 1][0]; $local->x = 1;'];
         yield 'unknown return' => ['$local = id($param); $local->x = 1;'];
     }
 
@@ -90,6 +93,8 @@ class ArgumentOriginTest extends TestCase
         yield 'match selections' => ['$local = match ($flag) { 1 => $param->item, default => $param->other }; $local->x = 1;', ['param']];
         yield 'match subject not selected' => ['$local = match ($param) { 1 => $other, default => $other }; $local->x = 1;', ['other']];
         yield 'nested match arms' => ['$local = match ($flag) { 1 => match ($flag) { 1 => $param, default => $other }, default => $param }; $local->x = 1;', ['param', 'other']];
+        yield 'literal two origins' => ['$local = [$param, $other][0]; $local->x = 1;', ['param', 'other']];
+        yield 'literal item origins' => ['$local = [$param->item, $other->item][0]; $local->x = 1;', ['param', 'other']];
         yield 'alias snapshot' => ['$local = $param; $param = clone $param; $local->x = 1;', ['param']];
         yield 'local snapshot' => ['$first = $param; $local = $first; $first = new stdClass(); $local->x = 1;', ['param']];
         yield 'same branch clone suppresses only own writes' => ['$local = $param; if ($flag) { $local = clone $local; $local->x = 1; } $local->parent->x = 1;', ['param']];
@@ -170,5 +175,13 @@ class ArgumentOriginTest extends TestCase
         yield 'foreach destructuring' => ['foreach ($param as [$local]) {', '$local->x = 1; }'];
         yield 'foreach key shadows iterable' => ['$items = $param; foreach ($items as $items => $local) {', '$local->x = 1; }'];
         yield 'reference handle' => ['$local = &$param;', '$local->x = 1;'];
+        yield 'literal indexed selection' => ['$local = [$param][0];', '$local->items = [];'];
+        yield 'literal item selection' => ['$local = [$param->item, $param->other][0];', '$local->items = [];'];
+        yield 'literal item assignment' => ['$local = [$param->item][0];', '$local->items = [];'];
+        yield 'literal destructure' => ['[$local] = [$param];', '$local->items = [];'];
+        yield 'literal item destructure' => ['[$local] = [$param->item];', '$local->items = [];'];
+        yield 'literal foreach' => ['foreach ([$param] as $local) {', '$local->items = []; }'];
+        yield 'literal item foreach' => ['foreach ([$param->item] as $local) {', '$local->items = []; }'];
+        yield 'literal stored then indexed' => ['$copy = [$param]; $local = $copy[0];', '$local->items = [];'];
     }
 }
