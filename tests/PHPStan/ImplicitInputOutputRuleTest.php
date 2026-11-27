@@ -1182,6 +1182,33 @@ class ImplicitInputOutputRuleTest extends RuleTestCase
         self::assertSame($this->cliMessages($fixture, $cliFlags), $ruleMessages);
     }
 
+    /**
+     * #210: an object or array cast keeps the source origin; other casts and
+     * fresh or unrelated values stay clean. The rule and the CLI agree.
+     */
+    public function testCastOriginsAgreeWithTheCli(): void
+    {
+        $path = Process::ROOT . '/tests/Fixtures/cast-origins.php';
+        $this->assertErrorsAtPath($path, [
+            [3, 'argumentMutation', 'c1 wrote to argument $a.'],
+            [4, 'argumentMutation', 'c2 wrote to argument $a.'],
+            [5, 'argumentMutation', 'c4 wrote to argument $a.'],
+        ]);
+
+        $messages = [];
+        foreach (CheckedFile::violations($path) as $violation) {
+            foreach (array_merge($violation->getInputs(), $violation->getOutputs()) as $description) {
+                $messages[] = $violation->getFunction() . ' ' . $description . '.';
+            }
+        }
+        sort($messages);
+        self::assertSame([
+            'c1 wrote to argument $a.',
+            'c2 wrote to argument $a.',
+            'c4 wrote to argument $a.',
+        ], $messages);
+    }
+
     public function testCallerOriginsReportRootArgumentsAtThePropertyWrite(): void
     {
         $this->assertErrorsAtPath(Process::ROOT . '/tests/Fixtures/argument-origins.php', [

@@ -58,6 +58,20 @@ class ArgumentOriginTest extends TestCase
         yield 'literal origin-less items' => ['$local = [1, "x"][0]; $local->x = 1;'];
         yield 'literal key only' => ['$local = [$param => 1][0]; $local->x = 1;'];
         yield 'unknown return' => ['$local = id($param); $local->x = 1;'];
+        yield 'object cast of fresh parameter' => ['$param = new stdClass(); $local = (object) $param; $local->p = 1;'];
+        yield 'array cast of fresh parameter' => ['$param = new stdClass(); $local = (array) $param; $local->p = 1;'];
+        yield 'object cast of clone' => ['$local = clone $param; $local = (object) $local; $local->p = 1;'];
+        yield 'object cast of unrelated local' => ['$other = new stdClass(); $local = (object) $other; $local->p = 1;'];
+        yield 'integer cast' => ['$local = (int) $param; $local->p = 1;'];
+        yield 'integer keyword cast' => ['$local = (integer) $param; $local->p = 1;'];
+        yield 'string cast' => ['$local = (string) $param; $local->p = 1;'];
+        yield 'binary cast' => ['$local = (binary) $param; $local->p = 1;'];
+        yield 'bool cast' => ['$local = (bool) $param; $local->p = 1;'];
+        yield 'boolean cast' => ['$local = (boolean) $param; $local->p = 1;'];
+        yield 'float cast' => ['$local = (float) $param; $local->p = 1;'];
+        yield 'double cast' => ['$local = (double) $param; $local->p = 1;'];
+        yield 'real cast' => ['$local = (real) $param; $local->p = 1;'];
+        yield 'unset cast' => ['$local = (unset) $param; $local->p = 1;'];
     }
 
     /** @dataProvider joinedOrigins */
@@ -93,6 +107,8 @@ class ArgumentOriginTest extends TestCase
         yield 'match selections' => ['$local = match ($flag) { 1 => $param->item, default => $param->other }; $local->x = 1;', ['param']];
         yield 'match subject not selected' => ['$local = match ($param) { 1 => $other, default => $other }; $local->x = 1;', ['other']];
         yield 'nested match arms' => ['$local = match ($flag) { 1 => match ($flag) { 1 => $param, default => $other }, default => $param }; $local->x = 1;', ['param', 'other']];
+        yield 'object cast of coalesced roots' => ['$local = (object) ($param ?? $other); $local->p = 1;', ['param', 'other']];
+        yield 'array cast of coalesced roots' => ['$local = (array) ($param ?? $other); $local[0]->p = 1;', ['param', 'other']];
         yield 'literal two origins' => ['$local = [$param, $other][0]; $local->x = 1;', ['param', 'other']];
         yield 'literal item origins' => ['$local = [$param->item, $other->item][0]; $local->x = 1;', ['param', 'other']];
         yield 'alias snapshot' => ['$local = $param; $param = clone $param; $local->x = 1;', ['param']];
@@ -183,5 +199,28 @@ class ArgumentOriginTest extends TestCase
         yield 'literal foreach' => ['foreach ([$param] as $local) {', '$local->items = []; }'];
         yield 'literal item foreach' => ['foreach ([$param->item] as $local) {', '$local->items = []; }'];
         yield 'literal stored then indexed' => ['$copy = [$param]; $local = $copy[0];', '$local->items = [];'];
+        yield 'object cast' => ['$local = (object) $param;', '$local->p = 1;'];
+        yield 'array cast element' => ['$local = (array) $param;', '$local[0]->p = 1;'];
+        yield 'object cast of property' => ['$local = (object) $param->item;', '$local->p = 1;'];
+        yield 'array cast of property element' => ['$local = (array) $param->item;', '$local[0]->p = 1;'];
+        yield 'object cast direct' => ['', '((object) $param)->p = 1;'];
+        yield 'array cast direct' => ['', '((array) $param)[0]->p = 1;'];
+    }
+
+    public function testIssueFixtureCastsReportTheArgument(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function c1($a) { $x = (object) $a; $x->p = 1; }
+            function c2($a) { $x = (array) $a; $x[0]->p = 1; }
+            function c4($a) { $x = $a->item; $x->p = 1; }
+            PHP;
+        $results = (new SourceChecker())->check($source, new Mode(false, false));
+
+        self::assertSame(['c1', 'c2', 'c4'], array_map(static fn ($result) => $result->getName(), $results));
+        self::assertSame(
+            ['wrote to argument $a', 'wrote to argument $a', 'wrote to argument $a'],
+            array_map(static fn ($result) => $result->getOutputs()[0]->getDescription(), $results),
+        );
     }
 }
