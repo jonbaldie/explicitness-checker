@@ -44,8 +44,28 @@ class ValueSelections
         if ($node instanceof Expr\Array_) {
             return $this->arrayOrigins($node, $values);
         }
+        if ($node instanceof Expr\Cast) {
+            return $this->castOrigins($node, $values);
+        }
 
         return null;
+    }
+
+    /**
+     * Object and array casts keep the source origins. `(object)` is the
+     * identity on objects, and `(array)` copies the container but keeps the
+     * same element handles. Other casts do not share those handles.
+     *
+     * @return array<string, string>
+     */
+    protected function castOrigins(Expr\Cast $node, ValueOrigins $values): array
+    {
+        $kind = $node->getType();
+        if ($kind === 'Expr_Cast_Object' || $kind === 'Expr_Cast_Array') {
+            return $values->of($node->expr);
+        }
+
+        return [];
     }
 
     /** @return array<string, string> */
